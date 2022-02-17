@@ -1,0 +1,11 @@
+output   = "models"
+wipe     = true
+no-tests = true
+
+[mysql]
+  dbname  = "mhksshop"
+  host    = "localhost"
+  port    = 3306
+  user    = "root"
+  pass    = "root"
+  sslmode = "false"
