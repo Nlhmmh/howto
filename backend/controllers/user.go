@@ -8,7 +8,7 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/volatiletech/null/v8"
+	"github.com/volatiletech/null"
 	"golang.org/x/crypto/bcrypt"
 
 	"github.com/gin-gonic/gin"
@@ -20,19 +20,22 @@ const dateLayout = "2006-01-02"
 
 // *********************************************** //
 
-// GetAllUsers - Get All Users
-func GetAllUsers(c *gin.Context) {
+// FetchAllUsers - Fetch All Users
+func FetchAllUsers(c *gin.Context) {
 
-	fmt.Println("API -- GetAllUsers")
+	fmt.Println("API -- FetchAllUsers")
 
 	ctx := context.Background()
-	db := utils.GetDB()
 
 	// Get All Users
-	users, err := models.Users().All(ctx, db)
+	users, err := models.Users().AllG(ctx)
 	if err != nil {
-		fmt.Printf("Server Error - Get All Users %s\n", err.Error())
-		c.AbortWithStatus(http.StatusInternalServerError)
+		utils.ErrorProcessAPI(
+			"Get All Users",
+			http.StatusInternalServerError,
+			err,
+			c,
+		)
 		return
 	}
 
@@ -42,222 +45,185 @@ func GetAllUsers(c *gin.Context) {
 
 // *********************************************** //
 
-// UserRegister - User Register
-func UserRegister(c *gin.Context) {
+// FetchUser - Fetch User
+func FetchUser(c *gin.Context) {
+
+	fmt.Println("API -- FetchUser")
+
+	ctx := context.Background()
+
+	// Get userID
+	_, userID, ok := utils.CheckPostFormInteger(c.PostForm("userID"), "userID", c)
+	if !ok {
+		return
+	}
+
+	// Get User
+	user, err := models.FindUserG(ctx, userID)
+	if err != nil {
+		utils.ErrorProcessAPI(
+			"Get User",
+			http.StatusInternalServerError,
+			err,
+			c,
+		)
+		return
+	}
+
+	c.JSON(http.StatusOK, user)
+
+}
+
+// *********************************************** //
+
+// RegisterUser - User Register
+func RegisterUser(c *gin.Context) {
 
 	fmt.Println("API -- UserRegister")
 
-	ctx := context.Background()
-	tx, err := utils.GetDB().BeginTx(ctx, nil)
-	if err != nil {
-		fmt.Println("Server Error : Transaction Begin Failed - ", err.Error())
-		c.AbortWithStatus(http.StatusInternalServerError)
-		return
-	}
-
 	// Get displayName
-	displayName, ok := utils.CheckPostFormString(c.PostForm("displayName"), "displayName")
+	displayName, ok := utils.CheckPostFormString(c.PostForm("displayName"), "displayName", c)
 	if !ok {
-		c.AbortWithStatus(http.StatusBadRequest)
 		return
 	}
 
-	// Get firstName
-	firstName, ok := utils.CheckPostFormString(c.PostForm("firstName"), "firstName")
+	// Get name
+	name, ok := utils.CheckPostFormString(c.PostForm("name"), "name", c)
 	if !ok {
-		c.AbortWithStatus(http.StatusBadRequest)
-		return
-	}
-
-	// Get lastName
-	lastName, ok := utils.CheckPostFormString(c.PostForm("lastName"), "lastName")
-	if !ok {
-		c.AbortWithStatus(http.StatusBadRequest)
 		return
 	}
 
 	// Get birthDate
-	birthDate, ok := utils.CheckPostFormString(c.PostForm("birthDate"), "birthDate")
+	birthDate, ok := utils.CheckPostFormString(c.PostForm("birthDate"), "birthDate", c)
 	if !ok {
-		c.AbortWithStatus(http.StatusBadRequest)
 		return
 	}
 	// Parse BirthDate
 	birthDateDate, err := time.Parse(dateLayout, birthDate)
 	if err != nil {
-		fmt.Printf("Bad Request -Parse BirthDate %s\n", err.Error())
-		tx.Rollback()
-		c.AbortWithStatus(http.StatusBadRequest)
-		return
-	}
-
-	// Get email
-	email, ok := utils.CheckPostFormString(c.PostForm("email"), "email")
-	if !ok {
-		c.AbortWithStatus(http.StatusBadRequest)
-		return
-	}
-
-	// Get password
-	password, ok := utils.CheckPostFormString(c.PostForm("password"), "password")
-	if !ok {
-		c.AbortWithStatus(http.StatusBadRequest)
-		return
-	}
-	hashedPassword, _ := bcrypt.GenerateFromPassword([]byte(password), 10)
-
-	// Get postCode
-	postCode, ok := utils.CheckPostFormString(c.PostForm("postCode"), "postCode")
-	if !ok {
-		c.AbortWithStatus(http.StatusBadRequest)
-		return
-	}
-
-	// Get address1
-	address1, ok := utils.CheckPostFormString(c.PostForm("address1"), "address1")
-	if !ok {
-		c.AbortWithStatus(http.StatusBadRequest)
-		return
-	}
-
-	// Get address2
-	address2, ok := utils.CheckPostFormString(c.PostForm("address2"), "address2")
-	if !ok {
-		c.AbortWithStatus(http.StatusBadRequest)
-		return
-	}
-
-	// Get address3
-	address3, ok := utils.CheckPostFormString(c.PostForm("address3"), "address3")
-	if !ok {
-		c.AbortWithStatus(http.StatusBadRequest)
+		utils.ErrorProcessAPI(
+			"Parse BirthDate",
+			http.StatusBadRequest,
+			err,
+			c,
+		)
 		return
 	}
 
 	// Get phone
-	phone, ok := utils.CheckPostFormString(c.PostForm("phone"), "phone")
+	// phone, ok := utils.CheckPostFormString(c.PostForm("phone"), "phone", c)
+	// if !ok {
+	// 	return
+	// }
+
+	// Get email
+	email, ok := utils.CheckPostFormString(c.PostForm("email"), "email", c)
 	if !ok {
-		c.AbortWithStatus(http.StatusBadRequest)
 		return
 	}
+
+	// Get password
+	password, ok := utils.CheckPostFormString(c.PostForm("password"), "password", c)
+	if !ok {
+		return
+	}
+	// Generate Hash Password
+	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(password), 10)
+	if err != nil {
+		utils.ErrorProcessAPI(
+			"Generate Hash Password",
+			http.StatusBadRequest,
+			err,
+			c,
+		)
+		return
+	}
+
+	// Get accountType
+	accountType, ok := utils.CheckPostFormString(c.PostForm("accountType"), "accountType", c)
+	if !ok {
+		return
+	}
+
+	ctx := context.Background()
 
 	// Insert User
 	user := new(models.User)
 	user.DisplayName = displayName
-	user.FirstName = null.StringFrom(firstName)
-	user.LastName = null.StringFrom(lastName)
-	user.BirthDate = birthDateDate
+	user.Name = name
+	user.BirthDate = null.TimeFrom(birthDateDate)
+	// user.Phone = null.StringFrom(phone)
 	user.Email = null.StringFrom(email)
 	user.Password = string(hashedPassword)
-	user.Phone = null.StringFrom(phone)
+	user.AccountType = accountType
+	user.AccountStatus = "active"
 
-	err = user.Insert(ctx, tx, boil.Infer())
+	err = user.InsertG(ctx, boil.Infer())
 	if err != nil {
-		fmt.Printf("Server Error - Insert User %s\n", err.Error())
-		tx.Rollback()
-		c.AbortWithStatus(http.StatusInternalServerError)
+		utils.ErrorProcessAPI(
+			"Insert User",
+			http.StatusInternalServerError,
+			err,
+			c,
+		)
 		return
 	}
-
-	// Insert User Address
-	userAddress := new(models.UserAddress)
-	userAddress.UserID = user.ID
-	userAddress.PostCode = postCode
-	userAddress.Address1 = address1
-	userAddress.Address2 = address2
-	userAddress.Address3 = address3
-
-	err = userAddress.Insert(ctx, tx, boil.Infer())
-	if err != nil {
-		fmt.Printf("Server Error - Insert User Address %s\n", err.Error())
-		tx.Rollback()
-		c.AbortWithStatus(http.StatusInternalServerError)
-		return
-	}
-
-	// Update User Default Address
-	user.DefaultAddress = null.IntFrom(int(userAddress.ID))
-
-	_, err = user.Update(ctx, tx, boil.Infer())
-	if err != nil {
-		fmt.Printf("Server Error - Update User Default Address %s\n", err.Error())
-		tx.Rollback()
-		c.AbortWithStatus(http.StatusInternalServerError)
-		return
-	}
-
-	tx.Commit()
-
-	var userAddressList models.UserAddressSlice
-	userAddressList = append(userAddressList, userAddress)
 
 	// Generate Token
 	token := GenerateToken(user.DisplayName, false)
 	user.Password = "*****"
 	c.JSON(http.StatusOK, &LoginResponse{
-		User:          user,
-		UserAddresses: userAddressList,
-		Token:         token,
+		User:  user,
+		Token: token,
 	})
 
 }
 
 // *********************************************** //
 
-// UserLogin - User Login
-func UserLogin(c *gin.Context) {
+// LoginUser - User Login
+func LoginUser(c *gin.Context) {
 
 	fmt.Println("API -- UserLogin")
 
 	ctx := context.Background()
-	db := utils.GetDB()
 
-	// Get displayName
-	displayName, ok := utils.CheckPostFormString(c.PostForm("displayName"), "displayName")
+	// Get emailOrDispName
+	emailOrDispName, ok := utils.CheckPostFormString(c.PostForm("emailOrDispName"), "emailOrDispName", c)
 	if !ok {
-		c.AbortWithStatus(http.StatusBadRequest)
 		return
 	}
 
-	// Get email
-	// email, ok := utils.CheckPostFormString(c.PostForm("email"), "email")
-	// if !ok {
-	// 	c.AbortWithStatus(http.StatusBadRequest)
-	// 	return
-	// }
-
 	// Get password
-	password, ok := utils.CheckPostFormString(c.PostForm("password"), "password")
+	password, ok := utils.CheckPostFormString(c.PostForm("password"), "password", c)
 	if !ok {
-		c.AbortWithStatus(http.StatusBadRequest)
 		return
 	}
 
 	// Find User
 	user, err := models.Users(
-		qm.Where("display_name=?", displayName),
-	).One(ctx, db)
+		qm.Or("display_name=?", emailOrDispName),
+		qm.Or("email=?", emailOrDispName),
+	).OneG(ctx)
 	if err != nil {
-		fmt.Printf("Server Error - Find User %s\n", err.Error())
-		c.AbortWithStatus(http.StatusInternalServerError)
+		utils.ErrorProcessAPI(
+			"Find User",
+			http.StatusInternalServerError,
+			err,
+			c,
+		)
 		return
 	}
 
 	// Check Password
 	err = bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(password))
 	if err != nil {
-		fmt.Printf("Bad Request - Password is wrong %s\n", err.Error())
-		c.AbortWithStatus(http.StatusBadRequest)
-		return
-	}
-
-	// Find User Addresses
-	userAddresses, err := models.UserAddresses(
-		qm.Where("user_id=?", user.ID),
-	).AllG(ctx)
-	if err != nil {
-		fmt.Printf("Server Error - Find User Addresses %s\n", err.Error())
-		c.AbortWithStatus(http.StatusInternalServerError)
+		utils.ErrorProcessAPI(
+			"Check Password",
+			http.StatusInternalServerError,
+			err,
+			c,
+		)
 		return
 	}
 
@@ -265,9 +231,8 @@ func UserLogin(c *gin.Context) {
 	token := GenerateToken(user.DisplayName, user.IsAdmin)
 	user.Password = "*****"
 	c.JSON(http.StatusOK, &LoginResponse{
-		User:          user,
-		UserAddresses: userAddresses,
-		Token:         token,
+		User:  user,
+		Token: token,
 	})
 
 }
@@ -280,32 +245,28 @@ func CheckUserDisplayName(c *gin.Context) {
 	fmt.Println("API -- CheckUserDisplayName")
 
 	ctx := context.Background()
-	db := utils.GetDB()
 
 	// Get displayName
-	displayName, ok := utils.CheckPostFormString(c.PostForm("displayName"), "displayName")
+	displayName, ok := utils.CheckPostFormString(c.PostForm("displayName"), "displayName", c)
 	if !ok {
-		c.AbortWithStatus(http.StatusBadRequest)
 		return
 	}
 
-	// Get email
-	// email, ok := utils.CheckPostFormString(c.PostForm("email"), "email")
-	// if !ok {
-	// 	c.AbortWithStatus(http.StatusBadRequest)
-	// 	return
-	// }
-
-	// Find User
-	users, err := models.Users(
+	// Find UserCount
+	userCount, err := models.Users(
 		qm.Where("display_name=?", displayName),
-	).All(ctx, db)
+	).CountG(ctx)
 	if err != nil {
-		fmt.Printf("Server Error - Find User %s\n", err.Error())
-		c.AbortWithStatus(http.StatusInternalServerError)
+		utils.ErrorProcessAPI(
+			"Find UserCount",
+			http.StatusInternalServerError,
+			err,
+			c,
+		)
 		return
 	}
-	if len(users) > 0 {
+
+	if userCount > 0 {
 		c.JSON(http.StatusOK, true)
 	} else {
 		c.JSON(http.StatusOK, false)
@@ -315,137 +276,197 @@ func CheckUserDisplayName(c *gin.Context) {
 
 // *********************************************** //
 
-// UserEdit - User Edit
-func UserEdit(c *gin.Context) {
+// CheckEmail - Check Email
+func CheckEmail(c *gin.Context) {
+
+	fmt.Println("API -- CheckEmail")
+
+	ctx := context.Background()
+
+	// Get email
+	email, ok := utils.CheckPostFormString(c.PostForm("email"), "email", c)
+	if !ok {
+		return
+	}
+
+	// Find UserCount
+	userCount, err := models.Users(
+		qm.Where("email=?", email),
+	).CountG(ctx)
+	if err != nil {
+		utils.ErrorProcessAPI(
+			"Find UserCount",
+			http.StatusInternalServerError,
+			err,
+			c,
+		)
+		return
+	}
+
+	if userCount > 0 {
+		c.JSON(http.StatusOK, true)
+	} else {
+		c.JSON(http.StatusOK, false)
+	}
+
+}
+
+// *********************************************** //
+
+// EditUser - User Edit
+func EditUser(c *gin.Context) {
 
 	fmt.Println("API -- UserEdit")
 
 	ctx := context.Background()
-	db := utils.GetDB()
+
+	// Get id
+	_, userID, ok := utils.CheckPostFormInteger(c.PostForm("userID"), "userID", c)
+	if !ok {
+		return
+	}
 
 	// Get displayName
-	displayName, ok := utils.CheckPostFormString(c.PostForm("displayName"), "displayName")
+	displayName, ok := utils.CheckPostFormString(c.PostForm("displayName"), "displayName", c)
 	if !ok {
-		c.AbortWithStatus(http.StatusBadRequest)
 		return
 	}
 
-	// Get firstName
-	firstName, ok := utils.CheckPostFormString(c.PostForm("firstName"), "firstName")
+	// Get name
+	name, ok := utils.CheckPostFormString(c.PostForm("name"), "name", c)
 	if !ok {
-		c.AbortWithStatus(http.StatusBadRequest)
 		return
 	}
 
-	// Get lastName
-	lastName, ok := utils.CheckPostFormString(c.PostForm("lastName"), "lastName")
+	// Get birthDate
+	birthDate, ok := utils.CheckPostFormString(c.PostForm("birthDate"), "birthDate", c)
 	if !ok {
-		c.AbortWithStatus(http.StatusBadRequest)
+		return
+	}
+	// Parse BirthDate
+	birthDateDate, err := time.Parse(dateLayout, birthDate)
+	if err != nil {
+		utils.ErrorProcessAPI(
+			"Parse BirthDate",
+			http.StatusBadRequest,
+			err,
+			c,
+		)
 		return
 	}
 
-	// Get email
-	email, ok := utils.CheckPostFormString(c.PostForm("email"), "email")
-	if !ok {
-		c.AbortWithStatus(http.StatusBadRequest)
-		return
-	}
-
-	// Get doEditPassword
-	doEditPassword, ok := utils.CheckPostFormBool(c.PostForm("doEditPassword"), "doEditPassword")
-	if !ok {
-		c.AbortWithStatus(http.StatusBadRequest)
-		return
-	}
-
-	// Get password
-	password, ok := utils.CheckPostFormString(c.PostForm("password"), "password")
-	if !ok {
-		c.AbortWithStatus(http.StatusBadRequest)
-		return
-	}
-	hashedPassword, _ := bcrypt.GenerateFromPassword([]byte(password), 10)
-
-	// Get phone
-	phone, ok := utils.CheckPostFormString(c.PostForm("phone"), "phone")
-	if !ok {
-		c.AbortWithStatus(http.StatusBadRequest)
-		return
-	}
+	// // Get phone
+	// phone, ok := utils.CheckPostFormString(c.PostForm("phone"), "phone", c)
+	// if !ok {
+	// 	return
+	// }
 
 	// Find User
-	user, err := models.Users(
-		qm.Where("display_name=?", displayName),
-	).One(ctx, db)
+	user, err := models.FindUserG(ctx, userID)
 	if err != nil {
-		fmt.Printf("Server Error - Find User %s\n", err.Error())
-		c.AbortWithStatus(http.StatusInternalServerError)
+		utils.ErrorProcessAPI(
+			"Find User",
+			http.StatusInternalServerError,
+			err,
+			c,
+		)
 		return
 	}
-
-	user.FirstName = null.StringFrom(firstName)
-	user.LastName = null.StringFrom(lastName)
-	user.Email = null.StringFrom(email)
-	if doEditPassword {
-		user.Password = string(hashedPassword)
-	}
-	user.Phone = null.StringFrom(phone)
 
 	// Update User
-	_, err = user.Update(ctx, db, boil.Infer())
+	user.DisplayName = displayName
+	user.Name = name
+	user.BirthDate = null.TimeFrom(birthDateDate)
+	// user.Phone = null.StringFrom(phone)
+
+	_, err = user.UpdateG(ctx, boil.Infer())
 	if err != nil {
-		fmt.Printf("Server Error - Update User %s\n", err.Error())
-		c.AbortWithStatus(http.StatusInternalServerError)
+		utils.ErrorProcessAPI(
+			"Update User",
+			http.StatusInternalServerError,
+			err,
+			c,
+		)
 		return
 	}
 
-	user.Password = "*****"
 	c.JSON(http.StatusOK, user)
 
 }
 
 // *********************************************** //
 
-// SetDefaultUserAddress - Set Default User Address
-func SetDefaultUserAddress(c *gin.Context) {
+// EditPassword - Edit Password
+func EditPassword(c *gin.Context) {
 
-	fmt.Println("API -- SetDefaultUserAddress")
+	fmt.Println("API -- EditPassword")
 
 	ctx := context.Background()
 
-	// Get id
-	id, ok := utils.CheckPostFormInteger(c.PostForm("id"), "id")
+	// Get userID
+	_, userID, ok := utils.CheckPostFormInteger(c.PostForm("userID"), "userID", c)
 	if !ok {
-		c.AbortWithStatus(http.StatusBadRequest)
 		return
 	}
 
-	// Get user_id
-	userID, ok := utils.CheckPostFormInteger(c.PostForm("userID"), "userID")
-	if !ok {
-		c.AbortWithStatus(http.StatusBadRequest)
-		return
-	}
+	// Get oldPassword
+	oldPassword := c.PostForm("oldPassword")
+	// Get newPassword
+	newPassword := c.PostForm("newPassword")
 
 	// Find User
-	user, err := models.FindUserG(ctx, uint(userID))
+	user, err := models.FindUserG(ctx, userID)
 	if err != nil {
-		fmt.Printf("Server Error - Find User %s\n", err.Error())
-		c.AbortWithStatus(http.StatusInternalServerError)
+		utils.ErrorProcessAPI(
+			"Find User",
+			http.StatusInternalServerError,
+			err,
+			c,
+		)
 		return
 	}
 
 	// Update User
-	user.DefaultAddress = null.IntFrom(id)
+	if oldPassword != "" && newPassword != "" {
+		// Check Old Password
+		err := bcrypt.CompareHashAndPassword(
+			[]byte(user.Password),
+			[]byte(oldPassword),
+		)
+		if err != nil {
+			utils.ErrorProcessAPIWithoutC(
+				"Old Password is wrong",
+				http.StatusBadRequest,
+				err,
+			)
+			c.String(http.StatusBadRequest, "oldPasswordWrong")
+			return
+		}
+		// Generate Hash New Password
+		hashedNewPassword, err := bcrypt.GenerateFromPassword([]byte(newPassword), 10)
+		if err != nil {
+			utils.ErrorProcessAPIWithoutC(
+				"Generate Hash New Password",
+				http.StatusBadRequest,
+				err,
+			)
+			c.String(http.StatusBadRequest, "newPasswordError")
+			return
+		}
+		user.Password = string(hashedNewPassword)
+	}
 
-	// Update User
 	_, err = user.UpdateG(ctx, boil.Infer())
 	if err != nil {
-		fmt.Printf("Server Error - Update User %s\n", err.Error())
-		c.AbortWithStatus(http.StatusInternalServerError)
+		utils.ErrorProcessAPI(
+			"Update User",
+			http.StatusInternalServerError,
+			err,
+			c,
+		)
 		return
 	}
 
-	c.JSON(http.StatusOK, user)
+	c.Status(http.StatusOK)
 
 }

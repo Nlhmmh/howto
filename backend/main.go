@@ -13,16 +13,23 @@ import (
 func main() {
 
 	// Logging
-	utils.InitLogger()
+	err := utils.InitLogger()
+	if err != nil {
+		panic(err)
+	}
 
 	// Open MySQL DB
-	db := utils.OpenDB()
+	db, err := utils.OpenDB()
+	if err != nil {
+		panic(err)
+	}
 	boil.SetDB(db)
 	boil.DebugMode = true
 
 	// Set Server
 	// gin.SetMode(gin.ReleaseMode)
 	router := gin.Default()
+	router.SetTrustedProxies(nil)
 	config := cors.DefaultConfig()
 	config.AllowOrigins = []string{"http://localhost:8080"}
 	// config.AllowHeaders = []string{
@@ -36,53 +43,33 @@ func main() {
 	router.Use(cors.New(config))
 
 	// Admin Routes
-	adminGroup := router.Group("/admin")
-	adminGroup.Use(controllers.AuthorizeJWT())
-	{
-		adminGroup.POST("/adminGetAllOrders", controllers.AdminGetAllOrders)
-		adminGroup.POST("/getCountUserOrders", controllers.GetCountUserOrders)
-	}
+	// adminGroup := router.Group("/admin")
+	// adminGroup.Use(controllers.AuthorizeJWT())
+	// {
+	// adminGroup.POST("/adminGetAllOrders", controllers.AdminGetAllOrders)
+	// }
 
 	// User Routes
 	userGroup := router.Group("/user")
 	userGroup.Use(controllers.AuthorizeJWT())
 	{
-		userGroup.GET("/getAllUsers", controllers.GetAllUsers)
+		userGroup.GET("/fetchAllUsers", controllers.FetchAllUsers)
 
-		userGroup.POST("/userRegister", controllers.UserRegister)
-		userGroup.POST("/userLogin", controllers.UserLogin)
-		userGroup.POST("/userEdit", controllers.UserEdit)
+		userGroup.POST("/fetchUser", controllers.FetchUser)
+		userGroup.POST("/registerUser", controllers.RegisterUser)
+		userGroup.POST("/loginUser", controllers.LoginUser)
+		userGroup.POST("/editUser", controllers.EditUser)
 		userGroup.POST("/checkUserDisplayName", controllers.CheckUserDisplayName)
-		userGroup.POST("/setDefaultUserAddress", controllers.SetDefaultUserAddress)
+		userGroup.POST("/checkEmail", controllers.CheckEmail)
+		userGroup.POST("/editPassword", controllers.EditPassword)
 
-		userGroup.POST("/getAllItemsFromCart", controllers.CartGetAllItems)
-		userGroup.POST("/insertItemCart", controllers.CartItemInsert)
-		userGroup.POST("/deleteItemCart", controllers.CartItemDelete)
-		userGroup.POST("/changeCountItemCart", controllers.CartItemChangeCount)
-
-		userGroup.POST("/getAllUserAddress", controllers.GetAllUserAddress)
-		userGroup.POST("/userAddressInsert", controllers.UserAddressInsert)
-		userGroup.POST("/userAddressEdit", controllers.UserAddressEdit)
-		userGroup.POST("/userAddressDelete", controllers.UserAddressDelete)
-
-		userGroup.POST("/getAllUserOrders", controllers.GetAllUserOrders)
-		userGroup.POST("/addOrder", controllers.AddOrder)
-		userGroup.POST("/getOrder", controllers.GetOrder)
-		userGroup.POST("/getCartItemsOfUserOrder", controllers.GetCartItemsOfUserOrder)
 	}
 
-	// Item Routes
-	itemGroup := router.Group("/item")
-	itemGroup.Use(controllers.AuthorizeJWT())
+	// Content Routes
+	contentGroup := router.Group("/content")
+	contentGroup.Use(controllers.AuthorizeJWT())
 	{
-		itemGroup.POST("/getAllItems", controllers.GetAllItems)
-		itemGroup.POST("/getCountItems", controllers.GetCountItems)
-		itemGroup.POST("/searchItems", controllers.SearchItems)
-		itemGroup.POST("/getItem", controllers.GetItem)
-		itemGroup.POST("/itemInsert", controllers.ItemInsert)
-		itemGroup.POST("/itemEdit", controllers.ItemEdit)
-		itemGroup.POST("/itemDelete", controllers.ItemDelete)
-		itemGroup.POST("/getImage", controllers.GetImage)
+		contentGroup.GET("/fetchAllContents", controllers.FetchAllContents)
 	}
 
 	// Run Server

@@ -1,47 +1,55 @@
 package utils
 
 import (
+	"database/sql"
 	"fmt"
+	"net/http"
 	"strconv"
+
+	"github.com/gin-gonic/gin"
 )
 
 // CheckPostFormInteger - check integer parameter from request
-/*
- * CheckPostFormInteger
- * Params - param string
- * Params - logName string
- * return - int
- * return - bool
- */
-func CheckPostFormInteger(param string, logName string) (int, bool) {
+func CheckPostFormInteger(
+	param string,
+	logName string,
+	c *gin.Context,
+) (int, uint, bool) {
 
 	if param == "" {
 		fmt.Printf("Bad Request - %s is empty\n", logName)
-		return 0, false
+		c.AbortWithStatus(http.StatusBadRequest)
+		return 0, 0, false
 	}
 
-	value, err := strconv.Atoi(param)
+	valueInt, err := strconv.Atoi(param)
 	if err != nil {
-		fmt.Printf("Bad Request - %s is empty\n", logName)
-		return 0, false
+		fmt.Printf("Bad Request - %s cannot be converted to int\n", logName)
+		c.AbortWithStatus(http.StatusBadRequest)
+		return 0, 0, false
 	}
 
-	return value, true
+	valueUint, err := strconv.ParseUint(param, 10, 32)
+	if err != nil {
+		fmt.Printf("Bad Request - %s cannot be converted to uint\n", logName)
+		c.AbortWithStatus(http.StatusBadRequest)
+		return 0, 0, false
+	}
+
+	return valueInt, uint(valueUint), true
 
 }
 
 // CheckPostFormString - check string parameter from request
-/*
- * CheckPostFormString
- * Params - param string
- * Params - logName string
- * return - string
- * return - bool
- */
-func CheckPostFormString(param string, logName string) (string, bool) {
+func CheckPostFormString(
+	param string,
+	logName string,
+	c *gin.Context,
+) (string, bool) {
 
 	if param == "" {
 		fmt.Printf("Bad Request - %s is empty\n", logName)
+		c.AbortWithStatus(http.StatusBadRequest)
 		return "", false
 	}
 
@@ -50,26 +58,92 @@ func CheckPostFormString(param string, logName string) (string, bool) {
 }
 
 // CheckPostFormBool - check boolean parameter from request
-/*
- * CheckPostFormBool
- * Params - param string
- * Params - logName string
- * return - bool
- * return - bool
- */
-func CheckPostFormBool(param string, logName string) (bool, bool) {
+func CheckPostFormBool(
+	param string,
+	logName string,
+	c *gin.Context,
+) (bool, bool) {
 
 	if param == "" {
 		fmt.Printf("Bad Request - %s is empty\n", logName)
+		c.AbortWithStatus(http.StatusBadRequest)
 		return false, false
 	}
 
 	value, err := strconv.ParseBool(param)
 	if err != nil {
 		fmt.Printf("Bad Request - %s cannot be converted to Boolean\n", logName)
+		c.AbortWithStatus(http.StatusBadRequest)
 		return false, false
 	}
 
 	return value, true
+
+}
+
+// ErrorProcessAPI - handle error log
+func ErrorProcessAPI(
+	log string,
+	httpStatusCode int,
+	err error,
+	c *gin.Context,
+) {
+
+	if httpStatusCode == http.StatusBadRequest {
+		fmt.Printf("Bad Request - Failed to %s - %s\n", log, err.Error())
+	} else if httpStatusCode == http.StatusInternalServerError {
+		fmt.Printf("Server Error - Failed to %s - %s\n", log, err.Error())
+	}
+	c.AbortWithStatus(httpStatusCode)
+
+}
+
+// ErrorProcessAPI - handle error log
+func ErrorProcessAPIWithoutError(
+	log string,
+	httpStatusCode int,
+	c *gin.Context,
+) {
+
+	if httpStatusCode == http.StatusBadRequest {
+		fmt.Printf("Bad Request -  %s\n", log)
+	} else if httpStatusCode == http.StatusInternalServerError {
+		fmt.Printf("Server Error - %s\n", log)
+	}
+	c.AbortWithStatus(httpStatusCode)
+
+}
+
+// ErrorProcessAPI - handle error log
+func ErrorProcessAPIWithTx(
+	log string,
+	httpStatusCode int,
+	err error,
+	c *gin.Context,
+	tx *sql.Tx,
+) {
+
+	if httpStatusCode == http.StatusBadRequest {
+		fmt.Printf("Bad Request - Failed to %s - %s\n", log, err.Error())
+	} else if httpStatusCode == http.StatusInternalServerError {
+		fmt.Printf("Server Error - Failed to %s - %s\n", log, err.Error())
+	}
+	tx.Rollback()
+	c.AbortWithStatus(httpStatusCode)
+
+}
+
+// ErrorProcessAPIWithoutC - handle error log with c
+func ErrorProcessAPIWithoutC(
+	log string,
+	httpStatusCode int,
+	err error,
+) {
+
+	if httpStatusCode == http.StatusBadRequest {
+		fmt.Printf("Bad Request - Failed to %s - %s\n", log, err.Error())
+	} else if httpStatusCode == http.StatusInternalServerError {
+		fmt.Printf("Server Error - Failed to %s - %s\n", log, err.Error())
+	}
 
 }

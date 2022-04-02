@@ -11,23 +11,23 @@ var (
 )
 
 // OpenDB - open MySQL database.
-func OpenDB() *sql.DB {
+func OpenDB() (*sql.DB, error) {
 
-	db, err = sql.Open("mysql", "root:root@tcp(localhost:3306)/mhksshop?parseTime=true&charset=utf8")
+	db, err = sql.Open("mysql", "root:root@tcp(localhost:3306)/howto?parseTime=true&charset=utf8")
 	if err != nil {
-		panic(err)
+		return nil, err
 	}
 
 	err = db.Ping()
 	if err != nil {
-		panic(err)
+		return nil, err
 	}
 
 	db.SetConnMaxLifetime(time.Minute * 1)
 	db.SetMaxOpenConns(10)
 	db.SetMaxIdleConns(10)
 
-	return db
+	return db, nil
 
 }
 

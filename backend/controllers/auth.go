@@ -18,9 +18,8 @@ const (
 
 // LoginResponse - Login Response
 type LoginResponse struct {
-	User          *models.User            `json:"user"`
-	UserAddresses models.UserAddressSlice `json:"userAddresses"`
-	Token         string                  `json:"token"`
+	User  *models.User `json:"user"`
+	Token string       `json:"token"`
 }
 
 // CustomClaims - Custom Claims
@@ -35,7 +34,7 @@ func AuthorizeJWT() gin.HandlerFunc {
 	return func(c *gin.Context) {
 
 		// Get token
-		token := c.PostForm("jwt")
+		token := c.PostForm("token")
 
 		// Check White List
 		if CheckJWTWhiteList(c.FullPath()) {
