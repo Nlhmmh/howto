@@ -8,7 +8,9 @@ var (
 		"/user/loginUser",
 		"/user/checkUserDisplayName",
 		"/user/checkEmail",
+		"/user/fetchAllUsers",
 	}
+
 	// AdminWhiteList - Admin WhiteList
 	AdminWhiteList = []string{}
 )

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:frontend/providers/user_provider.dart';
 import 'package:frontend/screens/home.dart';
+import 'package:frontend/screens/register.dart';
 import 'package:provider/provider.dart';
 
 class Login extends StatefulWidget {
@@ -27,8 +28,8 @@ class _LoginState extends State<Login> {
 
     Future(() async {});
 
-    _emailOrDispNameCtrl.text = "test@gmail.com";
-    _passwordCtrl.text = "Nay2000@";
+    _emailOrDispNameCtrl.text = "creator@gmail.com";
+    _passwordCtrl.text = "Creator2000@";
   }
 
   @override
@@ -42,10 +43,9 @@ class _LoginState extends State<Login> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Center(
-          child: Text(
-            'Login',
-          ),
+        centerTitle: true,
+        title: const Text(
+          'Login',
         ),
       ),
       body: SingleChildScrollView(
@@ -165,13 +165,14 @@ class _LoginState extends State<Login> {
                           });
                         }
 
-                        final user = await Provider.of<UserProvider>(context,
+                        final loginData = await Provider.of<UserProvider>(
+                                context,
                                 listen: false)
                             .loginUser({
                           "emailOrDispName": _emailOrDispNameCtrl.text,
                           "password": _passwordCtrl.text,
                         });
-                        if (user.isLoggedIn) {
+                        if (loginData.isLoggedIn) {
                           setState(() {
                             _isPasswordWrong = false;
                           });
@@ -188,6 +189,22 @@ class _LoginState extends State<Login> {
                           });
                         }
                       }
+                    },
+                  ),
+                ),
+                const SizedBox(height: 20),
+
+                // -------------------------------- Create New Account Btn
+                SizedBox(
+                  width: double.infinity,
+                  height: 40,
+                  child: OutlinedButton(
+                    child: const Text("Create new account"),
+                    onPressed: () {
+                      Navigator.pushNamed(
+                        context,
+                        Registor.routeName,
+                      );
                     },
                   ),
                 ),

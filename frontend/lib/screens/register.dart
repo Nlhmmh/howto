@@ -60,10 +60,9 @@ class _RegistorState extends State<Registor> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Center(
-          child: Text(
-            'Register',
-          ),
+        centerTitle: true,
+        title: const Text(
+          'Register',
         ),
       ),
       body: SingleChildScrollView(
@@ -147,7 +146,7 @@ class _RegistorState extends State<Registor> {
                     return null;
                   },
                 ),
-                const SizedBox(height: 20),
+                const SizedBox(height: 10),
 
                 // -------------------------------- Confirm Password
                 const Text("Confirm Password"),
@@ -183,7 +182,7 @@ class _RegistorState extends State<Registor> {
                     return null;
                   },
                 ),
-                const SizedBox(height: 20),
+                const SizedBox(height: 10),
 
                 // -------------------------------- Display Name
                 const Text("Display Name"),
@@ -196,7 +195,7 @@ class _RegistorState extends State<Registor> {
                     hintStyle: TextStyle(color: Colors.grey),
                     border: OutlineInputBorder(),
                   ),
-                  autovalidateMode: AutovalidateMode.always,
+                  autovalidateMode: AutovalidateMode.onUserInteraction,
                   validator: (value) {
                     if (value == null || value.isEmpty) {
                       return 'Required';
@@ -325,7 +324,12 @@ class _RegistorState extends State<Registor> {
                     return null;
                   },
                 ),
-                const SizedBox(height: 30),
+                const SizedBox(height: 20),
+
+                const Text(
+                  "By Creating an account, you agree to our User Agreement and acknowledge reading our User Privacy Notice.",
+                ),
+                const SizedBox(height: 20),
 
                 // -------------------------------- Register Btn
                 SizedBox(
@@ -365,7 +369,8 @@ class _RegistorState extends State<Registor> {
 
                         if (_isDispNameExisted || _isEmailExisted) return;
 
-                        final user = await Provider.of<UserProvider>(context,
+                        final loginData = await Provider.of<UserProvider>(
+                                context,
                                 listen: false)
                             .registerUser({
                           "displayName": _displayNameCtrl.text,
@@ -377,7 +382,7 @@ class _RegistorState extends State<Registor> {
                           "password": _passwordCtrl.text,
                           "accountType": _accountType,
                         });
-                        if (user.isLoggedIn) {
+                        if (loginData.isLoggedIn) {
                           await Navigator.pushAndRemoveUntil(
                             context,
                             MaterialPageRoute(

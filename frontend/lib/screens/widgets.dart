@@ -1,4 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:frontend/providers/constants.dart';
+import 'package:frontend/providers/user_provider.dart';
+import 'package:frontend/screens/content_create.dart';
+import 'package:frontend/screens/home.dart';
+import 'package:frontend/screens/login.dart';
+import 'package:frontend/screens/mypage.dart';
+import 'package:provider/provider.dart';
+
+// --------------------  --------------------
 
 class CustomDialog extends StatelessWidget {
   final String title;
@@ -51,3 +60,122 @@ class CustomDialog extends StatelessWidget {
     );
   }
 }
+
+// --------------------  --------------------
+
+class BottomNavi extends StatefulWidget {
+  final int selIndex;
+
+  const BottomNavi({
+    Key? key,
+    required this.selIndex,
+  }) : super(key: key);
+
+  @override
+  State<BottomNavi> createState() => _BottomNaviState();
+}
+
+class _BottomNaviState extends State<BottomNavi> {
+  LoginData _loginData = LoginData();
+
+  @override
+  void initState() {
+    super.initState();
+    Future(() async {
+      final loginData = await Provider.of<UserProvider>(context, listen: false)
+          .getLoginData();
+      setState(() {
+        _loginData = loginData;
+      });
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return BottomNavigationBar(
+      items: _loginData.user.accountType == Constants.creatorAccType
+          ? const [
+              // -------------------------------- Home
+              BottomNavigationBarItem(
+                icon: Icon(Icons.home),
+                label: 'Home',
+              ),
+              // -------------------------------- Create Content
+              BottomNavigationBarItem(
+                icon: Icon(Icons.add_box_outlined),
+                label: 'Create Content',
+              ),
+              // -------------------------------- My Page
+              BottomNavigationBarItem(
+                icon: Icon(Icons.account_box),
+                label: 'My Page',
+              ),
+            ]
+          : const [
+              // -------------------------------- Home
+              BottomNavigationBarItem(
+                icon: Icon(Icons.home),
+                label: 'Home',
+              ),
+              // -------------------------------- Favourite
+              BottomNavigationBarItem(
+                icon: Icon(Icons.favorite),
+                label: 'Favourite',
+              ),
+              // -------------------------------- My Page
+              BottomNavigationBarItem(
+                icon: Icon(Icons.account_box),
+                label: 'My Page',
+              ),
+            ],
+      currentIndex: widget.selIndex,
+      onTap: (int index) {
+        switch (index) {
+          // -------------------------------- Home
+          case HomePage.routeIndex:
+            Navigator.pushAndRemoveUntil(
+              context,
+              MaterialPageRoute(
+                builder: (context) => const HomePage(),
+              ),
+              (route) => false,
+            );
+            break;
+          // -------------------------------- Create Content
+          case ContentCreate.routeIndex:
+            if (_loginData.isLoggedIn &&
+                _loginData.user.accountType == Constants.creatorAccType) {
+              Navigator.pushAndRemoveUntil(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const ContentCreate(),
+                ),
+                (route) => false,
+              );
+            } else {
+              Navigator.pushNamed(context, Login.routeName);
+            }
+            break;
+          // -------------------------------- My Page
+          case MyPage.routeIndex:
+            if (_loginData.isLoggedIn) {
+              Navigator.pushAndRemoveUntil(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const MyPage(),
+                ),
+                (route) => false,
+              );
+            } else {
+              Navigator.pushNamed(context, Login.routeName);
+            }
+            break;
+          default:
+            break;
+        }
+      },
+    );
+  }
+}
+
+// --------------------  --------------------

@@ -3,6 +3,9 @@ import 'package:flutter/material.dart';
 class Constants {
   static const domain = "10.0.2.2:8081";
 
+  static const creatorAccType = "creator";
+  static const viewerAccType = "viewer";
+
   static final List<ColorMap> avatarColorList = [
     // ColorMap(
     //   color: Colors.red,

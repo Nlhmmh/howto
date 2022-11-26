@@ -2,7 +2,7 @@ package main
 
 import (
 	"backend/controllers"
-	"backend/utils"
+	"backend/server"
 
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
@@ -13,13 +13,12 @@ import (
 func main() {
 
 	// Logging
-	err := utils.InitLogger()
-	if err != nil {
+	if err := server.InitLogger(); err != nil {
 		panic(err)
 	}
 
 	// Open MySQL DB
-	db, err := utils.OpenDB()
+	db, err := server.OpenDB()
 	if err != nil {
 		panic(err)
 	}
@@ -55,13 +54,13 @@ func main() {
 	{
 		userGroup.GET("/fetchAllUsers", controllers.FetchAllUsers)
 
-		userGroup.POST("/fetchUser", controllers.FetchUser)
-		userGroup.POST("/registerUser", controllers.RegisterUser)
-		userGroup.POST("/loginUser", controllers.LoginUser)
-		userGroup.POST("/editUser", controllers.EditUser)
-		userGroup.POST("/checkUserDisplayName", controllers.CheckUserDisplayName)
-		userGroup.POST("/checkEmail", controllers.CheckEmail)
-		userGroup.POST("/editPassword", controllers.EditPassword)
+		// userGroup.POST("/fetchUser", controllers.FetchUser)
+		userGroup.POST("/register", controllers.RegisterUser)
+		// userGroup.POST("/loginUser", controllers.LoginUser)
+		// userGroup.POST("/editUser", controllers.EditUser)
+		// userGroup.POST("/checkUserDisplayName", controllers.CheckUserDisplayName)
+		// userGroup.POST("/checkEmail", controllers.CheckEmail)
+		// userGroup.POST("/editPassword", controllers.EditPassword)
 
 	}
 
@@ -69,7 +68,9 @@ func main() {
 	contentGroup := router.Group("/content")
 	contentGroup.Use(controllers.AuthorizeJWT())
 	{
-		contentGroup.GET("/fetchAllContents", controllers.FetchAllContents)
+		// contentGroup.GET("/fetchAllContents", controllers.FetchAllContents)
+		// contentGroup.POST("/createContent", controllers.CreateContent)
+
 	}
 
 	// Run Server

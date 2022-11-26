@@ -1,7 +1,7 @@
 package controllers
 
 import (
-	"backend/models"
+	"backend/boiler"
 	"backend/utils"
 	"fmt"
 	"net/http"
@@ -18,7 +18,7 @@ const (
 
 // LoginResponse - Login Response
 type LoginResponse struct {
-	User  *models.User `json:"user"`
+	User  *boiler.User `json:"user"`
 	Token string       `json:"token"`
 }
 

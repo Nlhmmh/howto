@@ -1,4 +1,4 @@
-package utils
+package server
 
 import (
 	"database/sql"
@@ -18,8 +18,7 @@ func OpenDB() (*sql.DB, error) {
 		return nil, err
 	}
 
-	err = db.Ping()
-	if err != nil {
+	if err = db.Ping(); err != nil {
 		return nil, err
 	}
 
@@ -29,9 +28,4 @@ func OpenDB() (*sql.DB, error) {
 
 	return db, nil
 
-}
-
-// GetDB - Get DB
-func GetDB() *sql.DB {
-	return db
 }

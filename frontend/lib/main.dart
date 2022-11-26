@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:frontend/providers/content_provider.dart';
 import 'package:frontend/providers/user_provider.dart';
+import 'package:frontend/screens/content_create.dart';
 import 'package:frontend/screens/home.dart';
 import 'package:frontend/screens/login.dart';
+import 'package:frontend/screens/mypage.dart';
 import 'package:frontend/screens/profile.dart';
 import 'package:frontend/screens/register.dart';
 import 'package:provider/provider.dart';
@@ -34,6 +36,8 @@ class MyApp extends StatelessWidget {
         Registor.routeName: (_) => const Registor(),
         Login.routeName: (_) => const Login(),
         Profile.routeName: (_) => const Profile(),
+        ContentCreate.routeName: (_) => const ContentCreate(),
+        MyPage.routeName: (_) => const MyPage(),
       },
     );
   }

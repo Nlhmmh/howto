@@ -1,4 +1,4 @@
-package utils
+package server
 
 import (
 	"log"
@@ -29,4 +29,5 @@ func InitLogger() error {
 	ErrorLogger = log.New(logFile, "ERROR: ", log.Ldate|log.Ltime|log.Lshortfile)
 
 	return nil
+
 }
