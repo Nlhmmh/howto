@@ -28,6 +28,9 @@ func main() {
 	// Set Server
 	// gin.SetMode(gin.ReleaseMode)
 	router := gin.Default()
+	router.Use(gin.LoggerWithConfig(gin.LoggerConfig{
+		Output: server.LogFile,
+	}))
 	router.SetTrustedProxies(nil)
 	config := cors.DefaultConfig()
 	config.AllowOrigins = []string{"http://localhost:8080"}
@@ -48,29 +51,37 @@ func main() {
 	// adminGroup.POST("/adminGetAllOrders", controllers.AdminGetAllOrders)
 	// }
 
-	// User Routes
-	userGroup := router.Group("/user")
-	userGroup.Use(controllers.AuthorizeJWT())
+	// API Routes
+	apiGroup := router.Group("/api")
+	apiGroup.Use(controllers.AuthorizeJWT())
 	{
-		userGroup.GET("/fetchAllUsers", controllers.FetchAllUsers)
+		// Admin Routes
+		adminGroup := apiGroup.Group("/admin")
+		{
+			adminGroup.GET("", controllers.FetchAllUsers)
+			adminGroup.POST("/fetchUser", controllers.FetchUser)
+		}
 
-		// userGroup.POST("/fetchUser", controllers.FetchUser)
-		userGroup.POST("/register", controllers.RegisterUser)
-		// userGroup.POST("/loginUser", controllers.LoginUser)
-		// userGroup.POST("/editUser", controllers.EditUser)
-		// userGroup.POST("/checkUserDisplayName", controllers.CheckUserDisplayName)
-		// userGroup.POST("/checkEmail", controllers.CheckEmail)
-		// userGroup.POST("/editPassword", controllers.EditPassword)
+		// User Routes
+		userGroup := apiGroup.Group("/user")
+		{
+			userGroup.GET("", controllers.UserCtrl.GetAll)
+			userGroup.GET("/:userID", controllers.UserCtrl.Get)
 
-	}
+			userGroup.POST("/register", controllers.UserCtrl.Register)
+			userGroup.POST("/login", controllers.UserCtrl.Login)
+			userGroup.POST("/edit", controllers.UserCtrl.Edit)
+			userGroup.POST("/checkDisplayName", controllers.UserCtrl.CheckDisplayName)
+			userGroup.POST("/checkEmail", controllers.UserCtrl.CheckEmail)
+			userGroup.POST("/editPassword", controllers.UserCtrl.EditPassword)
+		}
 
-	// Content Routes
-	contentGroup := router.Group("/content")
-	contentGroup.Use(controllers.AuthorizeJWT())
-	{
-		// contentGroup.GET("/fetchAllContents", controllers.FetchAllContents)
-		// contentGroup.POST("/createContent", controllers.CreateContent)
-
+		// Content Routes
+		// contentGroup := apiGroup.Group("/content")
+		{
+			// contentGroup.GET("/fetchAllContents", controllers.FetchAllContents)
+			// contentGroup.POST("/createContent", controllers.CreateContent)
+		}
 	}
 
 	// Run Server

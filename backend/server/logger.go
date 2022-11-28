@@ -12,6 +12,8 @@ var (
 	WarningLogger *log.Logger
 	// ErrorLogger - Error Logger
 	ErrorLogger *log.Logger
+	// LogFile
+	LogFile *os.File
 )
 
 // InitLogger - Initialize Logger
@@ -22,6 +24,7 @@ func InitLogger() error {
 	if err != nil {
 		return err
 	}
+	LogFile = logFile
 
 	// Set Loggers
 	InfoLogger = log.New(logFile, "INFO: ", log.Ldate|log.Ltime|log.Lshortfile)

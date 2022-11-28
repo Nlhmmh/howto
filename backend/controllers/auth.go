@@ -2,8 +2,7 @@ package controllers
 
 import (
 	"backend/boiler"
-	"backend/utils"
-	"fmt"
+	"errors"
 	"net/http"
 	"time"
 
@@ -16,6 +15,24 @@ const (
 	SecureKey = "secureSecretText"
 )
 
+var (
+	// JwtWhiteList - JWT WhiteList
+	JwtWhiteList = []string{
+		"/api/user/register",
+		"/api/user/login",
+		"/api/user/checkDisplayName",
+		"/api/user/checkEmail",
+
+		"/api/user",
+		"/api/user/:userID",
+
+		"/api/content",
+	}
+
+	// AdminWhiteList - Admin WhiteList
+	AdminWhiteList = []string{}
+)
+
 // LoginResponse - Login Response
 type LoginResponse struct {
 	User  *boiler.User `json:"user"`
@@ -25,7 +42,7 @@ type LoginResponse struct {
 // CustomClaims - Custom Claims
 type CustomClaims struct {
 	DisplayName string
-	IsAdmin     bool
+	Role        string
 	jwt.StandardClaims
 }
 
@@ -34,26 +51,27 @@ func AuthorizeJWT() gin.HandlerFunc {
 	return func(c *gin.Context) {
 
 		// Get token
-		token := c.PostForm("token")
+		token := c.GetHeader("token")
 
 		// Check White List
 		if CheckJWTWhiteList(c.FullPath()) {
+
 			// Validate Token
-			claims := ValidateToken(token)
-			if claims != nil {
-				if CheckAdminWhiteList(c.FullPath()) {
-					if claims.IsAdmin {
-						c.Next()
-					} else {
-						fmt.Println("Unauthorized - Not Admin User")
-						c.AbortWithStatus(http.StatusUnauthorized)
-					}
-				}
-				c.Next()
-			} else {
-				fmt.Println("Unauthorized - No JWT")
-				c.AbortWithStatus(http.StatusUnauthorized)
+			claims, err := ValidateToken(token)
+			if err != nil {
+				c.AbortWithError(http.StatusUnauthorized, err)
 			}
+
+			if CheckAdminWhiteList(c.FullPath()) {
+				if claims.Role == "admin" {
+					c.Next()
+				} else {
+					c.AbortWithError(http.StatusUnauthorized, errors.New("not admin user"))
+				}
+			}
+
+			c.Next()
+
 		} else {
 			c.Next()
 		}
@@ -63,7 +81,7 @@ func AuthorizeJWT() gin.HandlerFunc {
 
 // CheckJWTWhiteList - Check if Path exists in JWT WhiteList
 func CheckJWTWhiteList(path string) bool {
-	for _, p := range utils.JwtWhiteList {
+	for _, p := range JwtWhiteList {
 		if path == p {
 			return false
 		}
@@ -73,7 +91,7 @@ func CheckJWTWhiteList(path string) bool {
 
 // CheckAdminWhiteList - Check if Path exists in Admin WhiteList
 func CheckAdminWhiteList(path string) bool {
-	for _, p := range utils.AdminWhiteList {
+	for _, p := range AdminWhiteList {
 		if path == p {
 			return true
 		}
@@ -82,12 +100,12 @@ func CheckAdminWhiteList(path string) bool {
 }
 
 // GenerateToken - Generate Tokens
-func GenerateToken(displayName string, isAdmin bool) string {
+func GenerateToken(displayName string, role string) (string, error) {
 
 	// Create Token
 	claims := CustomClaims{
 		displayName,
-		isAdmin,
+		role,
 		jwt.StandardClaims{
 			ExpiresAt: time.Now().Add(time.Hour * 48).Unix(),
 			IssuedAt:  time.Now().Unix(),
@@ -98,14 +116,15 @@ func GenerateToken(displayName string, isAdmin bool) string {
 	// Encode Token
 	token, err := createdToken.SignedString([]byte(SecureKey))
 	if err != nil {
-		panic(err)
+		return "", err
 	}
 
-	return token
+	return token, nil
+
 }
 
 // ValidateToken - Validate Token
-func ValidateToken(encodedToken string) *CustomClaims {
+func ValidateToken(encodedToken string) (*CustomClaims, error) {
 
 	// Parse JWT
 	token, err := jwt.ParseWithClaims(
@@ -115,17 +134,15 @@ func ValidateToken(encodedToken string) *CustomClaims {
 			return []byte(SecureKey), nil
 		})
 	if err != nil {
-		fmt.Println(err.Error())
-		return nil
+		return nil, err
 	}
 
-	// IF token is valid
-	if token.Valid {
-		claims := token.Claims.(*CustomClaims)
-		return claims
+	// IF token is invalid
+	if !token.Valid {
+		return nil, errors.New("token is invalid")
 	}
 
-	fmt.Println("Token is Invalid.")
-	return nil
+	claims := token.Claims.(*CustomClaims)
+	return claims, nil
 
 }

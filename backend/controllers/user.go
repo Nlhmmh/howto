@@ -4,7 +4,6 @@ import (
 	"backend/boiler"
 	"backend/models"
 	"backend/utils"
-	"fmt"
 	"net/http"
 	"time"
 
@@ -13,26 +12,26 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/volatiletech/null"
 	"github.com/volatiletech/sqlboiler/v4/boil"
+	"github.com/volatiletech/sqlboiler/v4/queries/qm"
 )
 
-const dateLayout = "2006-01-02"
+type userCtrl struct{}
+
+type contentCtrl struct{}
+
+var (
+	UserCtrl    *userCtrl
+	ContentCtrl *contentCtrl
+)
 
 // *********************************************** //
 
-// FetchAllUsers - Fetch All Users
-func FetchAllUsers(c *gin.Context) {
-
-	fmt.Println("API -- FetchAllUsers")
+func (o *userCtrl) GetAll(c *gin.Context) {
 
 	// Get All Users
 	users, err := boiler.Users().AllG(c)
 	if err != nil {
-		utils.ErrorProcessAPI(
-			"Get All Users",
-			http.StatusInternalServerError,
-			err,
-			c,
-		)
+		c.JSON(http.StatusInternalServerError, err)
 		return
 	}
 
@@ -42,56 +41,41 @@ func FetchAllUsers(c *gin.Context) {
 
 // *********************************************** //
 
-// FetchUser - Fetch User
-// func FetchUser(c *gin.Context) {
+func (o *userCtrl) Get(c *gin.Context) {
 
-// 	fmt.Println("API -- FetchUser")
+	// Get userID
+	_, userID, err := utils.ConvertInt(c.Param("userID"))
+	if err != nil {
+		c.AbortWithError(http.StatusBadRequest, err)
+		return
+	}
 
-// 	// Get userID
-// 	_, userID, ok := utils.CheckPostFormInteger(c.PostForm("userID"), "userID", c)
-// 	if !ok {
-// 		return
-// 	}
+	// Get User
+	user, err := boiler.FindUserG(c, userID)
+	if err != nil {
+		c.AbortWithError(http.StatusInternalServerError, err)
+		return
+	}
 
-// 	// Get User
-// 	user, err := boiler.FindUserG(c, userID)
-// 	if err != nil {
-// 		utils.ErrorProcessAPI(
-// 			"Get User",
-// 			http.StatusInternalServerError,
-// 			err,
-// 			c,
-// 		)
-// 		return
-// 	}
+	c.JSON(http.StatusOK, user)
 
-// 	c.JSON(http.StatusOK, user)
-
-// }
+}
 
 // *********************************************** //
 
-// RegisterUser - User Register
-func RegisterUser(c *gin.Context) {
-
-	fmt.Println("API -- UserRegister")
+func (o *userCtrl) Register(c *gin.Context) {
 
 	// Check Request
 	var resq models.User
 	if err := c.ShouldBindJSON(&resq); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		c.AbortWithError(http.StatusBadRequest, err)
 		return
 	}
 
 	// Generate Hash Password
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(resq.Password), 10)
 	if err != nil {
-		utils.ErrorProcessAPI(
-			"Generate Hash Password",
-			http.StatusBadRequest,
-			err,
-			c,
-		)
+		c.AbortWithError(http.StatusBadRequest, err)
 		return
 	}
 
@@ -110,17 +94,16 @@ func RegisterUser(c *gin.Context) {
 	user.UpdatedAt = null.TimeFrom(time.Now())
 
 	if err = user.InsertG(c, boil.Infer()); err != nil {
-		utils.ErrorProcessAPI(
-			"Insert User",
-			http.StatusInternalServerError,
-			err,
-			c,
-		)
+		c.AbortWithError(http.StatusInternalServerError, err)
 		return
 	}
 
 	// Generate Token
-	token := GenerateToken(user.DisplayName, false)
+	token, err := GenerateToken(user.DisplayName, user.Role)
+	if err != nil {
+		c.AbortWithError(http.StatusInternalServerError, err)
+		return
+	}
 	user.Password = "*****"
 	c.JSON(http.StatusOK, &LoginResponse{
 		User:  user,
@@ -131,218 +114,144 @@ func RegisterUser(c *gin.Context) {
 
 // *********************************************** //
 
-// LoginUser - User Login
-// func LoginUser(c *gin.Context) {
+func (o *userCtrl) Login(c *gin.Context) {
 
-// 	fmt.Println("API -- UserLogin")
+	// Check Request
+	var resq models.LoginRequest
+	if err := c.ShouldBindJSON(&resq); err != nil {
+		c.AbortWithError(http.StatusBadRequest, err)
+		return
+	}
 
-// 	ctx := context.Background()
+	// Find User
+	user, err := boiler.Users(
+		qm.Or("display_name=?", resq.EmailOrDispName),
+		qm.Or("email=?", resq.EmailOrDispName),
+	).OneG(c)
+	if err != nil {
+		c.AbortWithError(http.StatusInternalServerError, err)
+		return
+	}
 
-// 	// Get emailOrDispName
-// 	emailOrDispName, ok := utils.CheckPostFormString(c.PostForm("emailOrDispName"), "emailOrDispName", c)
-// 	if !ok {
-// 		return
-// 	}
+	// Check Password
+	if err = bcrypt.CompareHashAndPassword(
+		[]byte(user.Password),
+		[]byte(resq.Password),
+	); err != nil {
+		c.AbortWithError(http.StatusInternalServerError, err)
+		return
+	}
 
-// 	// Get password
-// 	password, ok := utils.CheckPostFormString(c.PostForm("password"), "password", c)
-// 	if !ok {
-// 		return
-// 	}
+	// Generate Token
+	token, err := GenerateToken(user.DisplayName, user.Role)
+	if err != nil {
+		c.AbortWithError(http.StatusInternalServerError, err)
+		return
+	}
+	user.Password = "*****"
+	c.JSON(http.StatusOK, &LoginResponse{
+		User:  user,
+		Token: token,
+	})
 
-// 	// Find User
-// 	user, err := boiler.Users(
-// 		qm.Or("display_name=?", emailOrDispName),
-// 		qm.Or("email=?", emailOrDispName),
-// 	).OneG(ctx)
-// 	if err != nil {
-// 		utils.ErrorProcessAPI(
-// 			"Find User",
-// 			http.StatusInternalServerError,
-// 			err,
-// 			c,
-// 		)
-// 		return
-// 	}
-
-// 	// Check Password
-// 	err = bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(password))
-// 	if err != nil {
-// 		utils.ErrorProcessAPI(
-// 			"Check Password",
-// 			http.StatusInternalServerError,
-// 			err,
-// 			c,
-// 		)
-// 		return
-// 	}
-
-// 	// Generate Token
-// 	token := GenerateToken(user.DisplayName, user.IsAdmin)
-// 	user.Password = "*****"
-// 	c.JSON(http.StatusOK, &LoginResponse{
-// 		User:  user,
-// 		Token: token,
-// 	})
-
-// }
+}
 
 // *********************************************** //
 
-// CheckUserDisplayName - Check User DisplayName
-// func CheckUserDisplayName(c *gin.Context) {
+func (o *userCtrl) CheckDisplayName(c *gin.Context) {
 
-// 	fmt.Println("API -- CheckUserDisplayName")
+	// Get displayName
+	displayName, err := utils.CheckBlankString(c.PostForm("displayName"))
+	if err != nil {
+		c.AbortWithError(http.StatusBadRequest, err)
+		return
+	}
 
-// 	ctx := context.Background()
+	// Find UserCount
+	userCount, err := boiler.Users(
+		qm.Where("display_name=?", displayName),
+	).CountG(c)
+	if err != nil {
+		c.AbortWithError(http.StatusInternalServerError, err)
+		return
+	}
 
-// 	// Get displayName
-// 	displayName, ok := utils.CheckPostFormString(c.PostForm("displayName"), "displayName", c)
-// 	if !ok {
-// 		return
-// 	}
+	if userCount > 0 {
+		c.JSON(http.StatusOK, true)
+	} else {
+		c.JSON(http.StatusOK, false)
+	}
 
-// 	// Find UserCount
-// 	userCount, err := boiler.Users(
-// 		qm.Where("display_name=?", displayName),
-// 	).CountG(ctx)
-// 	if err != nil {
-// 		utils.ErrorProcessAPI(
-// 			"Find UserCount",
-// 			http.StatusInternalServerError,
-// 			err,
-// 			c,
-// 		)
-// 		return
-// 	}
-
-// 	if userCount > 0 {
-// 		c.JSON(http.StatusOK, true)
-// 	} else {
-// 		c.JSON(http.StatusOK, false)
-// 	}
-
-// }
+}
 
 // *********************************************** //
 
-// CheckEmail - Check Email
-// func CheckEmail(c *gin.Context) {
+func (o *userCtrl) CheckEmail(c *gin.Context) {
 
-// 	fmt.Println("API -- CheckEmail")
+	// Get email
+	email, err := utils.CheckBlankString(c.PostForm("email"))
+	if err != nil {
+		c.AbortWithError(http.StatusBadRequest, err)
+		return
+	}
 
-// 	ctx := context.Background()
+	// Find UserCount
+	userCount, err := boiler.Users(
+		qm.Where("email=?", email),
+	).CountG(c)
+	if err != nil {
+		c.AbortWithError(http.StatusInternalServerError, err)
+		return
+	}
 
-// 	// Get email
-// 	email, ok := utils.CheckPostFormString(c.PostForm("email"), "email", c)
-// 	if !ok {
-// 		return
-// 	}
+	if userCount > 0 {
+		c.JSON(http.StatusOK, true)
+	} else {
+		c.JSON(http.StatusOK, false)
+	}
 
-// 	// Find UserCount
-// 	userCount, err := boiler.Users(
-// 		qm.Where("email=?", email),
-// 	).CountG(ctx)
-// 	if err != nil {
-// 		utils.ErrorProcessAPI(
-// 			"Find UserCount",
-// 			http.StatusInternalServerError,
-// 			err,
-// 			c,
-// 		)
-// 		return
-// 	}
-
-// 	if userCount > 0 {
-// 		c.JSON(http.StatusOK, true)
-// 	} else {
-// 		c.JSON(http.StatusOK, false)
-// 	}
-
-// }
+}
 
 // *********************************************** //
 
-// EditUser - User Edit
-// func EditUser(c *gin.Context) {
+func (o *userCtrl) Edit(c *gin.Context) {
 
-// 	fmt.Println("API -- UserEdit")
+	// Check Request
+	var resq models.UserEditRequest
+	if err := c.ShouldBindJSON(&resq); err != nil {
+		c.AbortWithError(http.StatusBadRequest, err)
+		return
+	}
 
-// 	ctx := context.Background()
+	// Find User
+	user, err := boiler.FindUserG(c, resq.ID)
+	if err != nil {
+		c.AbortWithError(http.StatusInternalServerError, err)
+		return
+	}
 
-// 	// Get id
-// 	_, userID, ok := utils.CheckPostFormInteger(c.PostForm("userID"), "userID", c)
-// 	if !ok {
-// 		return
-// 	}
+	// Update User
+	if !resq.DisplayName.IsZero() {
+		user.DisplayName = resq.DisplayName.String
+	}
+	if !resq.Name.IsZero() {
+		user.Name = resq.Name.String
+	}
+	if !resq.BirthDate.Valid {
+		user.BirthDate = resq.BirthDate
+	}
+	if !resq.Phone.IsZero() {
+		user.Phone = resq.Phone
+	}
 
-// 	// Get displayName
-// 	displayName, ok := utils.CheckPostFormString(c.PostForm("displayName"), "displayName", c)
-// 	if !ok {
-// 		return
-// 	}
+	if _, err = user.UpdateG(c, boil.Infer()); err != nil {
+		c.AbortWithError(http.StatusInternalServerError, err)
+		return
+	}
 
-// 	// Get name
-// 	name, ok := utils.CheckPostFormString(c.PostForm("name"), "name", c)
-// 	if !ok {
-// 		return
-// 	}
+	c.JSON(http.StatusOK, user)
 
-// 	// Get birthDate
-// 	birthDate, ok := utils.CheckPostFormString(c.PostForm("birthDate"), "birthDate", c)
-// 	if !ok {
-// 		return
-// 	}
-// 	// Parse BirthDate
-// 	birthDateDate, err := time.Parse(dateLayout, birthDate)
-// 	if err != nil {
-// 		utils.ErrorProcessAPI(
-// 			"Parse BirthDate",
-// 			http.StatusBadRequest,
-// 			err,
-// 			c,
-// 		)
-// 		return
-// 	}
-
-// 	// // Get phone
-// 	// phone, ok := utils.CheckPostFormString(c.PostForm("phone"), "phone", c)
-// 	// if !ok {
-// 	// 	return
-// 	// }
-
-// 	// Find User
-// 	user, err := boiler.FindUserG(ctx, userID)
-// 	if err != nil {
-// 		utils.ErrorProcessAPI(
-// 			"Find User",
-// 			http.StatusInternalServerError,
-// 			err,
-// 			c,
-// 		)
-// 		return
-// 	}
-
-// 	// Update User
-// 	user.DisplayName = displayName
-// 	user.Name = name
-// 	user.BirthDate = null.TimeFrom(birthDateDate)
-// 	// user.Phone = null.StringFrom(phone)
-
-// 	_, err = user.UpdateG(ctx, boil.Infer())
-// 	if err != nil {
-// 		utils.ErrorProcessAPI(
-// 			"Update User",
-// 			http.StatusInternalServerError,
-// 			err,
-// 			c,
-// 		)
-// 		return
-// 	}
-
-// 	c.JSON(http.StatusOK, user)
-
-// }
+}
 
 // *********************************************** //
 

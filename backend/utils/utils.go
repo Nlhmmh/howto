@@ -1,77 +1,40 @@
 package utils
 
 import (
-	"database/sql"
-	"fmt"
-	"net/http"
-
-	"github.com/gin-gonic/gin"
+	"errors"
+	"strconv"
 )
 
-// ErrorProcessAPI - handle error log
-func ErrorProcessAPI(
-	log string,
-	httpStatusCode int,
-	err error,
-	c *gin.Context,
-) {
+// CheckPostFormInteger - check integer parameter from request
+func ConvertInt(
+	param string,
+) (int, uint, error) {
 
-	// if httpStatusCode == http.StatusBadRequest {
-	// 	fmt.Printf("Bad Request - Failed to %s - %s\n", log, err.Error())
-	// } else if httpStatusCode == http.StatusInternalServerError {
-	// 	fmt.Printf("Server Error - Failed to %s - %s\n", log, err.Error())
-	// }
-	fmt.Printf("Failed to %s - %s\n", log, err.Error())
-	c.AbortWithStatus(httpStatusCode)
+	if param == "" {
+		return 0, 0, errors.New("param is blank")
+	}
+
+	valueInt, err := strconv.Atoi(param)
+	if err != nil {
+		return 0, 0, errors.New("param cannot be converted to int")
+	}
+
+	valueUint, err := strconv.ParseUint(param, 10, 32)
+	if err != nil {
+		return 0, 0, errors.New("param cannot be converted to uint")
+	}
+
+	return valueInt, uint(valueUint), nil
 
 }
 
-// ErrorProcessAPI - handle error log
-func ErrorProcessAPIWithoutError(
-	log string,
-	httpStatusCode int,
-	c *gin.Context,
-) {
+// CheckBlankString - check string parameter from request
+func CheckBlankString(param string) (string, error) {
 
-	if httpStatusCode == http.StatusBadRequest {
-		fmt.Printf("Bad Request -  %s\n", log)
-	} else if httpStatusCode == http.StatusInternalServerError {
-		fmt.Printf("Server Error - %s\n", log)
+	if param == "" {
+		return "", errors.New("param is blank")
 	}
-	c.AbortWithStatus(httpStatusCode)
 
-}
-
-// ErrorProcessAPI - handle error log
-func ErrorProcessAPIWithTx(
-	log string,
-	httpStatusCode int,
-	err error,
-	c *gin.Context,
-	tx *sql.Tx,
-) {
-
-	if httpStatusCode == http.StatusBadRequest {
-		fmt.Printf("Bad Request - Failed to %s - %s\n", log, err.Error())
-	} else if httpStatusCode == http.StatusInternalServerError {
-		fmt.Printf("Server Error - Failed to %s - %s\n", log, err.Error())
-	}
-	tx.Rollback()
-	c.AbortWithStatus(httpStatusCode)
-
-}
-
-// ErrorProcessAPIWithoutC - handle error log with c
-func ErrorProcessAPIWithoutC(
-	log string,
-	httpStatusCode int,
-	err error,
-) {
-
-	if httpStatusCode == http.StatusBadRequest {
-		fmt.Printf("Bad Request - Failed to %s - %s\n", log, err.Error())
-	} else if httpStatusCode == http.StatusInternalServerError {
-		fmt.Printf("Server Error - Failed to %s - %s\n", log, err.Error())
-	}
+	return param, nil
 
 }
