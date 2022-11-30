@@ -7,10 +7,14 @@ var TableNames = struct {
 	ContentCategories string
 	ContentChilds     string
 	Contents          string
+	UserOtps          string
+	UserProfiles      string
 	Users             string
 }{
 	ContentCategories: "content_categories",
 	ContentChilds:     "content_childs",
 	Contents:          "contents",
+	UserOtps:          "user_otps",
+	UserProfiles:      "user_profiles",
 	Users:             "users",
 }

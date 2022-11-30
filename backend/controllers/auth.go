@@ -20,17 +20,17 @@ var (
 	JwtWhiteList = []string{
 		"/api/user/register",
 		"/api/user/login",
-		"/api/user/checkDisplayName",
-		"/api/user/checkEmail",
-
-		"/api/user",
-		"/api/user/:userID",
+		"/api/user/check/displayname",
+		"/api/user/check/email",
 
 		"/api/content",
+		"/api/admin/user",
 	}
 
 	// AdminWhiteList - Admin WhiteList
-	AdminWhiteList = []string{}
+	AdminWhiteList = []string{
+		"/api/admin/user/:userID",
+	}
 )
 
 // LoginResponse - Login Response
@@ -41,8 +41,8 @@ type LoginResponse struct {
 
 // CustomClaims - Custom Claims
 type CustomClaims struct {
-	DisplayName string
-	Role        string
+	userID uint
+	Role   string
 	jwt.StandardClaims
 }
 
@@ -100,11 +100,11 @@ func CheckAdminWhiteList(path string) bool {
 }
 
 // GenerateToken - Generate Tokens
-func GenerateToken(displayName string, role string) (string, error) {
+func GenerateToken(userID uint, role string) (string, error) {
 
 	// Create Token
 	claims := CustomClaims{
-		displayName,
+		userID,
 		role,
 		jwt.StandardClaims{
 			ExpiresAt: time.Now().Add(time.Hour * 48).Unix(),

@@ -83,20 +83,20 @@ type UsersRole string
 
 // Enum values for UsersRole
 const (
+	UsersRoleUser  UsersRole = "user"
 	UsersRoleAdmin UsersRole = "admin"
-	UsersRoleStaff UsersRole = "staff"
 )
 
 func AllUsersRole() []UsersRole {
 	return []UsersRole{
+		UsersRoleUser,
 		UsersRoleAdmin,
-		UsersRoleStaff,
 	}
 }
 
 func (e UsersRole) IsValid() error {
 	switch e {
-	case UsersRoleAdmin, UsersRoleStaff:
+	case UsersRoleUser, UsersRoleAdmin:
 		return nil
 	default:
 		return errors.New("enum is not valid")

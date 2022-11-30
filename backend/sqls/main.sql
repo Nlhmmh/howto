@@ -13,10 +13,6 @@ DROP TABLE IF EXISTS users;
 
 CREATE TABLE users (
   id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-  display_name VARCHAR(100) UNIQUE NOT NULL,
-  name VARCHAR(100) NOT NULL,
-  birth_date DATE,
-  phone VARCHAR(30),
   email VARCHAR(50) UNIQUE NOT NULL,
   password VARCHAR(200) NOT NULL,
   type ENUM('creator', 'viewer') NOT NULL DEFAULT 'viewer',
@@ -33,6 +29,37 @@ CREATE TABLE users (
 );
 
 ALTER TABLE users AUTO_INCREMENT = 1;
+
+-- User Profiles ----------------------------------
+DROP TABLE IF EXISTS user_profiles;
+
+CREATE TABLE user_profiles (
+  user_id INT UNSIGNED PRIMARY KEY,
+  display_name VARCHAR(100) UNIQUE NOT NULL,
+  name VARCHAR(100) NOT NULL,
+  birth_date DATE,
+  phone VARCHAR(30),
+  created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+  deleted_at DATETIME,
+  FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+);
+
+ALTER TABLE user_profiles AUTO_INCREMENT = 1;
+
+-- User OTPs ----------------------------------
+DROP TABLE IF EXISTS user_otps;
+
+CREATE TABLE user_otps (
+  id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  email VARCHAR(50) NOT NULL,
+  otp VARCHAR(10) NOT NULL,
+  created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+  deleted_at DATETIME
+);
+
+ALTER TABLE user_otps AUTO_INCREMENT = 1;
 
 -- Content Categories ----------------------------------
 DROP TABLE IF EXISTS content_categories;

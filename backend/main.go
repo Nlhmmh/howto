@@ -44,45 +44,8 @@ func main() {
 	// }
 	router.Use(cors.New(config))
 
-	// Admin Routes
-	// adminGroup := router.Group("/admin")
-	// adminGroup.Use(controllers.AuthorizeJWT())
-	// {
-	// adminGroup.POST("/adminGetAllOrders", controllers.AdminGetAllOrders)
-	// }
-
 	// API Routes
-	apiGroup := router.Group("/api")
-	apiGroup.Use(controllers.AuthorizeJWT())
-	{
-		// Admin Routes
-		adminGroup := apiGroup.Group("/admin")
-		{
-			adminGroup.GET("", controllers.FetchAllUsers)
-			adminGroup.POST("/fetchUser", controllers.FetchUser)
-		}
-
-		// User Routes
-		userGroup := apiGroup.Group("/user")
-		{
-			userGroup.GET("", controllers.UserCtrl.GetAll)
-			userGroup.GET("/:userID", controllers.UserCtrl.Get)
-
-			userGroup.POST("/register", controllers.UserCtrl.Register)
-			userGroup.POST("/login", controllers.UserCtrl.Login)
-			userGroup.POST("/edit", controllers.UserCtrl.Edit)
-			userGroup.POST("/checkDisplayName", controllers.UserCtrl.CheckDisplayName)
-			userGroup.POST("/checkEmail", controllers.UserCtrl.CheckEmail)
-			userGroup.POST("/editPassword", controllers.UserCtrl.EditPassword)
-		}
-
-		// Content Routes
-		// contentGroup := apiGroup.Group("/content")
-		{
-			// contentGroup.GET("/fetchAllContents", controllers.FetchAllContents)
-			// contentGroup.POST("/createContent", controllers.CreateContent)
-		}
-	}
+	controllers.CreateRoutes(router)
 
 	// Run Server
 	router.Run(":8081")
