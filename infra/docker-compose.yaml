@@ -1,0 +1,21 @@
+version: "3.3"
+
+services:
+  # MySQL
+  db:
+    image: mysql:8.0
+    container_name: howto
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: howto
+      MYSQL_PASSWORD: root
+    command: mysqld --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci
+    volumes:
+      - db:/var/lib/mysql
+      - ./docker/db/my.cnf:/etc/mysql/conf.d/my.cnf
+      - ./docker/db/sql:/docker-entrypoint-initdb.d
+    ports:
+      - 3306:3306
+volumes:
+  db:
+    driver: local

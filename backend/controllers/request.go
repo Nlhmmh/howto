@@ -1,6 +1,10 @@
 package controllers
 
-import "github.com/volatiletech/null"
+import (
+	"time"
+
+	"github.com/volatiletech/null/v8"
+)
 
 type UserRegisterSendOtpRequest struct {
 	Email string `json:"email" binding:"required"`
@@ -28,15 +32,13 @@ type LoginRequest struct {
 }
 
 type UserProfileEditRequest struct {
-	ID          uint        `boil:"id" json:"id" binding:"required"`
-	DisplayName null.String `boil:"display_name" json:"displayName,omitempty"`
-	Name        null.String `boil:"name" json:"name,omitempty"`
-	BirthDate   null.Time   `boil:"birth_date" json:"birthDate,omitempty"`
-	Phone       null.String `boil:"phone" json:"phone,omitempty"`
+	DisplayName null.String `json:"displayName,omitempty"`
+	Name        null.String `json:"name,omitempty"`
+	BirthDate   null.Time   `json:"birthDate,omitempty"`
+	Phone       null.String `json:"phone,omitempty"`
 }
 
 type UserEditPwRequest struct {
-	UserID      uint   `json:"userID" binding:"required"`
 	OldPassword string `json:"oldPassword" binding:"required"`
 	NewPassword string `json:"newPassword" binding:"required"`
 }
@@ -47,4 +49,29 @@ type CheckEmailRequest struct {
 
 type CheckDisplayNameRequest struct {
 	DisplayName string `json:"displayName" binding:"required"`
+}
+
+type ContentWithUserName struct {
+	ID         string    `boil:"id" json:"id" toml:"id" yaml:"id"`
+	UserID     string    `boil:"user_id" json:"userID" toml:"userID" yaml:"userID"`
+	CategoryID uint      `boil:"category_id" json:"categoryID" toml:"categoryID" yaml:"categoryID"`
+	Title      string    `boil:"title" json:"title" toml:"title" yaml:"title"`
+	ViewCount  int       `boil:"view_count" json:"viewCount" toml:"viewCount" yaml:"viewCount"`
+	CreatedAt  time.Time `boil:"created_at" json:"createdAt" toml:"createdAt" yaml:"createdAt"`
+	UpdatedAt  null.Time `boil:"updated_at" json:"updatedAt,omitempty" toml:"updatedAt" yaml:"updatedAt,omitempty"`
+
+	UserName string `boil:"user_name" json:"userName" toml:"userName" yaml:"userName"`
+
+	CategoryStr string `boil:"category_str" json:"categoryStr" toml:"categoryStr" yaml:"categoryStr"`
+}
+
+type CreateContentRequest struct {
+	Title      string `json:"title" binding:"required"`
+	CategoryID uint   `json:"categoryID" binding:"required"`
+}
+
+type ContentGetAllRequest struct {
+	Limit  int    `form:"limit"`
+	Offset int    `form:"offset"`
+	SortBy string `form:"sortBy"`
 }

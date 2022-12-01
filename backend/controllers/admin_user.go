@@ -1,4 +1,4 @@
-package admin
+package controllers
 
 import (
 	"backend/boiler"
@@ -8,20 +8,20 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-type userCtrl struct{}
+type adminUserCtrl struct{}
 
 var (
-	UserCtrl *userCtrl
+	adminUserCtrls *adminUserCtrl
 )
 
 // *********************************************** //
 
-func (o *userCtrl) GetAll(c *gin.Context) {
+func (o *adminUserCtrl) GetAll(c *gin.Context) {
 
 	// Get All Users
 	users, err := boiler.Users().AllG(c)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, err)
+		ServerErrorResp(c, err)
 		return
 	}
 
@@ -31,19 +31,19 @@ func (o *userCtrl) GetAll(c *gin.Context) {
 
 // *********************************************** //
 
-func (o *userCtrl) Get(c *gin.Context) {
+func (o *adminUserCtrl) Get(c *gin.Context) {
 
 	// Get userID
-	_, userID, err := utils.ConvertInt(c.Param("userID"))
+	userID, err := utils.CheckBlankString(c.Param("userID"))
 	if err != nil {
-		c.AbortWithError(http.StatusBadRequest, err)
+		BadRequestResp(c, err)
 		return
 	}
 
 	// Get User
 	user, err := boiler.FindUserG(c, userID)
 	if err != nil {
-		c.AbortWithError(http.StatusInternalServerError, err)
+		ServerErrorResp(c, err)
 		return
 	}
 

@@ -1,103 +1,123 @@
 package controllers
 
-// import (
-// 	"backend/models"
-// 	"backend/utils"
-// 	"context"
-// 	"fmt"
-// 	"net/http"
+import (
+	"backend/boiler"
+	"database/sql"
+	"errors"
+	"net/http"
 
-// 	"github.com/gin-gonic/gin"
-// 	"github.com/volatiletech/null"
-// 	"github.com/volatiletech/sqlboiler/v4/queries/qm"
-// )
+	"github.com/gin-gonic/gin"
+	"github.com/google/uuid"
+	"github.com/volatiletech/sqlboiler/v4/boil"
+	"github.com/volatiletech/sqlboiler/v4/queries/qm"
+)
 
-// type ContentWithUserName struct {
-// 	ID        uint      `boil:"id" json:"id" toml:"id" yaml:"id"`
-// 	UserID    uint      `boil:"user_id" json:"userID" toml:"userID" yaml:"userID"`
-// 	Title     string    `boil:"title" json:"title" toml:"title" yaml:"title"`
-// 	Category  string    `boil:"category" json:"category" toml:"category" yaml:"category"`
-// 	ViewCount int       `boil:"view_count" json:"viewCount" toml:"viewCount" yaml:"viewCount"`
-// 	CreatedAt null.Time `boil:"created_at" json:"createdAt,omitempty" toml:"createdAt" yaml:"createdAt,omitempty"`
-// 	UpdatedAt null.Time `boil:"updated_at" json:"updatedAt,omitempty" toml:"updatedAt" yaml:"updatedAt,omitempty"`
-// 	DeletedAt null.Time `boil:"deleted_at" json:"deletedAt,omitempty" toml:"deletedAt" yaml:"deletedAt,omitempty"`
+type contentCtrl struct{}
 
-// 	UserName string `boil:"user_name" json:"userName" toml:"userName" yaml:"userName"`
-// }
+var (
+	contentCtrls *contentCtrl
+)
 
-// // *********************************************** //
+// *********************************************** //
 
-// // FetchAllContents - Get All Contents
-// func FetchAllContents(c *gin.Context) {
+func (o *contentCtrl) GetAll(c *gin.Context) {
 
-// 	fmt.Println("API -- FetchAllContents")
+	// Check Request
+	var resq ContentGetAllRequest
+	if err := c.BindQuery(&resq); err != nil {
+		BadRequestResp(c, err)
+		return
+	}
 
-// 	ctx := context.Background()
+	// Get All Contents
+	var contentList []ContentWithUserName
 
-// 	// Get All Contents
-// 	var contentList []ContentWithUserName
-// 	if err := models.NewQuery(
-// 		qm.Select("contents.*, users.display_name as user_name"),
-// 		qm.From("contents"),
-// 		qm.InnerJoin("users ON users.id = contents.user_id"),
-// 		qm.OrderBy("updated_at DESC"),
-// 	).BindG(ctx, &contentList); err != nil {
-// 		utils.ErrorProcessAPI(
-// 			"Get All Contents",
-// 			http.StatusInternalServerError,
-// 			err,
-// 			c,
-// 		)
-// 		return
-// 	}
+	qms := []qm.QueryMod{}
+	qms = append(qms, qm.Select(
+		`
+			contents.*, 
+			user_profiles.display_name as user_name,
+			content_categories.name as category_str
+		`,
+	))
+	qms = append(qms, qm.From("contents"))
+	qms = append(qms, qm.InnerJoin("user_profiles ON user_profiles.user_id = contents.user_id"))
+	qms = append(qms, qm.InnerJoin("content_categories ON content_categories.id = contents.category_id"))
 
-// 	c.JSON(http.StatusOK, contentList)
+	// Limit
+	if resq.Limit > 0 {
+		qms = append(qms, qm.Limit(resq.Limit))
+	} else {
+		qms = append(qms, qm.Limit(20))
+	}
+	// Offset
+	if resq.Offset > 0 {
+		qms = append(qms, qm.Offset(resq.Offset))
+	} else {
+		qms = append(qms, qm.Offset(0))
+	}
+	// SortBy
+	switch resq.SortBy {
+	case "LATEST":
+		qms = append(qms, qm.OrderBy("updated_at DESC"))
+	case "OLDEST":
+		qms = append(qms, qm.OrderBy("updated_at ASC"))
+	default:
+		qms = append(qms, qm.OrderBy("updated_at DESC"))
+	}
 
-// }
+	if err := boiler.NewQuery(qms...).BindG(c, &contentList); err != nil {
+		ServerErrorResp(c, err)
+		return
+	}
 
-// // *********************************************** //
+	c.JSON(http.StatusOK, contentList)
 
-// // CreateContent - Create Content
-// // func CreateContent(c *gin.Context) {
+}
 
-// // 	fmt.Println("API -- CreateContent")
+// *********************************************** //
 
-// // 	ctx := context.Background()
+func (o *contentCtrl) CreateContent(c *gin.Context) {
 
-// // 	// Get id
-// // 	_, userID, ok := utils.CheckPostFormInteger(c.PostForm("userID"), "userID", c)
-// // 	if !ok {
-// // 		return
-// // 	}
+	// Check Request
+	var resq CreateContentRequest
+	if err := c.ShouldBindJSON(&resq); err != nil {
+		BadRequestResp(c, err)
+		return
+	}
 
-// // 	// Get title
-// // 	title, ok := utils.CheckPostFormString(c.PostForm("title"), "title", c)
-// // 	if !ok {
-// // 		return
-// // 	}
+	userID := c.GetString("userID")
 
-// // 	// Get category
-// // 	category, ok := utils.CheckPostFormString(c.PostForm("category"), "category", c)
-// // 	if !ok {
-// // 		return
-// // 	}
+	WriteTransaction(c, func(tx *sql.Tx) bool {
 
-// // 	// Insert Content
-// // 	content := new(models.Content)
-// // 	content.UserID = userID
-// // 	content.Title = title
-// // 	content.Category = category
+		// Check DisplayName
+		titleExists, err := boiler.Contents(
+			qm.Where("title = ?", resq.Title),
+		).Exists(c, tx)
+		if err != nil {
+			RespWithRollbackTx(c, err, tx, ServerErrorResp)
+			return true
+		}
+		if titleExists {
+			RespWithRollbackTx(c, errors.New("title already exists"), tx, ContentTitleAlreadyExistResp)
+			return true
+		}
 
-// // 	if err := content.InsertG(ctx, boil.Infer()); err != nil {
-// // 		utils.ErrorProcessAPI(
-// // 			"Insert User",
-// // 			http.StatusInternalServerError,
-// // 			err,
-// // 			c,
-// // 		)
-// // 		return
-// // 	}
+		// Insert Content
+		content := new(boiler.Content)
+		content.ID = uuid.NewString()
+		content.UserID = userID
+		content.Title = resq.Title
+		content.CategoryID = resq.CategoryID
 
-// // 	c.Status(http.StatusOK)
+		if err := content.Insert(c, tx, boil.Infer()); err != nil {
+			RespWithRollbackTx(c, err, tx, ServerErrorResp)
+			return true
+		}
 
-// // }
+		c.JSON(http.StatusOK, content)
+		return false
+
+	})
+
+}

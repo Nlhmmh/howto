@@ -1,8 +1,6 @@
 package controllers
 
 import (
-	"backend/controllers/admin"
-
 	"github.com/gin-gonic/gin"
 )
 
@@ -18,8 +16,8 @@ func CreateRoutes(router *gin.Engine) {
 			// User Routes
 			userGroup := adminGroup.Group("/user")
 			{
-				userGroup.GET("", admin.UserCtrl.GetAll)
-				userGroup.GET("/:userID", admin.UserCtrl.Get)
+				userGroup.GET("", adminUserCtrls.GetAll)
+				userGroup.GET("/:userID", adminUserCtrls.Get)
 			}
 		}
 
@@ -32,15 +30,16 @@ func CreateRoutes(router *gin.Engine) {
 			userGroup.POST("/check/displayname", userCtrls.CheckDisplayName)
 			userGroup.POST("/register", userCtrls.Register)
 			userGroup.POST("/login", userCtrls.Login)
-			userGroup.POST("/edit/profile", userCtrls.EditProfile)
-			userGroup.POST("/edit/password", userCtrls.EditPassword)
+
+			userGroup.PUT("/edit/profile", userCtrls.EditProfile)
+			userGroup.PUT("/edit/password", userCtrls.EditPassword)
 		}
 
 		// Content Routes
-		// contentGroup := apiGroup.Group("/content")
+		contentGroup := apiGroup.Group("/content")
 		{
-			// contentGroup.GET("/fetchAllContents", FetchAllContents)
-			// contentGroup.POST("/createContent", CreateContent)
+			contentGroup.GET("", contentCtrls.GetAll)
+			contentGroup.POST("/create", contentCtrls.CreateContent)
 		}
 	}
 

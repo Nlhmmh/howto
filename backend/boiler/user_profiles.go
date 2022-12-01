@@ -8,12 +8,13 @@ import (
 	"database/sql"
 	"fmt"
 	"reflect"
+	"strconv"
 	"strings"
 	"sync"
 	"time"
 
 	"github.com/friendsofgo/errors"
-	"github.com/volatiletech/null"
+	"github.com/volatiletech/null/v8"
 	"github.com/volatiletech/sqlboiler/v4/boil"
 	"github.com/volatiletech/sqlboiler/v4/queries"
 	"github.com/volatiletech/sqlboiler/v4/queries/qm"
@@ -23,7 +24,7 @@ import (
 
 // UserProfile is an object representing the database table.
 type UserProfile struct {
-	UserID      uint        `boil:"user_id" json:"userID" toml:"userID" yaml:"userID"`
+	UserID      string      `boil:"user_id" json:"userID" toml:"userID" yaml:"userID"`
 	DisplayName string      `boil:"display_name" json:"displayName" toml:"displayName" yaml:"displayName"`
 	Name        string      `boil:"name" json:"name" toml:"name" yaml:"name"`
 	BirthDate   null.Time   `boil:"birth_date" json:"birthDate,omitempty" toml:"birthDate" yaml:"birthDate,omitempty"`
@@ -117,7 +118,7 @@ func (w whereHelpernull_String) IsNull() qm.QueryMod    { return qmhelper.WhereI
 func (w whereHelpernull_String) IsNotNull() qm.QueryMod { return qmhelper.WhereIsNotNull(w.field) }
 
 var UserProfileWhere = struct {
-	UserID      whereHelperuint
+	UserID      whereHelperstring
 	DisplayName whereHelperstring
 	Name        whereHelperstring
 	BirthDate   whereHelpernull_Time
@@ -126,7 +127,7 @@ var UserProfileWhere = struct {
 	UpdatedAt   whereHelpernull_Time
 	DeletedAt   whereHelpernull_Time
 }{
-	UserID:      whereHelperuint{field: "`user_profiles`.`user_id`"},
+	UserID:      whereHelperstring{field: "`user_profiles`.`user_id`"},
 	DisplayName: whereHelperstring{field: "`user_profiles`.`display_name`"},
 	Name:        whereHelperstring{field: "`user_profiles`.`name`"},
 	BirthDate:   whereHelpernull_Time{field: "`user_profiles`.`birth_date`"},
@@ -650,13 +651,13 @@ func UserProfiles(mods ...qm.QueryMod) userProfileQuery {
 }
 
 // FindUserProfileG retrieves a single record by ID.
-func FindUserProfileG(ctx context.Context, userID uint, selectCols ...string) (*UserProfile, error) {
+func FindUserProfileG(ctx context.Context, userID string, selectCols ...string) (*UserProfile, error) {
 	return FindUserProfile(ctx, boil.GetContextDB(), userID, selectCols...)
 }
 
 // FindUserProfile retrieves a single record by ID with an executor.
 // If selectCols is empty Find will return all columns.
-func FindUserProfile(ctx context.Context, exec boil.ContextExecutor, userID uint, selectCols ...string) (*UserProfile, error) {
+func FindUserProfile(ctx context.Context, exec boil.ContextExecutor, userID string, selectCols ...string) (*UserProfile, error) {
 	userProfileObj := &UserProfile{}
 
 	sel := "*"
@@ -697,6 +698,16 @@ func (o *UserProfile) Insert(ctx context.Context, exec boil.ContextExecutor, col
 	}
 
 	var err error
+	if !boil.TimestampsAreSkipped(ctx) {
+		currTime := time.Now().In(boil.GetLocation())
+
+		if o.CreatedAt.IsZero() {
+			o.CreatedAt = currTime
+		}
+		if queries.MustTime(o.UpdatedAt).IsZero() {
+			queries.SetScanner(&o.UpdatedAt, currTime)
+		}
+	}
 
 	if err := o.doBeforeInsertHooks(ctx, exec); err != nil {
 		return err
@@ -794,6 +805,12 @@ func (o *UserProfile) UpdateG(ctx context.Context, columns boil.Columns) (int64,
 // See boil.Columns.UpdateColumnSet documentation to understand column list inference for updates.
 // Update does not automatically update the record in case of default values. Use .Reload() to refresh the records.
 func (o *UserProfile) Update(ctx context.Context, exec boil.ContextExecutor, columns boil.Columns) (int64, error) {
+	if !boil.TimestampsAreSkipped(ctx) {
+		currTime := time.Now().In(boil.GetLocation())
+
+		queries.SetScanner(&o.UpdatedAt, currTime)
+	}
+
 	var err error
 	if err = o.doBeforeUpdateHooks(ctx, exec); err != nil {
 		return 0, err
@@ -808,6 +825,10 @@ func (o *UserProfile) Update(ctx context.Context, exec boil.ContextExecutor, col
 			userProfileAllColumns,
 			userProfilePrimaryKeyColumns,
 		)
+
+		if !columns.IsWhitelist() {
+			wl = strmangle.SetComplement(wl, []string{"created_at"})
+		}
 		if len(wl) == 0 {
 			return 0, errors.New("boiler: unable to update user_profiles, could not build whitelist")
 		}
@@ -922,6 +943,158 @@ func (o UserProfileSlice) UpdateAll(ctx context.Context, exec boil.ContextExecut
 		return 0, errors.Wrap(err, "boiler: unable to retrieve rows affected all in update all userProfile")
 	}
 	return rowsAff, nil
+}
+
+// UpsertG attempts an insert, and does an update or ignore on conflict.
+func (o *UserProfile) UpsertG(ctx context.Context, updateColumns, insertColumns boil.Columns) error {
+	return o.Upsert(ctx, boil.GetContextDB(), updateColumns, insertColumns)
+}
+
+var mySQLUserProfileUniqueColumns = []string{
+	"user_id",
+	"display_name",
+}
+
+// Upsert attempts an insert using an executor, and does an update or ignore on conflict.
+// See boil.Columns documentation for how to properly use updateColumns and insertColumns.
+func (o *UserProfile) Upsert(ctx context.Context, exec boil.ContextExecutor, updateColumns, insertColumns boil.Columns) error {
+	if o == nil {
+		return errors.New("boiler: no user_profiles provided for upsert")
+	}
+	if !boil.TimestampsAreSkipped(ctx) {
+		currTime := time.Now().In(boil.GetLocation())
+
+		if o.CreatedAt.IsZero() {
+			o.CreatedAt = currTime
+		}
+		queries.SetScanner(&o.UpdatedAt, currTime)
+	}
+
+	if err := o.doBeforeUpsertHooks(ctx, exec); err != nil {
+		return err
+	}
+
+	nzDefaults := queries.NonZeroDefaultSet(userProfileColumnsWithDefault, o)
+	nzUniques := queries.NonZeroDefaultSet(mySQLUserProfileUniqueColumns, o)
+
+	if len(nzUniques) == 0 {
+		return errors.New("cannot upsert with a table that cannot conflict on a unique column")
+	}
+
+	// Build cache key in-line uglily - mysql vs psql problems
+	buf := strmangle.GetBuffer()
+	buf.WriteString(strconv.Itoa(updateColumns.Kind))
+	for _, c := range updateColumns.Cols {
+		buf.WriteString(c)
+	}
+	buf.WriteByte('.')
+	buf.WriteString(strconv.Itoa(insertColumns.Kind))
+	for _, c := range insertColumns.Cols {
+		buf.WriteString(c)
+	}
+	buf.WriteByte('.')
+	for _, c := range nzDefaults {
+		buf.WriteString(c)
+	}
+	buf.WriteByte('.')
+	for _, c := range nzUniques {
+		buf.WriteString(c)
+	}
+	key := buf.String()
+	strmangle.PutBuffer(buf)
+
+	userProfileUpsertCacheMut.RLock()
+	cache, cached := userProfileUpsertCache[key]
+	userProfileUpsertCacheMut.RUnlock()
+
+	var err error
+
+	if !cached {
+		insert, ret := insertColumns.InsertColumnSet(
+			userProfileAllColumns,
+			userProfileColumnsWithDefault,
+			userProfileColumnsWithoutDefault,
+			nzDefaults,
+		)
+
+		update := updateColumns.UpdateColumnSet(
+			userProfileAllColumns,
+			userProfilePrimaryKeyColumns,
+		)
+
+		if !updateColumns.IsNone() && len(update) == 0 {
+			return errors.New("boiler: unable to upsert user_profiles, could not build update column list")
+		}
+
+		ret = strmangle.SetComplement(ret, nzUniques)
+		cache.query = buildUpsertQueryMySQL(dialect, "`user_profiles`", update, insert)
+		cache.retQuery = fmt.Sprintf(
+			"SELECT %s FROM `user_profiles` WHERE %s",
+			strings.Join(strmangle.IdentQuoteSlice(dialect.LQ, dialect.RQ, ret), ","),
+			strmangle.WhereClause("`", "`", 0, nzUniques),
+		)
+
+		cache.valueMapping, err = queries.BindMapping(userProfileType, userProfileMapping, insert)
+		if err != nil {
+			return err
+		}
+		if len(ret) != 0 {
+			cache.retMapping, err = queries.BindMapping(userProfileType, userProfileMapping, ret)
+			if err != nil {
+				return err
+			}
+		}
+	}
+
+	value := reflect.Indirect(reflect.ValueOf(o))
+	vals := queries.ValuesFromMapping(value, cache.valueMapping)
+	var returns []interface{}
+	if len(cache.retMapping) != 0 {
+		returns = queries.PtrsFromMapping(value, cache.retMapping)
+	}
+
+	if boil.IsDebug(ctx) {
+		writer := boil.DebugWriterFrom(ctx)
+		fmt.Fprintln(writer, cache.query)
+		fmt.Fprintln(writer, vals)
+	}
+	_, err = exec.ExecContext(ctx, cache.query, vals...)
+
+	if err != nil {
+		return errors.Wrap(err, "boiler: unable to upsert for user_profiles")
+	}
+
+	var uniqueMap []uint64
+	var nzUniqueCols []interface{}
+
+	if len(cache.retMapping) == 0 {
+		goto CacheNoHooks
+	}
+
+	uniqueMap, err = queries.BindMapping(userProfileType, userProfileMapping, nzUniques)
+	if err != nil {
+		return errors.Wrap(err, "boiler: unable to retrieve unique values for user_profiles")
+	}
+	nzUniqueCols = queries.ValuesFromMapping(reflect.Indirect(reflect.ValueOf(o)), uniqueMap)
+
+	if boil.IsDebug(ctx) {
+		writer := boil.DebugWriterFrom(ctx)
+		fmt.Fprintln(writer, cache.retQuery)
+		fmt.Fprintln(writer, nzUniqueCols...)
+	}
+	err = exec.QueryRowContext(ctx, cache.retQuery, nzUniqueCols...).Scan(returns...)
+	if err != nil {
+		return errors.Wrap(err, "boiler: unable to populate default values for user_profiles")
+	}
+
+CacheNoHooks:
+	if !cached {
+		userProfileUpsertCacheMut.Lock()
+		userProfileUpsertCache[key] = cache
+		userProfileUpsertCacheMut.Unlock()
+	}
+
+	return o.doAfterUpsertHooks(ctx, exec)
 }
 
 // DeleteG deletes a single UserProfile record.
@@ -1147,12 +1320,12 @@ func (o *UserProfileSlice) ReloadAll(ctx context.Context, exec boil.ContextExecu
 }
 
 // UserProfileExistsG checks if the UserProfile row exists.
-func UserProfileExistsG(ctx context.Context, userID uint) (bool, error) {
+func UserProfileExistsG(ctx context.Context, userID string) (bool, error) {
 	return UserProfileExists(ctx, boil.GetContextDB(), userID)
 }
 
 // UserProfileExists checks if the UserProfile row exists.
-func UserProfileExists(ctx context.Context, exec boil.ContextExecutor, userID uint) (bool, error) {
+func UserProfileExists(ctx context.Context, exec boil.ContextExecutor, userID string) (bool, error) {
 	var exists bool
 	sql := "select exists(select 1 from `user_profiles` where `user_id`=? and `deleted_at` is null limit 1)"
 

@@ -8,12 +8,13 @@ import (
 	"database/sql"
 	"fmt"
 	"reflect"
+	"strconv"
 	"strings"
 	"sync"
 	"time"
 
 	"github.com/friendsofgo/errors"
-	"github.com/volatiletech/null"
+	"github.com/volatiletech/null/v8"
 	"github.com/volatiletech/sqlboiler/v4/boil"
 	"github.com/volatiletech/sqlboiler/v4/queries"
 	"github.com/volatiletech/sqlboiler/v4/queries/qm"
@@ -23,7 +24,7 @@ import (
 
 // ContentChild is an object representing the database table.
 type ContentChild struct {
-	ContentID uint      `boil:"content_id" json:"contentID" toml:"contentID" yaml:"contentID"`
+	ContentID string    `boil:"content_id" json:"contentID" toml:"contentID" yaml:"contentID"`
 	OrderNo   int16     `boil:"order_no" json:"orderNo" toml:"orderNo" yaml:"orderNo"`
 	HTML      string    `boil:"html" json:"html" toml:"html" yaml:"html"`
 	ImageURL  string    `boil:"image_url" json:"imageURL" toml:"imageURL" yaml:"imageURL"`
@@ -97,7 +98,7 @@ func (w whereHelperint16) NIN(slice []int16) qm.QueryMod {
 }
 
 var ContentChildWhere = struct {
-	ContentID whereHelperuint
+	ContentID whereHelperstring
 	OrderNo   whereHelperint16
 	HTML      whereHelperstring
 	ImageURL  whereHelperstring
@@ -105,7 +106,7 @@ var ContentChildWhere = struct {
 	UpdatedAt whereHelpernull_Time
 	DeletedAt whereHelpernull_Time
 }{
-	ContentID: whereHelperuint{field: "`content_childs`.`content_id`"},
+	ContentID: whereHelperstring{field: "`content_childs`.`content_id`"},
 	OrderNo:   whereHelperint16{field: "`content_childs`.`order_no`"},
 	HTML:      whereHelperstring{field: "`content_childs`.`html`"},
 	ImageURL:  whereHelperstring{field: "`content_childs`.`image_url`"},
@@ -628,13 +629,13 @@ func ContentChilds(mods ...qm.QueryMod) contentChildQuery {
 }
 
 // FindContentChildG retrieves a single record by ID.
-func FindContentChildG(ctx context.Context, contentID uint, orderNo int16, selectCols ...string) (*ContentChild, error) {
+func FindContentChildG(ctx context.Context, contentID string, orderNo int16, selectCols ...string) (*ContentChild, error) {
 	return FindContentChild(ctx, boil.GetContextDB(), contentID, orderNo, selectCols...)
 }
 
 // FindContentChild retrieves a single record by ID with an executor.
 // If selectCols is empty Find will return all columns.
-func FindContentChild(ctx context.Context, exec boil.ContextExecutor, contentID uint, orderNo int16, selectCols ...string) (*ContentChild, error) {
+func FindContentChild(ctx context.Context, exec boil.ContextExecutor, contentID string, orderNo int16, selectCols ...string) (*ContentChild, error) {
 	contentChildObj := &ContentChild{}
 
 	sel := "*"
@@ -675,6 +676,16 @@ func (o *ContentChild) Insert(ctx context.Context, exec boil.ContextExecutor, co
 	}
 
 	var err error
+	if !boil.TimestampsAreSkipped(ctx) {
+		currTime := time.Now().In(boil.GetLocation())
+
+		if o.CreatedAt.IsZero() {
+			o.CreatedAt = currTime
+		}
+		if queries.MustTime(o.UpdatedAt).IsZero() {
+			queries.SetScanner(&o.UpdatedAt, currTime)
+		}
+	}
 
 	if err := o.doBeforeInsertHooks(ctx, exec); err != nil {
 		return err
@@ -773,6 +784,12 @@ func (o *ContentChild) UpdateG(ctx context.Context, columns boil.Columns) (int64
 // See boil.Columns.UpdateColumnSet documentation to understand column list inference for updates.
 // Update does not automatically update the record in case of default values. Use .Reload() to refresh the records.
 func (o *ContentChild) Update(ctx context.Context, exec boil.ContextExecutor, columns boil.Columns) (int64, error) {
+	if !boil.TimestampsAreSkipped(ctx) {
+		currTime := time.Now().In(boil.GetLocation())
+
+		queries.SetScanner(&o.UpdatedAt, currTime)
+	}
+
 	var err error
 	if err = o.doBeforeUpdateHooks(ctx, exec); err != nil {
 		return 0, err
@@ -787,6 +804,10 @@ func (o *ContentChild) Update(ctx context.Context, exec boil.ContextExecutor, co
 			contentChildAllColumns,
 			contentChildPrimaryKeyColumns,
 		)
+
+		if !columns.IsWhitelist() {
+			wl = strmangle.SetComplement(wl, []string{"created_at"})
+		}
 		if len(wl) == 0 {
 			return 0, errors.New("boiler: unable to update content_childs, could not build whitelist")
 		}
@@ -901,6 +922,155 @@ func (o ContentChildSlice) UpdateAll(ctx context.Context, exec boil.ContextExecu
 		return 0, errors.Wrap(err, "boiler: unable to retrieve rows affected all in update all contentChild")
 	}
 	return rowsAff, nil
+}
+
+// UpsertG attempts an insert, and does an update or ignore on conflict.
+func (o *ContentChild) UpsertG(ctx context.Context, updateColumns, insertColumns boil.Columns) error {
+	return o.Upsert(ctx, boil.GetContextDB(), updateColumns, insertColumns)
+}
+
+var mySQLContentChildUniqueColumns = []string{}
+
+// Upsert attempts an insert using an executor, and does an update or ignore on conflict.
+// See boil.Columns documentation for how to properly use updateColumns and insertColumns.
+func (o *ContentChild) Upsert(ctx context.Context, exec boil.ContextExecutor, updateColumns, insertColumns boil.Columns) error {
+	if o == nil {
+		return errors.New("boiler: no content_childs provided for upsert")
+	}
+	if !boil.TimestampsAreSkipped(ctx) {
+		currTime := time.Now().In(boil.GetLocation())
+
+		if o.CreatedAt.IsZero() {
+			o.CreatedAt = currTime
+		}
+		queries.SetScanner(&o.UpdatedAt, currTime)
+	}
+
+	if err := o.doBeforeUpsertHooks(ctx, exec); err != nil {
+		return err
+	}
+
+	nzDefaults := queries.NonZeroDefaultSet(contentChildColumnsWithDefault, o)
+	nzUniques := queries.NonZeroDefaultSet(mySQLContentChildUniqueColumns, o)
+
+	if len(nzUniques) == 0 {
+		return errors.New("cannot upsert with a table that cannot conflict on a unique column")
+	}
+
+	// Build cache key in-line uglily - mysql vs psql problems
+	buf := strmangle.GetBuffer()
+	buf.WriteString(strconv.Itoa(updateColumns.Kind))
+	for _, c := range updateColumns.Cols {
+		buf.WriteString(c)
+	}
+	buf.WriteByte('.')
+	buf.WriteString(strconv.Itoa(insertColumns.Kind))
+	for _, c := range insertColumns.Cols {
+		buf.WriteString(c)
+	}
+	buf.WriteByte('.')
+	for _, c := range nzDefaults {
+		buf.WriteString(c)
+	}
+	buf.WriteByte('.')
+	for _, c := range nzUniques {
+		buf.WriteString(c)
+	}
+	key := buf.String()
+	strmangle.PutBuffer(buf)
+
+	contentChildUpsertCacheMut.RLock()
+	cache, cached := contentChildUpsertCache[key]
+	contentChildUpsertCacheMut.RUnlock()
+
+	var err error
+
+	if !cached {
+		insert, ret := insertColumns.InsertColumnSet(
+			contentChildAllColumns,
+			contentChildColumnsWithDefault,
+			contentChildColumnsWithoutDefault,
+			nzDefaults,
+		)
+
+		update := updateColumns.UpdateColumnSet(
+			contentChildAllColumns,
+			contentChildPrimaryKeyColumns,
+		)
+
+		if !updateColumns.IsNone() && len(update) == 0 {
+			return errors.New("boiler: unable to upsert content_childs, could not build update column list")
+		}
+
+		ret = strmangle.SetComplement(ret, nzUniques)
+		cache.query = buildUpsertQueryMySQL(dialect, "`content_childs`", update, insert)
+		cache.retQuery = fmt.Sprintf(
+			"SELECT %s FROM `content_childs` WHERE %s",
+			strings.Join(strmangle.IdentQuoteSlice(dialect.LQ, dialect.RQ, ret), ","),
+			strmangle.WhereClause("`", "`", 0, nzUniques),
+		)
+
+		cache.valueMapping, err = queries.BindMapping(contentChildType, contentChildMapping, insert)
+		if err != nil {
+			return err
+		}
+		if len(ret) != 0 {
+			cache.retMapping, err = queries.BindMapping(contentChildType, contentChildMapping, ret)
+			if err != nil {
+				return err
+			}
+		}
+	}
+
+	value := reflect.Indirect(reflect.ValueOf(o))
+	vals := queries.ValuesFromMapping(value, cache.valueMapping)
+	var returns []interface{}
+	if len(cache.retMapping) != 0 {
+		returns = queries.PtrsFromMapping(value, cache.retMapping)
+	}
+
+	if boil.IsDebug(ctx) {
+		writer := boil.DebugWriterFrom(ctx)
+		fmt.Fprintln(writer, cache.query)
+		fmt.Fprintln(writer, vals)
+	}
+	_, err = exec.ExecContext(ctx, cache.query, vals...)
+
+	if err != nil {
+		return errors.Wrap(err, "boiler: unable to upsert for content_childs")
+	}
+
+	var uniqueMap []uint64
+	var nzUniqueCols []interface{}
+
+	if len(cache.retMapping) == 0 {
+		goto CacheNoHooks
+	}
+
+	uniqueMap, err = queries.BindMapping(contentChildType, contentChildMapping, nzUniques)
+	if err != nil {
+		return errors.Wrap(err, "boiler: unable to retrieve unique values for content_childs")
+	}
+	nzUniqueCols = queries.ValuesFromMapping(reflect.Indirect(reflect.ValueOf(o)), uniqueMap)
+
+	if boil.IsDebug(ctx) {
+		writer := boil.DebugWriterFrom(ctx)
+		fmt.Fprintln(writer, cache.retQuery)
+		fmt.Fprintln(writer, nzUniqueCols...)
+	}
+	err = exec.QueryRowContext(ctx, cache.retQuery, nzUniqueCols...).Scan(returns...)
+	if err != nil {
+		return errors.Wrap(err, "boiler: unable to populate default values for content_childs")
+	}
+
+CacheNoHooks:
+	if !cached {
+		contentChildUpsertCacheMut.Lock()
+		contentChildUpsertCache[key] = cache
+		contentChildUpsertCacheMut.Unlock()
+	}
+
+	return o.doAfterUpsertHooks(ctx, exec)
 }
 
 // DeleteG deletes a single ContentChild record.
@@ -1126,12 +1296,12 @@ func (o *ContentChildSlice) ReloadAll(ctx context.Context, exec boil.ContextExec
 }
 
 // ContentChildExistsG checks if the ContentChild row exists.
-func ContentChildExistsG(ctx context.Context, contentID uint, orderNo int16) (bool, error) {
+func ContentChildExistsG(ctx context.Context, contentID string, orderNo int16) (bool, error) {
 	return ContentChildExists(ctx, boil.GetContextDB(), contentID, orderNo)
 }
 
 // ContentChildExists checks if the ContentChild row exists.
-func ContentChildExists(ctx context.Context, exec boil.ContextExecutor, contentID uint, orderNo int16) (bool, error) {
+func ContentChildExists(ctx context.Context, exec boil.ContextExecutor, contentID string, orderNo int16) (bool, error) {
 	var exists bool
 	sql := "select exists(select 1 from `content_childs` where `content_id`=? AND `order_no`=? and `deleted_at` is null limit 1)"
 

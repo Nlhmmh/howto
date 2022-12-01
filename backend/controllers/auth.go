@@ -3,7 +3,7 @@ package controllers
 import (
 	"backend/boiler"
 	"errors"
-	"net/http"
+	"strings"
 	"time"
 
 	"github.com/dgrijalva/jwt-go"
@@ -22,13 +22,15 @@ var (
 		"/api/user/login",
 		"/api/user/check/displayname",
 		"/api/user/check/email",
+		"/api/user/send/otp",
+		"/api/user/check/otp",
 
 		"/api/content",
-		"/api/admin/user",
 	}
 
 	// AdminWhiteList - Admin WhiteList
 	AdminWhiteList = []string{
+		"/api/admin/user",
 		"/api/admin/user/:userID",
 	}
 )
@@ -41,7 +43,7 @@ type LoginResponse struct {
 
 // CustomClaims - Custom Claims
 type CustomClaims struct {
-	userID uint
+	UserID string
 	Role   string
 	jwt.StandardClaims
 }
@@ -50,23 +52,33 @@ type CustomClaims struct {
 func AuthorizeJWT() gin.HandlerFunc {
 	return func(c *gin.Context) {
 
-		// Get token
-		token := c.GetHeader("token")
-
 		// Check White List
 		if CheckJWTWhiteList(c.FullPath()) {
+
+			// Get token
+			bearerToken := c.GetHeader("Authorization")
+			tokenArray := strings.Split(bearerToken, " ")
+			if len(tokenArray) < 2 {
+				UnAuthorizedResp(c, errors.New("bearer token is wrong"+bearerToken))
+				return
+			}
+			token := tokenArray[1]
 
 			// Validate Token
 			claims, err := ValidateToken(token)
 			if err != nil {
-				c.AbortWithError(http.StatusUnauthorized, err)
+				UnAuthorizedResp(c, err)
+				return
 			}
+			claimsValue := *claims
+			c.Set("userID", claimsValue.UserID)
 
 			if CheckAdminWhiteList(c.FullPath()) {
 				if claims.Role == "admin" {
 					c.Next()
 				} else {
-					c.AbortWithError(http.StatusUnauthorized, errors.New("not admin user"))
+					UnAuthorizedResp(c, errors.New("not admin user"))
+					return
 				}
 			}
 
@@ -100,7 +112,7 @@ func CheckAdminWhiteList(path string) bool {
 }
 
 // GenerateToken - Generate Tokens
-func GenerateToken(userID uint, role string) (string, error) {
+func GenerateToken(userID string, role string) (string, error) {
 
 	// Create Token
 	claims := CustomClaims{

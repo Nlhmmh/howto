@@ -8,12 +8,13 @@ import (
 	"database/sql"
 	"fmt"
 	"reflect"
+	"strconv"
 	"strings"
 	"sync"
 	"time"
 
 	"github.com/friendsofgo/errors"
-	"github.com/volatiletech/null"
+	"github.com/volatiletech/null/v8"
 	"github.com/volatiletech/sqlboiler/v4/boil"
 	"github.com/volatiletech/sqlboiler/v4/queries"
 	"github.com/volatiletech/sqlboiler/v4/queries/qm"
@@ -23,15 +24,15 @@ import (
 
 // User is an object representing the database table.
 type User struct {
-	ID        uint      `boil:"id" json:"id" toml:"id" yaml:"id"`
-	Email     string    `boil:"email" json:"email" toml:"email" yaml:"email"`
-	Password  string    `boil:"password" json:"password" toml:"password" yaml:"password"`
-	Type      string    `boil:"type" json:"type" toml:"type" yaml:"type"`
-	Role      string    `boil:"role" json:"role" toml:"role" yaml:"role"`
-	Status    string    `boil:"status" json:"status" toml:"status" yaml:"status"`
-	CreatedAt time.Time `boil:"created_at" json:"createdAt" toml:"createdAt" yaml:"createdAt"`
-	UpdatedAt null.Time `boil:"updated_at" json:"updatedAt,omitempty" toml:"updatedAt" yaml:"updatedAt,omitempty"`
-	DeletedAt null.Time `boil:"deleted_at" json:"deletedAt,omitempty" toml:"deletedAt" yaml:"deletedAt,omitempty"`
+	ID        string      `boil:"id" json:"id" toml:"id" yaml:"id"`
+	Email     string      `boil:"email" json:"email" toml:"email" yaml:"email"`
+	Password  string      `boil:"password" json:"password" toml:"password" yaml:"password"`
+	Type      UsersType   `boil:"type" json:"type" toml:"type" yaml:"type"`
+	Role      UsersRole   `boil:"role" json:"role" toml:"role" yaml:"role"`
+	Status    UsersStatus `boil:"status" json:"status" toml:"status" yaml:"status"`
+	CreatedAt time.Time   `boil:"created_at" json:"createdAt" toml:"createdAt" yaml:"createdAt"`
+	UpdatedAt null.Time   `boil:"updated_at" json:"updatedAt,omitempty" toml:"updatedAt" yaml:"updatedAt,omitempty"`
+	DeletedAt null.Time   `boil:"deleted_at" json:"deletedAt,omitempty" toml:"deletedAt" yaml:"deletedAt,omitempty"`
 
 	R *userR `boil:"-" json:"-" toml:"-" yaml:"-"`
 	L userL  `boil:"-" json:"-" toml:"-" yaml:"-"`
@@ -83,23 +84,128 @@ var UserTableColumns = struct {
 
 // Generated where
 
+type whereHelperUsersType struct{ field string }
+
+func (w whereHelperUsersType) EQ(x UsersType) qm.QueryMod {
+	return qmhelper.Where(w.field, qmhelper.EQ, x)
+}
+func (w whereHelperUsersType) NEQ(x UsersType) qm.QueryMod {
+	return qmhelper.Where(w.field, qmhelper.NEQ, x)
+}
+func (w whereHelperUsersType) LT(x UsersType) qm.QueryMod {
+	return qmhelper.Where(w.field, qmhelper.LT, x)
+}
+func (w whereHelperUsersType) LTE(x UsersType) qm.QueryMod {
+	return qmhelper.Where(w.field, qmhelper.LTE, x)
+}
+func (w whereHelperUsersType) GT(x UsersType) qm.QueryMod {
+	return qmhelper.Where(w.field, qmhelper.GT, x)
+}
+func (w whereHelperUsersType) GTE(x UsersType) qm.QueryMod {
+	return qmhelper.Where(w.field, qmhelper.GTE, x)
+}
+func (w whereHelperUsersType) IN(slice []UsersType) qm.QueryMod {
+	values := make([]interface{}, 0, len(slice))
+	for _, value := range slice {
+		values = append(values, value)
+	}
+	return qm.WhereIn(fmt.Sprintf("%s IN ?", w.field), values...)
+}
+func (w whereHelperUsersType) NIN(slice []UsersType) qm.QueryMod {
+	values := make([]interface{}, 0, len(slice))
+	for _, value := range slice {
+		values = append(values, value)
+	}
+	return qm.WhereNotIn(fmt.Sprintf("%s NOT IN ?", w.field), values...)
+}
+
+type whereHelperUsersRole struct{ field string }
+
+func (w whereHelperUsersRole) EQ(x UsersRole) qm.QueryMod {
+	return qmhelper.Where(w.field, qmhelper.EQ, x)
+}
+func (w whereHelperUsersRole) NEQ(x UsersRole) qm.QueryMod {
+	return qmhelper.Where(w.field, qmhelper.NEQ, x)
+}
+func (w whereHelperUsersRole) LT(x UsersRole) qm.QueryMod {
+	return qmhelper.Where(w.field, qmhelper.LT, x)
+}
+func (w whereHelperUsersRole) LTE(x UsersRole) qm.QueryMod {
+	return qmhelper.Where(w.field, qmhelper.LTE, x)
+}
+func (w whereHelperUsersRole) GT(x UsersRole) qm.QueryMod {
+	return qmhelper.Where(w.field, qmhelper.GT, x)
+}
+func (w whereHelperUsersRole) GTE(x UsersRole) qm.QueryMod {
+	return qmhelper.Where(w.field, qmhelper.GTE, x)
+}
+func (w whereHelperUsersRole) IN(slice []UsersRole) qm.QueryMod {
+	values := make([]interface{}, 0, len(slice))
+	for _, value := range slice {
+		values = append(values, value)
+	}
+	return qm.WhereIn(fmt.Sprintf("%s IN ?", w.field), values...)
+}
+func (w whereHelperUsersRole) NIN(slice []UsersRole) qm.QueryMod {
+	values := make([]interface{}, 0, len(slice))
+	for _, value := range slice {
+		values = append(values, value)
+	}
+	return qm.WhereNotIn(fmt.Sprintf("%s NOT IN ?", w.field), values...)
+}
+
+type whereHelperUsersStatus struct{ field string }
+
+func (w whereHelperUsersStatus) EQ(x UsersStatus) qm.QueryMod {
+	return qmhelper.Where(w.field, qmhelper.EQ, x)
+}
+func (w whereHelperUsersStatus) NEQ(x UsersStatus) qm.QueryMod {
+	return qmhelper.Where(w.field, qmhelper.NEQ, x)
+}
+func (w whereHelperUsersStatus) LT(x UsersStatus) qm.QueryMod {
+	return qmhelper.Where(w.field, qmhelper.LT, x)
+}
+func (w whereHelperUsersStatus) LTE(x UsersStatus) qm.QueryMod {
+	return qmhelper.Where(w.field, qmhelper.LTE, x)
+}
+func (w whereHelperUsersStatus) GT(x UsersStatus) qm.QueryMod {
+	return qmhelper.Where(w.field, qmhelper.GT, x)
+}
+func (w whereHelperUsersStatus) GTE(x UsersStatus) qm.QueryMod {
+	return qmhelper.Where(w.field, qmhelper.GTE, x)
+}
+func (w whereHelperUsersStatus) IN(slice []UsersStatus) qm.QueryMod {
+	values := make([]interface{}, 0, len(slice))
+	for _, value := range slice {
+		values = append(values, value)
+	}
+	return qm.WhereIn(fmt.Sprintf("%s IN ?", w.field), values...)
+}
+func (w whereHelperUsersStatus) NIN(slice []UsersStatus) qm.QueryMod {
+	values := make([]interface{}, 0, len(slice))
+	for _, value := range slice {
+		values = append(values, value)
+	}
+	return qm.WhereNotIn(fmt.Sprintf("%s NOT IN ?", w.field), values...)
+}
+
 var UserWhere = struct {
-	ID        whereHelperuint
+	ID        whereHelperstring
 	Email     whereHelperstring
 	Password  whereHelperstring
-	Type      whereHelperstring
-	Role      whereHelperstring
-	Status    whereHelperstring
+	Type      whereHelperUsersType
+	Role      whereHelperUsersRole
+	Status    whereHelperUsersStatus
 	CreatedAt whereHelpertime_Time
 	UpdatedAt whereHelpernull_Time
 	DeletedAt whereHelpernull_Time
 }{
-	ID:        whereHelperuint{field: "`users`.`id`"},
+	ID:        whereHelperstring{field: "`users`.`id`"},
 	Email:     whereHelperstring{field: "`users`.`email`"},
 	Password:  whereHelperstring{field: "`users`.`password`"},
-	Type:      whereHelperstring{field: "`users`.`type`"},
-	Role:      whereHelperstring{field: "`users`.`role`"},
-	Status:    whereHelperstring{field: "`users`.`status`"},
+	Type:      whereHelperUsersType{field: "`users`.`type`"},
+	Role:      whereHelperUsersRole{field: "`users`.`role`"},
+	Status:    whereHelperUsersStatus{field: "`users`.`status`"},
 	CreatedAt: whereHelpertime_Time{field: "`users`.`created_at`"},
 	UpdatedAt: whereHelpernull_Time{field: "`users`.`updated_at`"},
 	DeletedAt: whereHelpernull_Time{field: "`users`.`deleted_at`"},
@@ -144,8 +250,8 @@ type userL struct{}
 
 var (
 	userAllColumns            = []string{"id", "email", "password", "type", "role", "status", "created_at", "updated_at", "deleted_at"}
-	userColumnsWithoutDefault = []string{"email", "password", "deleted_at"}
-	userColumnsWithDefault    = []string{"id", "type", "role", "status", "created_at", "updated_at"}
+	userColumnsWithoutDefault = []string{"id", "email", "password", "deleted_at"}
+	userColumnsWithDefault    = []string{"type", "role", "status", "created_at", "updated_at"}
 	userPrimaryKeyColumns     = []string{"id"}
 	userGeneratedColumns      = []string{}
 )
@@ -800,13 +906,13 @@ func Users(mods ...qm.QueryMod) userQuery {
 }
 
 // FindUserG retrieves a single record by ID.
-func FindUserG(ctx context.Context, iD uint, selectCols ...string) (*User, error) {
+func FindUserG(ctx context.Context, iD string, selectCols ...string) (*User, error) {
 	return FindUser(ctx, boil.GetContextDB(), iD, selectCols...)
 }
 
 // FindUser retrieves a single record by ID with an executor.
 // If selectCols is empty Find will return all columns.
-func FindUser(ctx context.Context, exec boil.ContextExecutor, iD uint, selectCols ...string) (*User, error) {
+func FindUser(ctx context.Context, exec boil.ContextExecutor, iD string, selectCols ...string) (*User, error) {
 	userObj := &User{}
 
 	sel := "*"
@@ -847,6 +953,16 @@ func (o *User) Insert(ctx context.Context, exec boil.ContextExecutor, columns bo
 	}
 
 	var err error
+	if !boil.TimestampsAreSkipped(ctx) {
+		currTime := time.Now().In(boil.GetLocation())
+
+		if o.CreatedAt.IsZero() {
+			o.CreatedAt = currTime
+		}
+		if queries.MustTime(o.UpdatedAt).IsZero() {
+			queries.SetScanner(&o.UpdatedAt, currTime)
+		}
+	}
 
 	if err := o.doBeforeInsertHooks(ctx, exec); err != nil {
 		return err
@@ -898,26 +1014,15 @@ func (o *User) Insert(ctx context.Context, exec boil.ContextExecutor, columns bo
 		fmt.Fprintln(writer, cache.query)
 		fmt.Fprintln(writer, vals)
 	}
-	result, err := exec.ExecContext(ctx, cache.query, vals...)
+	_, err = exec.ExecContext(ctx, cache.query, vals...)
 
 	if err != nil {
 		return errors.Wrap(err, "boiler: unable to insert into users")
 	}
 
-	var lastID int64
 	var identifierCols []interface{}
 
 	if len(cache.retMapping) == 0 {
-		goto CacheNoHooks
-	}
-
-	lastID, err = result.LastInsertId()
-	if err != nil {
-		return ErrSyncFail
-	}
-
-	o.ID = uint(lastID)
-	if lastID != 0 && len(cache.retMapping) == 1 && cache.retMapping[0] == userMapping["id"] {
 		goto CacheNoHooks
 	}
 
@@ -955,6 +1060,12 @@ func (o *User) UpdateG(ctx context.Context, columns boil.Columns) (int64, error)
 // See boil.Columns.UpdateColumnSet documentation to understand column list inference for updates.
 // Update does not automatically update the record in case of default values. Use .Reload() to refresh the records.
 func (o *User) Update(ctx context.Context, exec boil.ContextExecutor, columns boil.Columns) (int64, error) {
+	if !boil.TimestampsAreSkipped(ctx) {
+		currTime := time.Now().In(boil.GetLocation())
+
+		queries.SetScanner(&o.UpdatedAt, currTime)
+	}
+
 	var err error
 	if err = o.doBeforeUpdateHooks(ctx, exec); err != nil {
 		return 0, err
@@ -969,6 +1080,10 @@ func (o *User) Update(ctx context.Context, exec boil.ContextExecutor, columns bo
 			userAllColumns,
 			userPrimaryKeyColumns,
 		)
+
+		if !columns.IsWhitelist() {
+			wl = strmangle.SetComplement(wl, []string{"created_at"})
+		}
 		if len(wl) == 0 {
 			return 0, errors.New("boiler: unable to update users, could not build whitelist")
 		}
@@ -1083,6 +1198,158 @@ func (o UserSlice) UpdateAll(ctx context.Context, exec boil.ContextExecutor, col
 		return 0, errors.Wrap(err, "boiler: unable to retrieve rows affected all in update all user")
 	}
 	return rowsAff, nil
+}
+
+// UpsertG attempts an insert, and does an update or ignore on conflict.
+func (o *User) UpsertG(ctx context.Context, updateColumns, insertColumns boil.Columns) error {
+	return o.Upsert(ctx, boil.GetContextDB(), updateColumns, insertColumns)
+}
+
+var mySQLUserUniqueColumns = []string{
+	"id",
+	"email",
+}
+
+// Upsert attempts an insert using an executor, and does an update or ignore on conflict.
+// See boil.Columns documentation for how to properly use updateColumns and insertColumns.
+func (o *User) Upsert(ctx context.Context, exec boil.ContextExecutor, updateColumns, insertColumns boil.Columns) error {
+	if o == nil {
+		return errors.New("boiler: no users provided for upsert")
+	}
+	if !boil.TimestampsAreSkipped(ctx) {
+		currTime := time.Now().In(boil.GetLocation())
+
+		if o.CreatedAt.IsZero() {
+			o.CreatedAt = currTime
+		}
+		queries.SetScanner(&o.UpdatedAt, currTime)
+	}
+
+	if err := o.doBeforeUpsertHooks(ctx, exec); err != nil {
+		return err
+	}
+
+	nzDefaults := queries.NonZeroDefaultSet(userColumnsWithDefault, o)
+	nzUniques := queries.NonZeroDefaultSet(mySQLUserUniqueColumns, o)
+
+	if len(nzUniques) == 0 {
+		return errors.New("cannot upsert with a table that cannot conflict on a unique column")
+	}
+
+	// Build cache key in-line uglily - mysql vs psql problems
+	buf := strmangle.GetBuffer()
+	buf.WriteString(strconv.Itoa(updateColumns.Kind))
+	for _, c := range updateColumns.Cols {
+		buf.WriteString(c)
+	}
+	buf.WriteByte('.')
+	buf.WriteString(strconv.Itoa(insertColumns.Kind))
+	for _, c := range insertColumns.Cols {
+		buf.WriteString(c)
+	}
+	buf.WriteByte('.')
+	for _, c := range nzDefaults {
+		buf.WriteString(c)
+	}
+	buf.WriteByte('.')
+	for _, c := range nzUniques {
+		buf.WriteString(c)
+	}
+	key := buf.String()
+	strmangle.PutBuffer(buf)
+
+	userUpsertCacheMut.RLock()
+	cache, cached := userUpsertCache[key]
+	userUpsertCacheMut.RUnlock()
+
+	var err error
+
+	if !cached {
+		insert, ret := insertColumns.InsertColumnSet(
+			userAllColumns,
+			userColumnsWithDefault,
+			userColumnsWithoutDefault,
+			nzDefaults,
+		)
+
+		update := updateColumns.UpdateColumnSet(
+			userAllColumns,
+			userPrimaryKeyColumns,
+		)
+
+		if !updateColumns.IsNone() && len(update) == 0 {
+			return errors.New("boiler: unable to upsert users, could not build update column list")
+		}
+
+		ret = strmangle.SetComplement(ret, nzUniques)
+		cache.query = buildUpsertQueryMySQL(dialect, "`users`", update, insert)
+		cache.retQuery = fmt.Sprintf(
+			"SELECT %s FROM `users` WHERE %s",
+			strings.Join(strmangle.IdentQuoteSlice(dialect.LQ, dialect.RQ, ret), ","),
+			strmangle.WhereClause("`", "`", 0, nzUniques),
+		)
+
+		cache.valueMapping, err = queries.BindMapping(userType, userMapping, insert)
+		if err != nil {
+			return err
+		}
+		if len(ret) != 0 {
+			cache.retMapping, err = queries.BindMapping(userType, userMapping, ret)
+			if err != nil {
+				return err
+			}
+		}
+	}
+
+	value := reflect.Indirect(reflect.ValueOf(o))
+	vals := queries.ValuesFromMapping(value, cache.valueMapping)
+	var returns []interface{}
+	if len(cache.retMapping) != 0 {
+		returns = queries.PtrsFromMapping(value, cache.retMapping)
+	}
+
+	if boil.IsDebug(ctx) {
+		writer := boil.DebugWriterFrom(ctx)
+		fmt.Fprintln(writer, cache.query)
+		fmt.Fprintln(writer, vals)
+	}
+	_, err = exec.ExecContext(ctx, cache.query, vals...)
+
+	if err != nil {
+		return errors.Wrap(err, "boiler: unable to upsert for users")
+	}
+
+	var uniqueMap []uint64
+	var nzUniqueCols []interface{}
+
+	if len(cache.retMapping) == 0 {
+		goto CacheNoHooks
+	}
+
+	uniqueMap, err = queries.BindMapping(userType, userMapping, nzUniques)
+	if err != nil {
+		return errors.Wrap(err, "boiler: unable to retrieve unique values for users")
+	}
+	nzUniqueCols = queries.ValuesFromMapping(reflect.Indirect(reflect.ValueOf(o)), uniqueMap)
+
+	if boil.IsDebug(ctx) {
+		writer := boil.DebugWriterFrom(ctx)
+		fmt.Fprintln(writer, cache.retQuery)
+		fmt.Fprintln(writer, nzUniqueCols...)
+	}
+	err = exec.QueryRowContext(ctx, cache.retQuery, nzUniqueCols...).Scan(returns...)
+	if err != nil {
+		return errors.Wrap(err, "boiler: unable to populate default values for users")
+	}
+
+CacheNoHooks:
+	if !cached {
+		userUpsertCacheMut.Lock()
+		userUpsertCache[key] = cache
+		userUpsertCacheMut.Unlock()
+	}
+
+	return o.doAfterUpsertHooks(ctx, exec)
 }
 
 // DeleteG deletes a single User record.
@@ -1308,12 +1575,12 @@ func (o *UserSlice) ReloadAll(ctx context.Context, exec boil.ContextExecutor) er
 }
 
 // UserExistsG checks if the User row exists.
-func UserExistsG(ctx context.Context, iD uint) (bool, error) {
+func UserExistsG(ctx context.Context, iD string) (bool, error) {
 	return UserExists(ctx, boil.GetContextDB(), iD)
 }
 
 // UserExists checks if the User row exists.
-func UserExists(ctx context.Context, exec boil.ContextExecutor, iD uint) (bool, error) {
+func UserExists(ctx context.Context, exec boil.ContextExecutor, iD string) (bool, error) {
 	var exists bool
 	sql := "select exists(select 1 from `users` where `id`=? and `deleted_at` is null limit 1)"
 

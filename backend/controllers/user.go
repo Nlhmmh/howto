@@ -2,6 +2,8 @@ package controllers
 
 import (
 	"backend/boiler"
+	"database/sql"
+	"errors"
 	"fmt"
 	"math/rand"
 	"net/http"
@@ -11,6 +13,7 @@ import (
 	"golang.org/x/crypto/bcrypt"
 
 	"github.com/gin-gonic/gin"
+	"github.com/google/uuid"
 	"github.com/volatiletech/sqlboiler/v4/boil"
 	"github.com/volatiletech/sqlboiler/v4/queries/qm"
 )
@@ -28,7 +31,7 @@ func (o *userCtrl) SendOTP(c *gin.Context) {
 	// Check Request
 	var resq UserRegisterSendOtpRequest
 	if err := c.ShouldBindJSON(&resq); err != nil {
-		c.AbortWithError(http.StatusBadRequest, err)
+		BadRequestResp(c, err)
 		return
 	}
 
@@ -36,7 +39,7 @@ func (o *userCtrl) SendOTP(c *gin.Context) {
 	var otp []string
 	rand.Seed(time.Now().UnixNano())
 	for i := 0; i < 4; i++ {
-		otp[i] = fmt.Sprintf("%d", rand.Intn(9))
+		otp = append(otp, fmt.Sprintf("%d", rand.Intn(9)))
 	}
 
 	// Create OTP
@@ -45,7 +48,7 @@ func (o *userCtrl) SendOTP(c *gin.Context) {
 	userOtp.Otp = strings.Join(otp, "")
 
 	if err := userOtp.InsertG(c, boil.Infer()); err != nil {
-		c.AbortWithError(http.StatusInternalServerError, err)
+		ServerErrorResp(c, err)
 		return
 	}
 
@@ -53,12 +56,14 @@ func (o *userCtrl) SendOTP(c *gin.Context) {
 
 }
 
+// *********************************************** //
+
 func (o *userCtrl) CheckOTP(c *gin.Context) {
 
 	// Check Request
 	var resq UserRegisterCheckOtpRequest
 	if err := c.ShouldBindJSON(&resq); err != nil {
-		c.AbortWithError(http.StatusBadRequest, err)
+		BadRequestResp(c, err)
 		return
 	}
 
@@ -69,7 +74,7 @@ func (o *userCtrl) CheckOTP(c *gin.Context) {
 		qm.Where("otp=?", resq.Otp),
 	).CountG(c)
 	if err != nil {
-		c.AbortWithError(http.StatusInternalServerError, err)
+		ServerErrorResp(c, err)
 		return
 	}
 
@@ -81,67 +86,72 @@ func (o *userCtrl) CheckOTP(c *gin.Context) {
 
 }
 
+// *********************************************** //
+
 func (o *userCtrl) Register(c *gin.Context) {
 
 	// Check Request
 	var resq UserRegisterRequest
 	if err := c.ShouldBindJSON(&resq); err != nil {
-		c.AbortWithError(http.StatusBadRequest, err)
+		BadRequestResp(c, err)
+		return
+	}
+	if resq.Type != boiler.UsersTypeCreator.String() && resq.Type != boiler.UsersTypeViewer.String() {
+		BadRequestResp(c, errors.New("type is not creator or viewer"))
 		return
 	}
 
 	// Generate Hash Password
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(resq.Password), 10)
 	if err != nil {
-		c.AbortWithError(http.StatusBadRequest, err)
+		BadRequestResp(c, err)
 		return
 	}
 
-	// Create User
-	user := new(boiler.User)
-	user.Email = resq.Email
-	user.Password = string(hashedPassword)
-	user.Type = resq.Type
-	user.Role = "user"
-	user.Status = "active"
+	WriteTransaction(c, func(tx *sql.Tx) bool {
 
-	if err := user.InsertG(c, boil.Infer()); err != nil {
-		c.AbortWithError(http.StatusInternalServerError, err)
-		return
-	}
+		// Create User
+		user := new(boiler.User)
+		user.ID = uuid.NewString()
+		user.Email = resq.Email
+		user.Password = string(hashedPassword)
+		user.Type = boiler.UsersType(resq.Type)
+		user.Role = "user"
+		user.Status = "active"
 
-	// Create User Profile
-	userProfile := new(boiler.UserProfile)
-	userProfile.DisplayName = resq.DisplayName
-	userProfile.Name = resq.Name
-	userProfile.BirthDate = resq.BirthDate
-	userProfile.Phone = resq.Phone
+		if err := user.Insert(c, tx, boil.Infer()); err != nil {
+			RespWithRollbackTx(c, err, tx, ServerErrorResp)
+			return true
+		}
 
-	if err := userProfile.InsertG(c, boil.Infer()); err != nil {
-		c.AbortWithError(http.StatusInternalServerError, err)
-		return
-	}
+		// Create User Profile
+		userProfile := new(boiler.UserProfile)
+		userProfile.UserID = user.ID
+		userProfile.DisplayName = resq.DisplayName
+		userProfile.Name = resq.Name
+		userProfile.BirthDate = resq.BirthDate
+		userProfile.Phone = resq.Phone
 
-	// Generate Token
-	token, err := GenerateToken(user.ID, user.Role)
-	if err != nil {
-		c.AbortWithError(http.StatusInternalServerError, err)
-		return
-	}
-	user.Password = "*****"
-	c.JSON(http.StatusOK, &LoginResponse{
-		User:  user,
-		Token: token,
+		if err := userProfile.Insert(c, tx, boil.Infer()); err != nil {
+			RespWithRollbackTx(c, err, tx, ServerErrorResp)
+			return true
+		}
+
+		c.Status(http.StatusOK)
+		return false
+
 	})
 
 }
+
+// *********************************************** //
 
 func (o *userCtrl) Login(c *gin.Context) {
 
 	// Check Request
 	var resq LoginRequest
 	if err := c.ShouldBindJSON(&resq); err != nil {
-		c.AbortWithError(http.StatusBadRequest, err)
+		BadRequestResp(c, err)
 		return
 	}
 
@@ -149,24 +159,28 @@ func (o *userCtrl) Login(c *gin.Context) {
 	user, err := boiler.Users(
 		qm.Where("email=?", resq.Email),
 	).OneG(c)
+	if err != nil && errors.Is(err, sql.ErrNoRows) {
+		UserWithEmailNotExistResp(c, err)
+		return
+	}
 	if err != nil {
-		c.AbortWithError(http.StatusInternalServerError, err)
+		ServerErrorResp(c, err)
 		return
 	}
 
 	// Check Password
-	if err = bcrypt.CompareHashAndPassword(
+	if err := bcrypt.CompareHashAndPassword(
 		[]byte(user.Password),
 		[]byte(resq.Password),
 	); err != nil {
-		c.AbortWithError(http.StatusInternalServerError, err)
+		PasswordWrongResp(c, err)
 		return
 	}
 
 	// Generate Token
-	token, err := GenerateToken(user.ID, user.Role)
+	token, err := GenerateToken(user.ID, user.Role.String())
 	if err != nil {
-		c.AbortWithError(http.StatusInternalServerError, err)
+		ServerErrorResp(c, err)
 		return
 	}
 	user.Password = "*****"
@@ -177,12 +191,14 @@ func (o *userCtrl) Login(c *gin.Context) {
 
 }
 
+// *********************************************** //
+
 func (o *userCtrl) CheckDisplayName(c *gin.Context) {
 
 	// Check Request
 	var resq CheckDisplayNameRequest
 	if err := c.ShouldBindJSON(&resq); err != nil {
-		c.AbortWithError(http.StatusBadRequest, err)
+		BadRequestResp(c, err)
 		return
 	}
 
@@ -191,7 +207,7 @@ func (o *userCtrl) CheckDisplayName(c *gin.Context) {
 		qm.Where("display_name=?", resq.DisplayName),
 	).ExistsG(c)
 	if err != nil {
-		c.AbortWithError(http.StatusInternalServerError, err)
+		ServerErrorResp(c, err)
 		return
 	}
 
@@ -199,12 +215,14 @@ func (o *userCtrl) CheckDisplayName(c *gin.Context) {
 
 }
 
+// *********************************************** //
+
 func (o *userCtrl) CheckEmail(c *gin.Context) {
 
 	// Check Request
 	var resq CheckEmailRequest
 	if err := c.ShouldBindJSON(&resq); err != nil {
-		c.AbortWithError(http.StatusBadRequest, err)
+		BadRequestResp(c, err)
 		return
 	}
 
@@ -213,7 +231,7 @@ func (o *userCtrl) CheckEmail(c *gin.Context) {
 		qm.Where("email=?", resq.Email),
 	).ExistsG(c)
 	if err != nil {
-		c.AbortWithError(http.StatusInternalServerError, err)
+		ServerErrorResp(c, err)
 		return
 	}
 
@@ -221,58 +239,85 @@ func (o *userCtrl) CheckEmail(c *gin.Context) {
 
 }
 
+// *********************************************** //
+
 func (o *userCtrl) EditProfile(c *gin.Context) {
 
 	// Check Request
 	var resq UserProfileEditRequest
 	if err := c.ShouldBindJSON(&resq); err != nil {
-		c.AbortWithError(http.StatusBadRequest, err)
+		BadRequestResp(c, err)
 		return
 	}
 
-	// Find UserProfile
-	userProfile, err := boiler.FindUserProfileG(c, resq.ID)
-	if err != nil {
-		c.AbortWithError(http.StatusInternalServerError, err)
-		return
-	}
+	WriteTransaction(c, func(tx *sql.Tx) bool {
 
-	// Update User
-	if !resq.DisplayName.IsZero() {
-		userProfile.DisplayName = resq.DisplayName.String
-	}
-	if !resq.Name.IsZero() {
-		userProfile.Name = resq.Name.String
-	}
-	if !resq.BirthDate.Valid {
-		userProfile.BirthDate = resq.BirthDate
-	}
-	if !resq.Phone.IsZero() {
-		userProfile.Phone = resq.Phone
-	}
+		userID := c.GetString("userID")
 
-	if _, err = userProfile.UpdateG(c, boil.Infer()); err != nil {
-		c.AbortWithError(http.StatusInternalServerError, err)
-		return
-	}
+		// Find UserProfile
+		userProfile, err := boiler.FindUserProfile(c, tx, userID)
+		if err != nil {
+			RespWithRollbackTx(c, err, tx, ServerErrorResp)
+			return true
+		}
 
-	c.JSON(http.StatusOK, userProfile)
+		// Update User
+		if !resq.DisplayName.IsZero() {
+
+			// Check DisplayName
+			if userProfileExists, err := boiler.UserProfiles(
+				qm.Where("user_id != ?", userID),
+				qm.Where("display_name = ?", resq.DisplayName),
+			).Exists(c, tx); err != nil {
+				RespWithRollbackTx(c, err, tx, ServerErrorResp)
+				return true
+			} else if userProfileExists {
+				RespWithRollbackTx(c, errors.New("display name already exists"), tx, DisplayNameAlreadyExistResp)
+				return true
+			}
+			userProfile.DisplayName = resq.DisplayName.String
+
+		}
+
+		if !resq.Name.IsZero() {
+			userProfile.Name = resq.Name.String
+		}
+
+		if resq.BirthDate.Valid {
+			userProfile.BirthDate = resq.BirthDate
+		}
+
+		if !resq.Phone.IsZero() {
+			userProfile.Phone = resq.Phone
+		}
+
+		if _, err = userProfile.Update(c, tx, boil.Infer()); err != nil {
+			RespWithRollbackTx(c, err, tx, ServerErrorResp)
+			return true
+		}
+
+		c.JSON(http.StatusOK, userProfile)
+		return false
+
+	})
 
 }
+
+// *********************************************** //
 
 func (o *userCtrl) EditPassword(c *gin.Context) {
 
 	// Check Request
 	var resq UserEditPwRequest
 	if err := c.ShouldBindJSON(&resq); err != nil {
-		c.AbortWithError(http.StatusBadRequest, err)
+		BadRequestResp(c, err)
 		return
 	}
 
 	// Find User
-	user, err := boiler.FindUserG(c, resq.UserID)
+	user, err := boiler.FindUserG(c, c.GetString("userID"))
 	if err != nil {
-		c.AbortWithError(http.StatusInternalServerError, err)
+		ServerErrorResp(c, err)
 		return
 	}
 
@@ -281,7 +326,7 @@ func (o *userCtrl) EditPassword(c *gin.Context) {
 		[]byte(user.Password),
 		[]byte(resq.OldPassword),
 	); err != nil {
-		c.AbortWithError(http.StatusBadRequest, err)
+		PasswordWrongResp(c, err)
 		return
 	}
 
@@ -290,13 +335,13 @@ func (o *userCtrl) EditPassword(c *gin.Context) {
 		[]byte(resq.NewPassword), 10,
 	)
 	if err != nil {
-		c.AbortWithError(http.StatusBadRequest, err)
+		BadRequestResp(c, err)
 		return
 	}
 	user.Password = string(hashedNewPassword)
 
 	if _, err := user.UpdateG(c, boil.Infer()); err != nil {
-		c.AbortWithError(http.StatusInternalServerError, err)
+		ServerErrorResp(c, err)
 		return
 	}
 
