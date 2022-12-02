@@ -74,6 +74,7 @@ CREATE TABLE contents (
   user_id VARCHAR(36) NOT NULL,
   category_id INT UNSIGNED NOT NULL,
   title VARCHAR(30) UNIQUE NOT NULL,
+  image_url VARCHAR(512),
   view_count INT NOT NULL DEFAULT 0,
   created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
   updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
@@ -82,20 +83,33 @@ CREATE TABLE contents (
   FOREIGN KEY (category_id) REFERENCES content_categories(id)
 );
 
--- Content Childs ----------------------------------
-DROP TABLE IF EXISTS content_childs;
+-- Content Htmls ----------------------------------
+DROP TABLE IF EXISTS content_htmls;
 
-CREATE TABLE content_childs (
+CREATE TABLE content_htmls (
   content_id VARCHAR(36) NOT NULL,
   order_no SMALLINT NOT NULL,
   html TEXT NOT NULL,
-  image_url VARCHAR(512) NOT NULL,
   created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
   updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
   deleted_at DATETIME,
   PRIMARY KEY(content_id, order_no),
   FOREIGN KEY (content_id) REFERENCES contents(id) ON DELETE CASCADE
 );
+
+-- -- Content images ----------------------------------
+-- DROP TABLE IF EXISTS content_images;
+
+-- CREATE TABLE content_images (
+--   content_id VARCHAR(36) NOT NULL,
+--   order_no SMALLINT NOT NULL,
+--   image_url VARCHAR(512) NOT NULL,
+--   created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+--   updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+--   deleted_at DATETIME,
+--   PRIMARY KEY(content_id, order_no),
+--   FOREIGN KEY (content_id) REFERENCES contents(id) ON DELETE CASCADE
+-- );
 
 -- Inserts
 

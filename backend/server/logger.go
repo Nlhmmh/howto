@@ -1,35 +1,53 @@
 package server
 
 import (
+	"backend/utils"
 	"log"
 	"os"
+	"time"
 )
 
 var (
-	// InfoLogger - Info Logger
-	InfoLogger *log.Logger
-	// WarningLogger - Warn Logger
-	WarningLogger *log.Logger
-	// ErrorLogger - Error Logger
-	ErrorLogger *log.Logger
-	// LogFile
-	LogFile *os.File
+	Logger Log
 )
 
+type Log struct {
+	// InfoLogger - Info Logger
+	Info *log.Logger
+	// WarningLogger - Warn Logger
+	Warn *log.Logger
+	// ErrorLogger - Error Logger
+	Err *log.Logger
+	// ErrorLogger - Error Logger
+	LogFile *os.File
+}
+
 // InitLogger - Initialize Logger
-func InitLogger() error {
+func InitLogger(deleteLogs bool) error {
+
+	// Delete Logs
+	if deleteLogs {
+		if err := os.RemoveAll(utils.LogFolder); err != nil {
+			return err
+		}
+	}
+
+	// Create Log Folder
+	if err := utils.CreateFolderIfNotExists(utils.LogFolder); err != nil {
+		return err
+	}
 
 	// Create Log File
-	logFile, err := os.OpenFile("./logs/logs.txt", os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0666)
+	logFile, err := utils.CreateFileIfNotExists(utils.LogFolder + "/" + time.Now().Format("20060102") + ".txt")
 	if err != nil {
 		return err
 	}
-	LogFile = logFile
+	Logger.LogFile = logFile
 
 	// Set Loggers
-	InfoLogger = log.New(logFile, "INFO: ", log.Ldate|log.Ltime|log.Lshortfile)
-	WarningLogger = log.New(logFile, "WARNING: ", log.Ldate|log.Ltime|log.Lshortfile)
-	ErrorLogger = log.New(logFile, "ERROR: ", log.Ldate|log.Ltime|log.Lshortfile)
+	Logger.Info = log.New(logFile, "INFO: ", log.Ldate|log.Ltime|log.Lshortfile)
+	Logger.Warn = log.New(logFile, "WARNING: ", log.Ldate|log.Ltime|log.Lshortfile)
+	Logger.Err = log.New(logFile, "ERROR: ", log.Ldate|log.Ltime|log.Lshortfile)
 
 	return nil
 

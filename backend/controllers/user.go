@@ -149,7 +149,7 @@ func (o *userCtrl) Register(c *gin.Context) {
 func (o *userCtrl) Login(c *gin.Context) {
 
 	// Check Request
-	var resq LoginRequest
+	var resq UserLoginRequest
 	if err := c.ShouldBindJSON(&resq); err != nil {
 		BadRequestResp(c, err)
 		return

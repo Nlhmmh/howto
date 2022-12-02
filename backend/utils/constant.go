@@ -1,3 +1,6 @@
 package utils
 
-var ()
+var (
+	MediaFolder = "./media"
+	LogFolder   = "./logs"
+)

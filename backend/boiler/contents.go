@@ -24,14 +24,15 @@ import (
 
 // Content is an object representing the database table.
 type Content struct {
-	ID         string    `boil:"id" json:"id" toml:"id" yaml:"id"`
-	UserID     string    `boil:"user_id" json:"userID" toml:"userID" yaml:"userID"`
-	CategoryID uint      `boil:"category_id" json:"categoryID" toml:"categoryID" yaml:"categoryID"`
-	Title      string    `boil:"title" json:"title" toml:"title" yaml:"title"`
-	ViewCount  int       `boil:"view_count" json:"viewCount" toml:"viewCount" yaml:"viewCount"`
-	CreatedAt  time.Time `boil:"created_at" json:"createdAt" toml:"createdAt" yaml:"createdAt"`
-	UpdatedAt  null.Time `boil:"updated_at" json:"updatedAt,omitempty" toml:"updatedAt" yaml:"updatedAt,omitempty"`
-	DeletedAt  null.Time `boil:"deleted_at" json:"deletedAt,omitempty" toml:"deletedAt" yaml:"deletedAt,omitempty"`
+	ID         string      `boil:"id" json:"id" toml:"id" yaml:"id"`
+	UserID     string      `boil:"user_id" json:"userID" toml:"userID" yaml:"userID"`
+	CategoryID uint        `boil:"category_id" json:"categoryID" toml:"categoryID" yaml:"categoryID"`
+	Title      string      `boil:"title" json:"title" toml:"title" yaml:"title"`
+	ImageURL   null.String `boil:"image_url" json:"imageURL,omitempty" toml:"imageURL" yaml:"imageURL,omitempty"`
+	ViewCount  int         `boil:"view_count" json:"viewCount" toml:"viewCount" yaml:"viewCount"`
+	CreatedAt  time.Time   `boil:"created_at" json:"createdAt" toml:"createdAt" yaml:"createdAt"`
+	UpdatedAt  null.Time   `boil:"updated_at" json:"updatedAt,omitempty" toml:"updatedAt" yaml:"updatedAt,omitempty"`
+	DeletedAt  null.Time   `boil:"deleted_at" json:"deletedAt,omitempty" toml:"deletedAt" yaml:"deletedAt,omitempty"`
 
 	R *contentR `boil:"-" json:"-" toml:"-" yaml:"-"`
 	L contentL  `boil:"-" json:"-" toml:"-" yaml:"-"`
@@ -42,6 +43,7 @@ var ContentColumns = struct {
 	UserID     string
 	CategoryID string
 	Title      string
+	ImageURL   string
 	ViewCount  string
 	CreatedAt  string
 	UpdatedAt  string
@@ -51,6 +53,7 @@ var ContentColumns = struct {
 	UserID:     "user_id",
 	CategoryID: "category_id",
 	Title:      "title",
+	ImageURL:   "image_url",
 	ViewCount:  "view_count",
 	CreatedAt:  "created_at",
 	UpdatedAt:  "updated_at",
@@ -62,6 +65,7 @@ var ContentTableColumns = struct {
 	UserID     string
 	CategoryID string
 	Title      string
+	ImageURL   string
 	ViewCount  string
 	CreatedAt  string
 	UpdatedAt  string
@@ -71,6 +75,7 @@ var ContentTableColumns = struct {
 	UserID:     "contents.user_id",
 	CategoryID: "contents.category_id",
 	Title:      "contents.title",
+	ImageURL:   "contents.image_url",
 	ViewCount:  "contents.view_count",
 	CreatedAt:  "contents.created_at",
 	UpdatedAt:  "contents.updated_at",
@@ -78,6 +83,44 @@ var ContentTableColumns = struct {
 }
 
 // Generated where
+
+type whereHelpernull_String struct{ field string }
+
+func (w whereHelpernull_String) EQ(x null.String) qm.QueryMod {
+	return qmhelper.WhereNullEQ(w.field, false, x)
+}
+func (w whereHelpernull_String) NEQ(x null.String) qm.QueryMod {
+	return qmhelper.WhereNullEQ(w.field, true, x)
+}
+func (w whereHelpernull_String) LT(x null.String) qm.QueryMod {
+	return qmhelper.Where(w.field, qmhelper.LT, x)
+}
+func (w whereHelpernull_String) LTE(x null.String) qm.QueryMod {
+	return qmhelper.Where(w.field, qmhelper.LTE, x)
+}
+func (w whereHelpernull_String) GT(x null.String) qm.QueryMod {
+	return qmhelper.Where(w.field, qmhelper.GT, x)
+}
+func (w whereHelpernull_String) GTE(x null.String) qm.QueryMod {
+	return qmhelper.Where(w.field, qmhelper.GTE, x)
+}
+func (w whereHelpernull_String) IN(slice []string) qm.QueryMod {
+	values := make([]interface{}, 0, len(slice))
+	for _, value := range slice {
+		values = append(values, value)
+	}
+	return qm.WhereIn(fmt.Sprintf("%s IN ?", w.field), values...)
+}
+func (w whereHelpernull_String) NIN(slice []string) qm.QueryMod {
+	values := make([]interface{}, 0, len(slice))
+	for _, value := range slice {
+		values = append(values, value)
+	}
+	return qm.WhereNotIn(fmt.Sprintf("%s NOT IN ?", w.field), values...)
+}
+
+func (w whereHelpernull_String) IsNull() qm.QueryMod    { return qmhelper.WhereIsNull(w.field) }
+func (w whereHelpernull_String) IsNotNull() qm.QueryMod { return qmhelper.WhereIsNotNull(w.field) }
 
 type whereHelperint struct{ field string }
 
@@ -107,6 +150,7 @@ var ContentWhere = struct {
 	UserID     whereHelperstring
 	CategoryID whereHelperuint
 	Title      whereHelperstring
+	ImageURL   whereHelpernull_String
 	ViewCount  whereHelperint
 	CreatedAt  whereHelpertime_Time
 	UpdatedAt  whereHelpernull_Time
@@ -116,6 +160,7 @@ var ContentWhere = struct {
 	UserID:     whereHelperstring{field: "`contents`.`user_id`"},
 	CategoryID: whereHelperuint{field: "`contents`.`category_id`"},
 	Title:      whereHelperstring{field: "`contents`.`title`"},
+	ImageURL:   whereHelpernull_String{field: "`contents`.`image_url`"},
 	ViewCount:  whereHelperint{field: "`contents`.`view_count`"},
 	CreatedAt:  whereHelpertime_Time{field: "`contents`.`created_at`"},
 	UpdatedAt:  whereHelpernull_Time{field: "`contents`.`updated_at`"},
@@ -124,20 +169,20 @@ var ContentWhere = struct {
 
 // ContentRels is where relationship names are stored.
 var ContentRels = struct {
-	User          string
-	Category      string
-	ContentChilds string
+	User         string
+	Category     string
+	ContentHTMLS string
 }{
-	User:          "User",
-	Category:      "Category",
-	ContentChilds: "ContentChilds",
+	User:         "User",
+	Category:     "Category",
+	ContentHTMLS: "ContentHTMLS",
 }
 
 // contentR is where relationships are stored.
 type contentR struct {
-	User          *User             `boil:"User" json:"User" toml:"User" yaml:"User"`
-	Category      *ContentCategory  `boil:"Category" json:"Category" toml:"Category" yaml:"Category"`
-	ContentChilds ContentChildSlice `boil:"ContentChilds" json:"ContentChilds" toml:"ContentChilds" yaml:"ContentChilds"`
+	User         *User            `boil:"User" json:"User" toml:"User" yaml:"User"`
+	Category     *ContentCategory `boil:"Category" json:"Category" toml:"Category" yaml:"Category"`
+	ContentHTMLS ContentHTMLSlice `boil:"ContentHTMLS" json:"ContentHTMLS" toml:"ContentHTMLS" yaml:"ContentHTMLS"`
 }
 
 // NewStruct creates a new relationship struct
@@ -159,19 +204,19 @@ func (r *contentR) GetCategory() *ContentCategory {
 	return r.Category
 }
 
-func (r *contentR) GetContentChilds() ContentChildSlice {
+func (r *contentR) GetContentHTMLS() ContentHTMLSlice {
 	if r == nil {
 		return nil
 	}
-	return r.ContentChilds
+	return r.ContentHTMLS
 }
 
 // contentL is where Load methods for each relationship are stored.
 type contentL struct{}
 
 var (
-	contentAllColumns            = []string{"id", "user_id", "category_id", "title", "view_count", "created_at", "updated_at", "deleted_at"}
-	contentColumnsWithoutDefault = []string{"id", "user_id", "category_id", "title", "deleted_at"}
+	contentAllColumns            = []string{"id", "user_id", "category_id", "title", "image_url", "view_count", "created_at", "updated_at", "deleted_at"}
+	contentColumnsWithoutDefault = []string{"id", "user_id", "category_id", "title", "image_url", "deleted_at"}
 	contentColumnsWithDefault    = []string{"view_count", "created_at", "updated_at"}
 	contentPrimaryKeyColumns     = []string{"id"}
 	contentGeneratedColumns      = []string{}
@@ -497,18 +542,18 @@ func (o *Content) Category(mods ...qm.QueryMod) contentCategoryQuery {
 	return ContentCategories(queryMods...)
 }
 
-// ContentChilds retrieves all the content_child's ContentChilds with an executor.
-func (o *Content) ContentChilds(mods ...qm.QueryMod) contentChildQuery {
+// ContentHTMLS retrieves all the content_html's ContentHTMLS with an executor.
+func (o *Content) ContentHTMLS(mods ...qm.QueryMod) contentHTMLQuery {
 	var queryMods []qm.QueryMod
 	if len(mods) != 0 {
 		queryMods = append(queryMods, mods...)
 	}
 
 	queryMods = append(queryMods,
-		qm.Where("`content_childs`.`content_id`=?", o.ID),
+		qm.Where("`content_htmls`.`content_id`=?", o.ID),
 	)
 
-	return ContentChilds(queryMods...)
+	return ContentHTMLS(queryMods...)
 }
 
 // LoadUser allows an eager lookup of values, cached into the
@@ -737,9 +782,9 @@ func (contentL) LoadCategory(ctx context.Context, e boil.ContextExecutor, singul
 	return nil
 }
 
-// LoadContentChilds allows an eager lookup of values, cached into the
+// LoadContentHTMLS allows an eager lookup of values, cached into the
 // loaded structs of the objects. This is for a 1-M or N-M relationship.
-func (contentL) LoadContentChilds(ctx context.Context, e boil.ContextExecutor, singular bool, maybeContent interface{}, mods queries.Applicator) error {
+func (contentL) LoadContentHTMLS(ctx context.Context, e boil.ContextExecutor, singular bool, maybeContent interface{}, mods queries.Applicator) error {
 	var slice []*Content
 	var object *Content
 
@@ -793,9 +838,9 @@ func (contentL) LoadContentChilds(ctx context.Context, e boil.ContextExecutor, s
 	}
 
 	query := NewQuery(
-		qm.From(`content_childs`),
-		qm.WhereIn(`content_childs.content_id in ?`, args...),
-		qmhelper.WhereIsNull(`content_childs.deleted_at`),
+		qm.From(`content_htmls`),
+		qm.WhereIn(`content_htmls.content_id in ?`, args...),
+		qmhelper.WhereIsNull(`content_htmls.deleted_at`),
 	)
 	if mods != nil {
 		mods.Apply(query)
@@ -803,22 +848,22 @@ func (contentL) LoadContentChilds(ctx context.Context, e boil.ContextExecutor, s
 
 	results, err := query.QueryContext(ctx, e)
 	if err != nil {
-		return errors.Wrap(err, "failed to eager load content_childs")
+		return errors.Wrap(err, "failed to eager load content_htmls")
 	}
 
-	var resultSlice []*ContentChild
+	var resultSlice []*ContentHTML
 	if err = queries.Bind(results, &resultSlice); err != nil {
-		return errors.Wrap(err, "failed to bind eager loaded slice content_childs")
+		return errors.Wrap(err, "failed to bind eager loaded slice content_htmls")
 	}
 
 	if err = results.Close(); err != nil {
-		return errors.Wrap(err, "failed to close results in eager load on content_childs")
+		return errors.Wrap(err, "failed to close results in eager load on content_htmls")
 	}
 	if err = results.Err(); err != nil {
-		return errors.Wrap(err, "error occurred during iteration of eager loaded relations for content_childs")
+		return errors.Wrap(err, "error occurred during iteration of eager loaded relations for content_htmls")
 	}
 
-	if len(contentChildAfterSelectHooks) != 0 {
+	if len(contentHTMLAfterSelectHooks) != 0 {
 		for _, obj := range resultSlice {
 			if err := obj.doAfterSelectHooks(ctx, e); err != nil {
 				return err
@@ -826,14 +871,14 @@ func (contentL) LoadContentChilds(ctx context.Context, e boil.ContextExecutor, s
 		}
 	}
 	if singular {
-		object.R.ContentChilds = resultSlice
+		object.R.ContentHTMLS = resultSlice
 		return nil
 	}
 
 	for _, foreign := range resultSlice {
 		for _, local := range slice {
 			if local.ID == foreign.ContentID {
-				local.R.ContentChilds = append(local.R.ContentChilds, foreign)
+				local.R.ContentHTMLS = append(local.R.ContentHTMLS, foreign)
 				break
 			}
 		}
@@ -932,18 +977,18 @@ func (o *Content) SetCategory(ctx context.Context, exec boil.ContextExecutor, in
 	return nil
 }
 
-// AddContentChildsG adds the given related objects to the existing relationships
+// AddContentHTMLSG adds the given related objects to the existing relationships
 // of the content, optionally inserting them as new records.
-// Appends related to o.R.ContentChilds.
+// Appends related to o.R.ContentHTMLS.
 // Uses the global database handle.
-func (o *Content) AddContentChildsG(ctx context.Context, insert bool, related ...*ContentChild) error {
-	return o.AddContentChilds(ctx, boil.GetContextDB(), insert, related...)
+func (o *Content) AddContentHTMLSG(ctx context.Context, insert bool, related ...*ContentHTML) error {
+	return o.AddContentHTMLS(ctx, boil.GetContextDB(), insert, related...)
 }
 
-// AddContentChilds adds the given related objects to the existing relationships
+// AddContentHTMLS adds the given related objects to the existing relationships
 // of the content, optionally inserting them as new records.
-// Appends related to o.R.ContentChilds.
-func (o *Content) AddContentChilds(ctx context.Context, exec boil.ContextExecutor, insert bool, related ...*ContentChild) error {
+// Appends related to o.R.ContentHTMLS.
+func (o *Content) AddContentHTMLS(ctx context.Context, exec boil.ContextExecutor, insert bool, related ...*ContentHTML) error {
 	var err error
 	for _, rel := range related {
 		if insert {
@@ -953,9 +998,9 @@ func (o *Content) AddContentChilds(ctx context.Context, exec boil.ContextExecuto
 			}
 		} else {
 			updateQuery := fmt.Sprintf(
-				"UPDATE `content_childs` SET %s WHERE %s",
+				"UPDATE `content_htmls` SET %s WHERE %s",
 				strmangle.SetParamNames("`", "`", 0, []string{"content_id"}),
-				strmangle.WhereClause("`", "`", 0, contentChildPrimaryKeyColumns),
+				strmangle.WhereClause("`", "`", 0, contentHTMLPrimaryKeyColumns),
 			)
 			values := []interface{}{o.ID, rel.ContentID, rel.OrderNo}
 
@@ -974,10 +1019,10 @@ func (o *Content) AddContentChilds(ctx context.Context, exec boil.ContextExecuto
 
 	if o.R == nil {
 		o.R = &contentR{
-			ContentChilds: related,
+			ContentHTMLS: related,
 		}
 	} else {
-		o.R.ContentChilds = append(o.R.ContentChilds, related...)
+		o.R.ContentHTMLS = append(o.R.ContentHTMLS, related...)
 	}
 
 	return nil
@@ -1296,6 +1341,7 @@ func (o *Content) UpsertG(ctx context.Context, updateColumns, insertColumns boil
 
 var mySQLContentUniqueColumns = []string{
 	"id",
+	"title",
 }
 
 // Upsert attempts an insert using an executor, and does an update or ignore on conflict.

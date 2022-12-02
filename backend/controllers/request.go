@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"backend/boiler"
 	"time"
 
 	"github.com/volatiletech/null/v8"
@@ -26,7 +27,7 @@ type UserRegisterRequest struct {
 	Type        string      `json:"type" binding:"required"`
 }
 
-type LoginRequest struct {
+type UserLoginRequest struct {
 	Email    string `json:"email" binding:"required"`
 	Password string `json:"password" binding:"required"`
 }
@@ -51,27 +52,38 @@ type CheckDisplayNameRequest struct {
 	DisplayName string `json:"displayName" binding:"required"`
 }
 
-type ContentWithUserName struct {
-	ID         string    `boil:"id" json:"id" toml:"id" yaml:"id"`
-	UserID     string    `boil:"user_id" json:"userID" toml:"userID" yaml:"userID"`
-	CategoryID uint      `boil:"category_id" json:"categoryID" toml:"categoryID" yaml:"categoryID"`
-	Title      string    `boil:"title" json:"title" toml:"title" yaml:"title"`
-	ViewCount  int       `boil:"view_count" json:"viewCount" toml:"viewCount" yaml:"viewCount"`
-	CreatedAt  time.Time `boil:"created_at" json:"createdAt" toml:"createdAt" yaml:"createdAt"`
-	UpdatedAt  null.Time `boil:"updated_at" json:"updatedAt,omitempty" toml:"updatedAt" yaml:"updatedAt,omitempty"`
+type ContentWhole struct {
+	ID         string      `boil:"id" json:"id" toml:"id" yaml:"id"`
+	UserID     string      `boil:"user_id" json:"userID" toml:"userID" yaml:"userID"`
+	CategoryID uint        `boil:"category_id" json:"categoryID" toml:"categoryID" yaml:"categoryID"`
+	Title      string      `boil:"title" json:"title" toml:"title" yaml:"title"`
+	ImageUrl   null.String `boil:"image_url" json:"imagUrl" toml:"imagUrl" yaml:"imagUrl"`
+	ViewCount  int         `boil:"view_count" json:"viewCount" toml:"viewCount" yaml:"viewCount"`
+	CreatedAt  time.Time   `boil:"created_at" json:"createdAt" toml:"createdAt" yaml:"createdAt"`
+	UpdatedAt  null.Time   `boil:"updated_at" json:"updatedAt,omitempty" toml:"updatedAt" yaml:"updatedAt,omitempty"`
 
 	UserName string `boil:"user_name" json:"userName" toml:"userName" yaml:"userName"`
 
 	CategoryStr string `boil:"category_str" json:"categoryStr" toml:"categoryStr" yaml:"categoryStr"`
-}
 
-type CreateContentRequest struct {
-	Title      string `json:"title" binding:"required"`
-	CategoryID uint   `json:"categoryID" binding:"required"`
+	ContentHtmlList boiler.ContentHTMLSlice `json:"contentHtmlList"`
 }
 
 type ContentGetAllRequest struct {
-	Limit  int    `form:"limit"`
-	Offset int    `form:"offset"`
-	SortBy string `form:"sortBy"`
+	Limit        int    `form:"limit"`
+	Offset       int    `form:"offset"`
+	SortBy       string `form:"sortBy"`
+	SearchTitle  string `form:"searchTitle"`
+	SearchCatID  uint   `form:"searchCatID"`
+	SearchUserID string `form:"searchUserID"`
+}
+
+type CreateContentWholeRequest struct {
+	Title           string `json:"title" binding:"required"`
+	CategoryID      uint   `json:"categoryID" binding:"required"`
+	ImageUrl        string `json:"imageUrl"`
+	ContentHtmlList []struct {
+		OrderNo int16  `json:"orderNo" binding:"required"`
+		Html    string `json:"html" binding:"required"`
+	} `json:"contentHtmlList"`
 }

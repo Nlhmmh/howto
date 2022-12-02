@@ -39,7 +39,16 @@ func CreateRoutes(router *gin.Engine) {
 		contentGroup := apiGroup.Group("/content")
 		{
 			contentGroup.GET("", contentCtrls.GetAll)
-			contentGroup.POST("/create", contentCtrls.CreateContent)
+			contentGroup.GET("/:contentID", contentCtrls.GetOne)
+			contentGroup.POST("/create", contentCtrls.CreateContentWhole)
+		}
+
+		// File Routes
+		router.MaxMultipartMemory = 8 << 20
+		fileGroup := apiGroup.Group("/file")
+		{
+			fileGroup.Static("/media/", "./media")
+			fileGroup.POST("/upload", fileCtrls.Upload)
 		}
 	}
 

@@ -11,9 +11,9 @@ var (
 )
 
 // OpenDB - open MySQL database.
-func OpenDB() (*sql.DB, error) {
+func OpenDB(config Config) (*sql.DB, error) {
 
-	db, err = sql.Open("mysql", "root:root@tcp(localhost:3306)/howto?parseTime=true&charset=utf8")
+	db, err = sql.Open("mysql", config.DBInfo)
 	if err != nil {
 		return nil, err
 	}

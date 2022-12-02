@@ -1,0 +1,6 @@
+deleteMedia: false
+deleteLogs: false
+portNo: 8081
+allowedOrigins:
+  - http://localhost:8080
+dbInfo: root:root@tcp(localhost:3306)/howto?parseTime=true&charset=utf8

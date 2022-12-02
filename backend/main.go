@@ -3,6 +3,8 @@ package main
 import (
 	"backend/controllers"
 	"backend/server"
+	"backend/utils"
+	"os"
 
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
@@ -12,15 +14,30 @@ import (
 
 func main() {
 
+	// Get Config
+	config := server.Get()
+
 	// Logging
-	if err := server.InitLogger(); err != nil {
+	if err := server.InitLogger(config.DeleteLogs); err != nil {
 		panic(err)
 	}
 
+	// Delete Media
+	if config.DeleteMedia {
+		if err := os.RemoveAll(utils.MediaFolder); err != nil {
+			server.Logger.Err.Panic(err)
+		}
+	}
+
+	// Create Media Folder
+	if err := utils.CreateFolderIfNotExists(utils.MediaFolder); err != nil {
+		server.Logger.Err.Panic(err)
+	}
+
 	// Open MySQL DB
-	db, err := server.OpenDB()
+	db, err := server.OpenDB(config)
 	if err != nil {
-		panic(err)
+		server.Logger.Err.Panic(err)
 	}
 	boil.SetDB(db)
 	boil.DebugMode = true
@@ -29,11 +46,11 @@ func main() {
 	// gin.SetMode(gin.ReleaseMode)
 	router := gin.Default()
 	router.Use(gin.LoggerWithConfig(gin.LoggerConfig{
-		Output: server.LogFile,
+		Output: server.Logger.LogFile,
 	}))
 	router.SetTrustedProxies(nil)
-	config := cors.DefaultConfig()
-	config.AllowOrigins = []string{"http://localhost:8080"}
+	routerConfig := cors.DefaultConfig()
+	routerConfig.AllowOrigins = config.AllowedOrigins
 	// config.AllowHeaders = []string{
 	// 	"Access-Control-Allow-Headers",
 	// 	"Content-Type",
@@ -42,12 +59,12 @@ func main() {
 	// 	"X-CSRF-Token",
 	// 	"Authorization",
 	// }
-	router.Use(cors.New(config))
+	router.Use(cors.New(routerConfig))
 
 	// API Routes
 	controllers.CreateRoutes(router)
 
 	// Run Server
-	router.Run(":8081")
+	router.Run(":" + config.PortNo)
 
 }

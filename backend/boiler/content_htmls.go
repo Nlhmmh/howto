@@ -22,25 +22,23 @@ import (
 	"github.com/volatiletech/strmangle"
 )
 
-// ContentChild is an object representing the database table.
-type ContentChild struct {
+// ContentHTML is an object representing the database table.
+type ContentHTML struct {
 	ContentID string    `boil:"content_id" json:"contentID" toml:"contentID" yaml:"contentID"`
 	OrderNo   int16     `boil:"order_no" json:"orderNo" toml:"orderNo" yaml:"orderNo"`
 	HTML      string    `boil:"html" json:"html" toml:"html" yaml:"html"`
-	ImageURL  string    `boil:"image_url" json:"imageURL" toml:"imageURL" yaml:"imageURL"`
 	CreatedAt time.Time `boil:"created_at" json:"createdAt" toml:"createdAt" yaml:"createdAt"`
 	UpdatedAt null.Time `boil:"updated_at" json:"updatedAt,omitempty" toml:"updatedAt" yaml:"updatedAt,omitempty"`
 	DeletedAt null.Time `boil:"deleted_at" json:"deletedAt,omitempty" toml:"deletedAt" yaml:"deletedAt,omitempty"`
 
-	R *contentChildR `boil:"-" json:"-" toml:"-" yaml:"-"`
-	L contentChildL  `boil:"-" json:"-" toml:"-" yaml:"-"`
+	R *contentHTMLR `boil:"-" json:"-" toml:"-" yaml:"-"`
+	L contentHTMLL  `boil:"-" json:"-" toml:"-" yaml:"-"`
 }
 
-var ContentChildColumns = struct {
+var ContentHTMLColumns = struct {
 	ContentID string
 	OrderNo   string
 	HTML      string
-	ImageURL  string
 	CreatedAt string
 	UpdatedAt string
 	DeletedAt string
@@ -48,28 +46,25 @@ var ContentChildColumns = struct {
 	ContentID: "content_id",
 	OrderNo:   "order_no",
 	HTML:      "html",
-	ImageURL:  "image_url",
 	CreatedAt: "created_at",
 	UpdatedAt: "updated_at",
 	DeletedAt: "deleted_at",
 }
 
-var ContentChildTableColumns = struct {
+var ContentHTMLTableColumns = struct {
 	ContentID string
 	OrderNo   string
 	HTML      string
-	ImageURL  string
 	CreatedAt string
 	UpdatedAt string
 	DeletedAt string
 }{
-	ContentID: "content_childs.content_id",
-	OrderNo:   "content_childs.order_no",
-	HTML:      "content_childs.html",
-	ImageURL:  "content_childs.image_url",
-	CreatedAt: "content_childs.created_at",
-	UpdatedAt: "content_childs.updated_at",
-	DeletedAt: "content_childs.deleted_at",
+	ContentID: "content_htmls.content_id",
+	OrderNo:   "content_htmls.order_no",
+	HTML:      "content_htmls.html",
+	CreatedAt: "content_htmls.created_at",
+	UpdatedAt: "content_htmls.updated_at",
+	DeletedAt: "content_htmls.deleted_at",
 }
 
 // Generated where
@@ -97,82 +92,80 @@ func (w whereHelperint16) NIN(slice []int16) qm.QueryMod {
 	return qm.WhereNotIn(fmt.Sprintf("%s NOT IN ?", w.field), values...)
 }
 
-var ContentChildWhere = struct {
+var ContentHTMLWhere = struct {
 	ContentID whereHelperstring
 	OrderNo   whereHelperint16
 	HTML      whereHelperstring
-	ImageURL  whereHelperstring
 	CreatedAt whereHelpertime_Time
 	UpdatedAt whereHelpernull_Time
 	DeletedAt whereHelpernull_Time
 }{
-	ContentID: whereHelperstring{field: "`content_childs`.`content_id`"},
-	OrderNo:   whereHelperint16{field: "`content_childs`.`order_no`"},
-	HTML:      whereHelperstring{field: "`content_childs`.`html`"},
-	ImageURL:  whereHelperstring{field: "`content_childs`.`image_url`"},
-	CreatedAt: whereHelpertime_Time{field: "`content_childs`.`created_at`"},
-	UpdatedAt: whereHelpernull_Time{field: "`content_childs`.`updated_at`"},
-	DeletedAt: whereHelpernull_Time{field: "`content_childs`.`deleted_at`"},
+	ContentID: whereHelperstring{field: "`content_htmls`.`content_id`"},
+	OrderNo:   whereHelperint16{field: "`content_htmls`.`order_no`"},
+	HTML:      whereHelperstring{field: "`content_htmls`.`html`"},
+	CreatedAt: whereHelpertime_Time{field: "`content_htmls`.`created_at`"},
+	UpdatedAt: whereHelpernull_Time{field: "`content_htmls`.`updated_at`"},
+	DeletedAt: whereHelpernull_Time{field: "`content_htmls`.`deleted_at`"},
 }
 
-// ContentChildRels is where relationship names are stored.
-var ContentChildRels = struct {
+// ContentHTMLRels is where relationship names are stored.
+var ContentHTMLRels = struct {
 	Content string
 }{
 	Content: "Content",
 }
 
-// contentChildR is where relationships are stored.
-type contentChildR struct {
+// contentHTMLR is where relationships are stored.
+type contentHTMLR struct {
 	Content *Content `boil:"Content" json:"Content" toml:"Content" yaml:"Content"`
 }
 
 // NewStruct creates a new relationship struct
-func (*contentChildR) NewStruct() *contentChildR {
-	return &contentChildR{}
+func (*contentHTMLR) NewStruct() *contentHTMLR {
+	return &contentHTMLR{}
 }
 
-func (r *contentChildR) GetContent() *Content {
+func (r *contentHTMLR) GetContent() *Content {
 	if r == nil {
 		return nil
 	}
 	return r.Content
 }
 
-// contentChildL is where Load methods for each relationship are stored.
-type contentChildL struct{}
+// contentHTMLL is where Load methods for each relationship are stored.
+type contentHTMLL struct{}
 
 var (
-	contentChildAllColumns            = []string{"content_id", "order_no", "html", "image_url", "created_at", "updated_at", "deleted_at"}
-	contentChildColumnsWithoutDefault = []string{"content_id", "order_no", "html", "image_url", "deleted_at"}
-	contentChildColumnsWithDefault    = []string{"created_at", "updated_at"}
-	contentChildPrimaryKeyColumns     = []string{"content_id", "order_no"}
-	contentChildGeneratedColumns      = []string{}
+	contentHTMLAllColumns            = []string{"content_id", "order_no", "html", "created_at", "updated_at", "deleted_at"}
+	contentHTMLColumnsWithoutDefault = []string{"content_id", "order_no", "html", "deleted_at"}
+	contentHTMLColumnsWithDefault    = []string{"created_at", "updated_at"}
+	contentHTMLPrimaryKeyColumns     = []string{"content_id", "order_no"}
+	contentHTMLGeneratedColumns      = []string{}
 )
 
 type (
-	// ContentChildSlice is an alias for a slice of pointers to ContentChild.
-	// This should almost always be used instead of []ContentChild.
-	ContentChildSlice []*ContentChild
-	// ContentChildHook is the signature for custom ContentChild hook methods
-	ContentChildHook func(context.Context, boil.ContextExecutor, *ContentChild) error
+	// ContentHTMLSlice is an alias for a slice of pointers to ContentHTML.
+	// This should almost always be used instead of []ContentHTML.
+	ContentHTMLSlice []*ContentHTML
+	// ContentHTMLHook is the signature for custom ContentHTML hook methods
+	ContentHTMLHook func(context.Context, boil.ContextExecutor, *ContentHTML) error
 
-	contentChildQuery struct {
+	contentHTMLQuery struct {
 		*queries.Query
 	}
 )
 
 // Cache for insert, update and upsert
 var (
-	contentChildType                 = reflect.TypeOf(&ContentChild{})
-	contentChildMapping              = queries.MakeStructMapping(contentChildType)
-	contentChildPrimaryKeyMapping, _ = queries.BindMapping(contentChildType, contentChildMapping, contentChildPrimaryKeyColumns)
-	contentChildInsertCacheMut       sync.RWMutex
-	contentChildInsertCache          = make(map[string]insertCache)
-	contentChildUpdateCacheMut       sync.RWMutex
-	contentChildUpdateCache          = make(map[string]updateCache)
-	contentChildUpsertCacheMut       sync.RWMutex
-	contentChildUpsertCache          = make(map[string]insertCache)
+	contentHTMLType                 = reflect.TypeOf(&ContentHTML{})
+	contentHTMLMapping              = queries.MakeStructMapping(contentHTMLType)
+	contentHTMLPrimaryKeyMapping, _ = queries.BindMapping(contentHTMLType, contentHTMLMapping, contentHTMLPrimaryKeyColumns)
+	contentHTMLInsertCacheMut       sync.RWMutex
+	contentHTMLInsertCache          = make(map[string]insertCache)
+	contentHTMLUpdateCacheMut       sync.RWMutex
+	contentHTMLUpdateCache          = make(map[string]updateCache)
+	contentHTMLUpsertCacheMut       sync.RWMutex
+	contentHTMLUpsertCache          = make(map[string]insertCache)
 )
 
 var (
@@ -183,27 +176,27 @@ var (
 	_ = qmhelper.Where
 )
 
-var contentChildAfterSelectHooks []ContentChildHook
+var contentHTMLAfterSelectHooks []ContentHTMLHook
 
-var contentChildBeforeInsertHooks []ContentChildHook
-var contentChildAfterInsertHooks []ContentChildHook
+var contentHTMLBeforeInsertHooks []ContentHTMLHook
+var contentHTMLAfterInsertHooks []ContentHTMLHook
 
-var contentChildBeforeUpdateHooks []ContentChildHook
-var contentChildAfterUpdateHooks []ContentChildHook
+var contentHTMLBeforeUpdateHooks []ContentHTMLHook
+var contentHTMLAfterUpdateHooks []ContentHTMLHook
 
-var contentChildBeforeDeleteHooks []ContentChildHook
-var contentChildAfterDeleteHooks []ContentChildHook
+var contentHTMLBeforeDeleteHooks []ContentHTMLHook
+var contentHTMLAfterDeleteHooks []ContentHTMLHook
 
-var contentChildBeforeUpsertHooks []ContentChildHook
-var contentChildAfterUpsertHooks []ContentChildHook
+var contentHTMLBeforeUpsertHooks []ContentHTMLHook
+var contentHTMLAfterUpsertHooks []ContentHTMLHook
 
 // doAfterSelectHooks executes all "after Select" hooks.
-func (o *ContentChild) doAfterSelectHooks(ctx context.Context, exec boil.ContextExecutor) (err error) {
+func (o *ContentHTML) doAfterSelectHooks(ctx context.Context, exec boil.ContextExecutor) (err error) {
 	if boil.HooksAreSkipped(ctx) {
 		return nil
 	}
 
-	for _, hook := range contentChildAfterSelectHooks {
+	for _, hook := range contentHTMLAfterSelectHooks {
 		if err := hook(ctx, exec, o); err != nil {
 			return err
 		}
@@ -213,12 +206,12 @@ func (o *ContentChild) doAfterSelectHooks(ctx context.Context, exec boil.Context
 }
 
 // doBeforeInsertHooks executes all "before insert" hooks.
-func (o *ContentChild) doBeforeInsertHooks(ctx context.Context, exec boil.ContextExecutor) (err error) {
+func (o *ContentHTML) doBeforeInsertHooks(ctx context.Context, exec boil.ContextExecutor) (err error) {
 	if boil.HooksAreSkipped(ctx) {
 		return nil
 	}
 
-	for _, hook := range contentChildBeforeInsertHooks {
+	for _, hook := range contentHTMLBeforeInsertHooks {
 		if err := hook(ctx, exec, o); err != nil {
 			return err
 		}
@@ -228,12 +221,12 @@ func (o *ContentChild) doBeforeInsertHooks(ctx context.Context, exec boil.Contex
 }
 
 // doAfterInsertHooks executes all "after Insert" hooks.
-func (o *ContentChild) doAfterInsertHooks(ctx context.Context, exec boil.ContextExecutor) (err error) {
+func (o *ContentHTML) doAfterInsertHooks(ctx context.Context, exec boil.ContextExecutor) (err error) {
 	if boil.HooksAreSkipped(ctx) {
 		return nil
 	}
 
-	for _, hook := range contentChildAfterInsertHooks {
+	for _, hook := range contentHTMLAfterInsertHooks {
 		if err := hook(ctx, exec, o); err != nil {
 			return err
 		}
@@ -243,12 +236,12 @@ func (o *ContentChild) doAfterInsertHooks(ctx context.Context, exec boil.Context
 }
 
 // doBeforeUpdateHooks executes all "before Update" hooks.
-func (o *ContentChild) doBeforeUpdateHooks(ctx context.Context, exec boil.ContextExecutor) (err error) {
+func (o *ContentHTML) doBeforeUpdateHooks(ctx context.Context, exec boil.ContextExecutor) (err error) {
 	if boil.HooksAreSkipped(ctx) {
 		return nil
 	}
 
-	for _, hook := range contentChildBeforeUpdateHooks {
+	for _, hook := range contentHTMLBeforeUpdateHooks {
 		if err := hook(ctx, exec, o); err != nil {
 			return err
 		}
@@ -258,12 +251,12 @@ func (o *ContentChild) doBeforeUpdateHooks(ctx context.Context, exec boil.Contex
 }
 
 // doAfterUpdateHooks executes all "after Update" hooks.
-func (o *ContentChild) doAfterUpdateHooks(ctx context.Context, exec boil.ContextExecutor) (err error) {
+func (o *ContentHTML) doAfterUpdateHooks(ctx context.Context, exec boil.ContextExecutor) (err error) {
 	if boil.HooksAreSkipped(ctx) {
 		return nil
 	}
 
-	for _, hook := range contentChildAfterUpdateHooks {
+	for _, hook := range contentHTMLAfterUpdateHooks {
 		if err := hook(ctx, exec, o); err != nil {
 			return err
 		}
@@ -273,12 +266,12 @@ func (o *ContentChild) doAfterUpdateHooks(ctx context.Context, exec boil.Context
 }
 
 // doBeforeDeleteHooks executes all "before Delete" hooks.
-func (o *ContentChild) doBeforeDeleteHooks(ctx context.Context, exec boil.ContextExecutor) (err error) {
+func (o *ContentHTML) doBeforeDeleteHooks(ctx context.Context, exec boil.ContextExecutor) (err error) {
 	if boil.HooksAreSkipped(ctx) {
 		return nil
 	}
 
-	for _, hook := range contentChildBeforeDeleteHooks {
+	for _, hook := range contentHTMLBeforeDeleteHooks {
 		if err := hook(ctx, exec, o); err != nil {
 			return err
 		}
@@ -288,12 +281,12 @@ func (o *ContentChild) doBeforeDeleteHooks(ctx context.Context, exec boil.Contex
 }
 
 // doAfterDeleteHooks executes all "after Delete" hooks.
-func (o *ContentChild) doAfterDeleteHooks(ctx context.Context, exec boil.ContextExecutor) (err error) {
+func (o *ContentHTML) doAfterDeleteHooks(ctx context.Context, exec boil.ContextExecutor) (err error) {
 	if boil.HooksAreSkipped(ctx) {
 		return nil
 	}
 
-	for _, hook := range contentChildAfterDeleteHooks {
+	for _, hook := range contentHTMLAfterDeleteHooks {
 		if err := hook(ctx, exec, o); err != nil {
 			return err
 		}
@@ -303,12 +296,12 @@ func (o *ContentChild) doAfterDeleteHooks(ctx context.Context, exec boil.Context
 }
 
 // doBeforeUpsertHooks executes all "before Upsert" hooks.
-func (o *ContentChild) doBeforeUpsertHooks(ctx context.Context, exec boil.ContextExecutor) (err error) {
+func (o *ContentHTML) doBeforeUpsertHooks(ctx context.Context, exec boil.ContextExecutor) (err error) {
 	if boil.HooksAreSkipped(ctx) {
 		return nil
 	}
 
-	for _, hook := range contentChildBeforeUpsertHooks {
+	for _, hook := range contentHTMLBeforeUpsertHooks {
 		if err := hook(ctx, exec, o); err != nil {
 			return err
 		}
@@ -318,12 +311,12 @@ func (o *ContentChild) doBeforeUpsertHooks(ctx context.Context, exec boil.Contex
 }
 
 // doAfterUpsertHooks executes all "after Upsert" hooks.
-func (o *ContentChild) doAfterUpsertHooks(ctx context.Context, exec boil.ContextExecutor) (err error) {
+func (o *ContentHTML) doAfterUpsertHooks(ctx context.Context, exec boil.ContextExecutor) (err error) {
 	if boil.HooksAreSkipped(ctx) {
 		return nil
 	}
 
-	for _, hook := range contentChildAfterUpsertHooks {
+	for _, hook := range contentHTMLAfterUpsertHooks {
 		if err := hook(ctx, exec, o); err != nil {
 			return err
 		}
@@ -332,38 +325,38 @@ func (o *ContentChild) doAfterUpsertHooks(ctx context.Context, exec boil.Context
 	return nil
 }
 
-// AddContentChildHook registers your hook function for all future operations.
-func AddContentChildHook(hookPoint boil.HookPoint, contentChildHook ContentChildHook) {
+// AddContentHTMLHook registers your hook function for all future operations.
+func AddContentHTMLHook(hookPoint boil.HookPoint, contentHTMLHook ContentHTMLHook) {
 	switch hookPoint {
 	case boil.AfterSelectHook:
-		contentChildAfterSelectHooks = append(contentChildAfterSelectHooks, contentChildHook)
+		contentHTMLAfterSelectHooks = append(contentHTMLAfterSelectHooks, contentHTMLHook)
 	case boil.BeforeInsertHook:
-		contentChildBeforeInsertHooks = append(contentChildBeforeInsertHooks, contentChildHook)
+		contentHTMLBeforeInsertHooks = append(contentHTMLBeforeInsertHooks, contentHTMLHook)
 	case boil.AfterInsertHook:
-		contentChildAfterInsertHooks = append(contentChildAfterInsertHooks, contentChildHook)
+		contentHTMLAfterInsertHooks = append(contentHTMLAfterInsertHooks, contentHTMLHook)
 	case boil.BeforeUpdateHook:
-		contentChildBeforeUpdateHooks = append(contentChildBeforeUpdateHooks, contentChildHook)
+		contentHTMLBeforeUpdateHooks = append(contentHTMLBeforeUpdateHooks, contentHTMLHook)
 	case boil.AfterUpdateHook:
-		contentChildAfterUpdateHooks = append(contentChildAfterUpdateHooks, contentChildHook)
+		contentHTMLAfterUpdateHooks = append(contentHTMLAfterUpdateHooks, contentHTMLHook)
 	case boil.BeforeDeleteHook:
-		contentChildBeforeDeleteHooks = append(contentChildBeforeDeleteHooks, contentChildHook)
+		contentHTMLBeforeDeleteHooks = append(contentHTMLBeforeDeleteHooks, contentHTMLHook)
 	case boil.AfterDeleteHook:
-		contentChildAfterDeleteHooks = append(contentChildAfterDeleteHooks, contentChildHook)
+		contentHTMLAfterDeleteHooks = append(contentHTMLAfterDeleteHooks, contentHTMLHook)
 	case boil.BeforeUpsertHook:
-		contentChildBeforeUpsertHooks = append(contentChildBeforeUpsertHooks, contentChildHook)
+		contentHTMLBeforeUpsertHooks = append(contentHTMLBeforeUpsertHooks, contentHTMLHook)
 	case boil.AfterUpsertHook:
-		contentChildAfterUpsertHooks = append(contentChildAfterUpsertHooks, contentChildHook)
+		contentHTMLAfterUpsertHooks = append(contentHTMLAfterUpsertHooks, contentHTMLHook)
 	}
 }
 
-// OneG returns a single contentChild record from the query using the global executor.
-func (q contentChildQuery) OneG(ctx context.Context) (*ContentChild, error) {
+// OneG returns a single contentHTML record from the query using the global executor.
+func (q contentHTMLQuery) OneG(ctx context.Context) (*ContentHTML, error) {
 	return q.One(ctx, boil.GetContextDB())
 }
 
-// One returns a single contentChild record from the query.
-func (q contentChildQuery) One(ctx context.Context, exec boil.ContextExecutor) (*ContentChild, error) {
-	o := &ContentChild{}
+// One returns a single contentHTML record from the query.
+func (q contentHTMLQuery) One(ctx context.Context, exec boil.ContextExecutor) (*ContentHTML, error) {
+	o := &ContentHTML{}
 
 	queries.SetLimit(q.Query, 1)
 
@@ -372,7 +365,7 @@ func (q contentChildQuery) One(ctx context.Context, exec boil.ContextExecutor) (
 		if errors.Is(err, sql.ErrNoRows) {
 			return nil, sql.ErrNoRows
 		}
-		return nil, errors.Wrap(err, "boiler: failed to execute a one query for content_childs")
+		return nil, errors.Wrap(err, "boiler: failed to execute a one query for content_htmls")
 	}
 
 	if err := o.doAfterSelectHooks(ctx, exec); err != nil {
@@ -382,21 +375,21 @@ func (q contentChildQuery) One(ctx context.Context, exec boil.ContextExecutor) (
 	return o, nil
 }
 
-// AllG returns all ContentChild records from the query using the global executor.
-func (q contentChildQuery) AllG(ctx context.Context) (ContentChildSlice, error) {
+// AllG returns all ContentHTML records from the query using the global executor.
+func (q contentHTMLQuery) AllG(ctx context.Context) (ContentHTMLSlice, error) {
 	return q.All(ctx, boil.GetContextDB())
 }
 
-// All returns all ContentChild records from the query.
-func (q contentChildQuery) All(ctx context.Context, exec boil.ContextExecutor) (ContentChildSlice, error) {
-	var o []*ContentChild
+// All returns all ContentHTML records from the query.
+func (q contentHTMLQuery) All(ctx context.Context, exec boil.ContextExecutor) (ContentHTMLSlice, error) {
+	var o []*ContentHTML
 
 	err := q.Bind(ctx, exec, &o)
 	if err != nil {
-		return nil, errors.Wrap(err, "boiler: failed to assign all query results to ContentChild slice")
+		return nil, errors.Wrap(err, "boiler: failed to assign all query results to ContentHTML slice")
 	}
 
-	if len(contentChildAfterSelectHooks) != 0 {
+	if len(contentHTMLAfterSelectHooks) != 0 {
 		for _, obj := range o {
 			if err := obj.doAfterSelectHooks(ctx, exec); err != nil {
 				return o, err
@@ -407,13 +400,13 @@ func (q contentChildQuery) All(ctx context.Context, exec boil.ContextExecutor) (
 	return o, nil
 }
 
-// CountG returns the count of all ContentChild records in the query using the global executor
-func (q contentChildQuery) CountG(ctx context.Context) (int64, error) {
+// CountG returns the count of all ContentHTML records in the query using the global executor
+func (q contentHTMLQuery) CountG(ctx context.Context) (int64, error) {
 	return q.Count(ctx, boil.GetContextDB())
 }
 
-// Count returns the count of all ContentChild records in the query.
-func (q contentChildQuery) Count(ctx context.Context, exec boil.ContextExecutor) (int64, error) {
+// Count returns the count of all ContentHTML records in the query.
+func (q contentHTMLQuery) Count(ctx context.Context, exec boil.ContextExecutor) (int64, error) {
 	var count int64
 
 	queries.SetSelect(q.Query, nil)
@@ -421,19 +414,19 @@ func (q contentChildQuery) Count(ctx context.Context, exec boil.ContextExecutor)
 
 	err := q.Query.QueryRowContext(ctx, exec).Scan(&count)
 	if err != nil {
-		return 0, errors.Wrap(err, "boiler: failed to count content_childs rows")
+		return 0, errors.Wrap(err, "boiler: failed to count content_htmls rows")
 	}
 
 	return count, nil
 }
 
 // ExistsG checks if the row exists in the table using the global executor.
-func (q contentChildQuery) ExistsG(ctx context.Context) (bool, error) {
+func (q contentHTMLQuery) ExistsG(ctx context.Context) (bool, error) {
 	return q.Exists(ctx, boil.GetContextDB())
 }
 
 // Exists checks if the row exists in the table.
-func (q contentChildQuery) Exists(ctx context.Context, exec boil.ContextExecutor) (bool, error) {
+func (q contentHTMLQuery) Exists(ctx context.Context, exec boil.ContextExecutor) (bool, error) {
 	var count int64
 
 	queries.SetSelect(q.Query, nil)
@@ -442,14 +435,14 @@ func (q contentChildQuery) Exists(ctx context.Context, exec boil.ContextExecutor
 
 	err := q.Query.QueryRowContext(ctx, exec).Scan(&count)
 	if err != nil {
-		return false, errors.Wrap(err, "boiler: failed to check if content_childs exists")
+		return false, errors.Wrap(err, "boiler: failed to check if content_htmls exists")
 	}
 
 	return count > 0, nil
 }
 
 // Content pointed to by the foreign key.
-func (o *ContentChild) Content(mods ...qm.QueryMod) contentQuery {
+func (o *ContentHTML) Content(mods ...qm.QueryMod) contentQuery {
 	queryMods := []qm.QueryMod{
 		qm.Where("`id` = ?", o.ContentID),
 	}
@@ -461,28 +454,28 @@ func (o *ContentChild) Content(mods ...qm.QueryMod) contentQuery {
 
 // LoadContent allows an eager lookup of values, cached into the
 // loaded structs of the objects. This is for an N-1 relationship.
-func (contentChildL) LoadContent(ctx context.Context, e boil.ContextExecutor, singular bool, maybeContentChild interface{}, mods queries.Applicator) error {
-	var slice []*ContentChild
-	var object *ContentChild
+func (contentHTMLL) LoadContent(ctx context.Context, e boil.ContextExecutor, singular bool, maybeContentHTML interface{}, mods queries.Applicator) error {
+	var slice []*ContentHTML
+	var object *ContentHTML
 
 	if singular {
 		var ok bool
-		object, ok = maybeContentChild.(*ContentChild)
+		object, ok = maybeContentHTML.(*ContentHTML)
 		if !ok {
-			object = new(ContentChild)
-			ok = queries.SetFromEmbeddedStruct(&object, &maybeContentChild)
+			object = new(ContentHTML)
+			ok = queries.SetFromEmbeddedStruct(&object, &maybeContentHTML)
 			if !ok {
-				return errors.New(fmt.Sprintf("failed to set %T from embedded struct %T", object, maybeContentChild))
+				return errors.New(fmt.Sprintf("failed to set %T from embedded struct %T", object, maybeContentHTML))
 			}
 		}
 	} else {
-		s, ok := maybeContentChild.(*[]*ContentChild)
+		s, ok := maybeContentHTML.(*[]*ContentHTML)
 		if ok {
 			slice = *s
 		} else {
-			ok = queries.SetFromEmbeddedStruct(&slice, maybeContentChild)
+			ok = queries.SetFromEmbeddedStruct(&slice, maybeContentHTML)
 			if !ok {
-				return errors.New(fmt.Sprintf("failed to set %T from embedded struct %T", slice, maybeContentChild))
+				return errors.New(fmt.Sprintf("failed to set %T from embedded struct %T", slice, maybeContentHTML))
 			}
 		}
 	}
@@ -490,7 +483,7 @@ func (contentChildL) LoadContent(ctx context.Context, e boil.ContextExecutor, si
 	args := make([]interface{}, 0, 1)
 	if singular {
 		if object.R == nil {
-			object.R = &contentChildR{}
+			object.R = &contentHTMLR{}
 		}
 		args = append(args, object.ContentID)
 
@@ -498,7 +491,7 @@ func (contentChildL) LoadContent(ctx context.Context, e boil.ContextExecutor, si
 	Outer:
 		for _, obj := range slice {
 			if obj.R == nil {
-				obj.R = &contentChildR{}
+				obj.R = &contentHTMLR{}
 			}
 
 			for _, a := range args {
@@ -542,7 +535,7 @@ func (contentChildL) LoadContent(ctx context.Context, e boil.ContextExecutor, si
 		return errors.Wrap(err, "error occurred during iteration of eager loaded relations for contents")
 	}
 
-	if len(contentChildAfterSelectHooks) != 0 {
+	if len(contentHTMLAfterSelectHooks) != 0 {
 		for _, obj := range resultSlice {
 			if err := obj.doAfterSelectHooks(ctx, e); err != nil {
 				return err
@@ -572,16 +565,16 @@ func (contentChildL) LoadContent(ctx context.Context, e boil.ContextExecutor, si
 	return nil
 }
 
-// SetContentG of the contentChild to the related item.
+// SetContentG of the contentHTML to the related item.
 // Sets o.R.Content to related.
 // Uses the global database handle.
-func (o *ContentChild) SetContentG(ctx context.Context, insert bool, related *Content) error {
+func (o *ContentHTML) SetContentG(ctx context.Context, insert bool, related *Content) error {
 	return o.SetContent(ctx, boil.GetContextDB(), insert, related)
 }
 
-// SetContent of the contentChild to the related item.
+// SetContent of the contentHTML to the related item.
 // Sets o.R.Content to related.
-func (o *ContentChild) SetContent(ctx context.Context, exec boil.ContextExecutor, insert bool, related *Content) error {
+func (o *ContentHTML) SetContent(ctx context.Context, exec boil.ContextExecutor, insert bool, related *Content) error {
 	var err error
 	if insert {
 		if err = related.Insert(ctx, exec, boil.Infer()); err != nil {
@@ -590,9 +583,9 @@ func (o *ContentChild) SetContent(ctx context.Context, exec boil.ContextExecutor
 	}
 
 	updateQuery := fmt.Sprintf(
-		"UPDATE `content_childs` SET %s WHERE %s",
+		"UPDATE `content_htmls` SET %s WHERE %s",
 		strmangle.SetParamNames("`", "`", 0, []string{"content_id"}),
-		strmangle.WhereClause("`", "`", 0, contentChildPrimaryKeyColumns),
+		strmangle.WhereClause("`", "`", 0, contentHTMLPrimaryKeyColumns),
 	)
 	values := []interface{}{related.ID, o.ContentID, o.OrderNo}
 
@@ -607,7 +600,7 @@ func (o *ContentChild) SetContent(ctx context.Context, exec boil.ContextExecutor
 
 	o.ContentID = related.ID
 	if o.R == nil {
-		o.R = &contentChildR{
+		o.R = &contentHTMLR{
 			Content: related,
 		}
 	} else {
@@ -617,62 +610,62 @@ func (o *ContentChild) SetContent(ctx context.Context, exec boil.ContextExecutor
 	return nil
 }
 
-// ContentChilds retrieves all the records using an executor.
-func ContentChilds(mods ...qm.QueryMod) contentChildQuery {
-	mods = append(mods, qm.From("`content_childs`"), qmhelper.WhereIsNull("`content_childs`.`deleted_at`"))
+// ContentHTMLS retrieves all the records using an executor.
+func ContentHTMLS(mods ...qm.QueryMod) contentHTMLQuery {
+	mods = append(mods, qm.From("`content_htmls`"), qmhelper.WhereIsNull("`content_htmls`.`deleted_at`"))
 	q := NewQuery(mods...)
 	if len(queries.GetSelect(q)) == 0 {
-		queries.SetSelect(q, []string{"`content_childs`.*"})
+		queries.SetSelect(q, []string{"`content_htmls`.*"})
 	}
 
-	return contentChildQuery{q}
+	return contentHTMLQuery{q}
 }
 
-// FindContentChildG retrieves a single record by ID.
-func FindContentChildG(ctx context.Context, contentID string, orderNo int16, selectCols ...string) (*ContentChild, error) {
-	return FindContentChild(ctx, boil.GetContextDB(), contentID, orderNo, selectCols...)
+// FindContentHTMLG retrieves a single record by ID.
+func FindContentHTMLG(ctx context.Context, contentID string, orderNo int16, selectCols ...string) (*ContentHTML, error) {
+	return FindContentHTML(ctx, boil.GetContextDB(), contentID, orderNo, selectCols...)
 }
 
-// FindContentChild retrieves a single record by ID with an executor.
+// FindContentHTML retrieves a single record by ID with an executor.
 // If selectCols is empty Find will return all columns.
-func FindContentChild(ctx context.Context, exec boil.ContextExecutor, contentID string, orderNo int16, selectCols ...string) (*ContentChild, error) {
-	contentChildObj := &ContentChild{}
+func FindContentHTML(ctx context.Context, exec boil.ContextExecutor, contentID string, orderNo int16, selectCols ...string) (*ContentHTML, error) {
+	contentHTMLObj := &ContentHTML{}
 
 	sel := "*"
 	if len(selectCols) > 0 {
 		sel = strings.Join(strmangle.IdentQuoteSlice(dialect.LQ, dialect.RQ, selectCols), ",")
 	}
 	query := fmt.Sprintf(
-		"select %s from `content_childs` where `content_id`=? AND `order_no`=? and `deleted_at` is null", sel,
+		"select %s from `content_htmls` where `content_id`=? AND `order_no`=? and `deleted_at` is null", sel,
 	)
 
 	q := queries.Raw(query, contentID, orderNo)
 
-	err := q.Bind(ctx, exec, contentChildObj)
+	err := q.Bind(ctx, exec, contentHTMLObj)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return nil, sql.ErrNoRows
 		}
-		return nil, errors.Wrap(err, "boiler: unable to select from content_childs")
+		return nil, errors.Wrap(err, "boiler: unable to select from content_htmls")
 	}
 
-	if err = contentChildObj.doAfterSelectHooks(ctx, exec); err != nil {
-		return contentChildObj, err
+	if err = contentHTMLObj.doAfterSelectHooks(ctx, exec); err != nil {
+		return contentHTMLObj, err
 	}
 
-	return contentChildObj, nil
+	return contentHTMLObj, nil
 }
 
 // InsertG a single record. See Insert for whitelist behavior description.
-func (o *ContentChild) InsertG(ctx context.Context, columns boil.Columns) error {
+func (o *ContentHTML) InsertG(ctx context.Context, columns boil.Columns) error {
 	return o.Insert(ctx, boil.GetContextDB(), columns)
 }
 
 // Insert a single record using an executor.
 // See boil.Columns.InsertColumnSet documentation to understand column list inference for inserts.
-func (o *ContentChild) Insert(ctx context.Context, exec boil.ContextExecutor, columns boil.Columns) error {
+func (o *ContentHTML) Insert(ctx context.Context, exec boil.ContextExecutor, columns boil.Columns) error {
 	if o == nil {
-		return errors.New("boiler: no content_childs provided for insertion")
+		return errors.New("boiler: no content_htmls provided for insertion")
 	}
 
 	var err error
@@ -691,39 +684,39 @@ func (o *ContentChild) Insert(ctx context.Context, exec boil.ContextExecutor, co
 		return err
 	}
 
-	nzDefaults := queries.NonZeroDefaultSet(contentChildColumnsWithDefault, o)
+	nzDefaults := queries.NonZeroDefaultSet(contentHTMLColumnsWithDefault, o)
 
 	key := makeCacheKey(columns, nzDefaults)
-	contentChildInsertCacheMut.RLock()
-	cache, cached := contentChildInsertCache[key]
-	contentChildInsertCacheMut.RUnlock()
+	contentHTMLInsertCacheMut.RLock()
+	cache, cached := contentHTMLInsertCache[key]
+	contentHTMLInsertCacheMut.RUnlock()
 
 	if !cached {
 		wl, returnColumns := columns.InsertColumnSet(
-			contentChildAllColumns,
-			contentChildColumnsWithDefault,
-			contentChildColumnsWithoutDefault,
+			contentHTMLAllColumns,
+			contentHTMLColumnsWithDefault,
+			contentHTMLColumnsWithoutDefault,
 			nzDefaults,
 		)
 
-		cache.valueMapping, err = queries.BindMapping(contentChildType, contentChildMapping, wl)
+		cache.valueMapping, err = queries.BindMapping(contentHTMLType, contentHTMLMapping, wl)
 		if err != nil {
 			return err
 		}
-		cache.retMapping, err = queries.BindMapping(contentChildType, contentChildMapping, returnColumns)
+		cache.retMapping, err = queries.BindMapping(contentHTMLType, contentHTMLMapping, returnColumns)
 		if err != nil {
 			return err
 		}
 		if len(wl) != 0 {
-			cache.query = fmt.Sprintf("INSERT INTO `content_childs` (`%s`) %%sVALUES (%s)%%s", strings.Join(wl, "`,`"), strmangle.Placeholders(dialect.UseIndexPlaceholders, len(wl), 1, 1))
+			cache.query = fmt.Sprintf("INSERT INTO `content_htmls` (`%s`) %%sVALUES (%s)%%s", strings.Join(wl, "`,`"), strmangle.Placeholders(dialect.UseIndexPlaceholders, len(wl), 1, 1))
 		} else {
-			cache.query = "INSERT INTO `content_childs` () VALUES ()%s%s"
+			cache.query = "INSERT INTO `content_htmls` () VALUES ()%s%s"
 		}
 
 		var queryOutput, queryReturning string
 
 		if len(cache.retMapping) != 0 {
-			cache.retQuery = fmt.Sprintf("SELECT `%s` FROM `content_childs` WHERE %s", strings.Join(returnColumns, "`,`"), strmangle.WhereClause("`", "`", 0, contentChildPrimaryKeyColumns))
+			cache.retQuery = fmt.Sprintf("SELECT `%s` FROM `content_htmls` WHERE %s", strings.Join(returnColumns, "`,`"), strmangle.WhereClause("`", "`", 0, contentHTMLPrimaryKeyColumns))
 		}
 
 		cache.query = fmt.Sprintf(cache.query, queryOutput, queryReturning)
@@ -740,7 +733,7 @@ func (o *ContentChild) Insert(ctx context.Context, exec boil.ContextExecutor, co
 	_, err = exec.ExecContext(ctx, cache.query, vals...)
 
 	if err != nil {
-		return errors.Wrap(err, "boiler: unable to insert into content_childs")
+		return errors.Wrap(err, "boiler: unable to insert into content_htmls")
 	}
 
 	var identifierCols []interface{}
@@ -761,29 +754,29 @@ func (o *ContentChild) Insert(ctx context.Context, exec boil.ContextExecutor, co
 	}
 	err = exec.QueryRowContext(ctx, cache.retQuery, identifierCols...).Scan(queries.PtrsFromMapping(value, cache.retMapping)...)
 	if err != nil {
-		return errors.Wrap(err, "boiler: unable to populate default values for content_childs")
+		return errors.Wrap(err, "boiler: unable to populate default values for content_htmls")
 	}
 
 CacheNoHooks:
 	if !cached {
-		contentChildInsertCacheMut.Lock()
-		contentChildInsertCache[key] = cache
-		contentChildInsertCacheMut.Unlock()
+		contentHTMLInsertCacheMut.Lock()
+		contentHTMLInsertCache[key] = cache
+		contentHTMLInsertCacheMut.Unlock()
 	}
 
 	return o.doAfterInsertHooks(ctx, exec)
 }
 
-// UpdateG a single ContentChild record using the global executor.
+// UpdateG a single ContentHTML record using the global executor.
 // See Update for more documentation.
-func (o *ContentChild) UpdateG(ctx context.Context, columns boil.Columns) (int64, error) {
+func (o *ContentHTML) UpdateG(ctx context.Context, columns boil.Columns) (int64, error) {
 	return o.Update(ctx, boil.GetContextDB(), columns)
 }
 
-// Update uses an executor to update the ContentChild.
+// Update uses an executor to update the ContentHTML.
 // See boil.Columns.UpdateColumnSet documentation to understand column list inference for updates.
 // Update does not automatically update the record in case of default values. Use .Reload() to refresh the records.
-func (o *ContentChild) Update(ctx context.Context, exec boil.ContextExecutor, columns boil.Columns) (int64, error) {
+func (o *ContentHTML) Update(ctx context.Context, exec boil.ContextExecutor, columns boil.Columns) (int64, error) {
 	if !boil.TimestampsAreSkipped(ctx) {
 		currTime := time.Now().In(boil.GetLocation())
 
@@ -795,28 +788,28 @@ func (o *ContentChild) Update(ctx context.Context, exec boil.ContextExecutor, co
 		return 0, err
 	}
 	key := makeCacheKey(columns, nil)
-	contentChildUpdateCacheMut.RLock()
-	cache, cached := contentChildUpdateCache[key]
-	contentChildUpdateCacheMut.RUnlock()
+	contentHTMLUpdateCacheMut.RLock()
+	cache, cached := contentHTMLUpdateCache[key]
+	contentHTMLUpdateCacheMut.RUnlock()
 
 	if !cached {
 		wl := columns.UpdateColumnSet(
-			contentChildAllColumns,
-			contentChildPrimaryKeyColumns,
+			contentHTMLAllColumns,
+			contentHTMLPrimaryKeyColumns,
 		)
 
 		if !columns.IsWhitelist() {
 			wl = strmangle.SetComplement(wl, []string{"created_at"})
 		}
 		if len(wl) == 0 {
-			return 0, errors.New("boiler: unable to update content_childs, could not build whitelist")
+			return 0, errors.New("boiler: unable to update content_htmls, could not build whitelist")
 		}
 
-		cache.query = fmt.Sprintf("UPDATE `content_childs` SET %s WHERE %s",
+		cache.query = fmt.Sprintf("UPDATE `content_htmls` SET %s WHERE %s",
 			strmangle.SetParamNames("`", "`", 0, wl),
-			strmangle.WhereClause("`", "`", 0, contentChildPrimaryKeyColumns),
+			strmangle.WhereClause("`", "`", 0, contentHTMLPrimaryKeyColumns),
 		)
-		cache.valueMapping, err = queries.BindMapping(contentChildType, contentChildMapping, append(wl, contentChildPrimaryKeyColumns...))
+		cache.valueMapping, err = queries.BindMapping(contentHTMLType, contentHTMLMapping, append(wl, contentHTMLPrimaryKeyColumns...))
 		if err != nil {
 			return 0, err
 		}
@@ -832,52 +825,52 @@ func (o *ContentChild) Update(ctx context.Context, exec boil.ContextExecutor, co
 	var result sql.Result
 	result, err = exec.ExecContext(ctx, cache.query, values...)
 	if err != nil {
-		return 0, errors.Wrap(err, "boiler: unable to update content_childs row")
+		return 0, errors.Wrap(err, "boiler: unable to update content_htmls row")
 	}
 
 	rowsAff, err := result.RowsAffected()
 	if err != nil {
-		return 0, errors.Wrap(err, "boiler: failed to get rows affected by update for content_childs")
+		return 0, errors.Wrap(err, "boiler: failed to get rows affected by update for content_htmls")
 	}
 
 	if !cached {
-		contentChildUpdateCacheMut.Lock()
-		contentChildUpdateCache[key] = cache
-		contentChildUpdateCacheMut.Unlock()
+		contentHTMLUpdateCacheMut.Lock()
+		contentHTMLUpdateCache[key] = cache
+		contentHTMLUpdateCacheMut.Unlock()
 	}
 
 	return rowsAff, o.doAfterUpdateHooks(ctx, exec)
 }
 
 // UpdateAllG updates all rows with the specified column values.
-func (q contentChildQuery) UpdateAllG(ctx context.Context, cols M) (int64, error) {
+func (q contentHTMLQuery) UpdateAllG(ctx context.Context, cols M) (int64, error) {
 	return q.UpdateAll(ctx, boil.GetContextDB(), cols)
 }
 
 // UpdateAll updates all rows with the specified column values.
-func (q contentChildQuery) UpdateAll(ctx context.Context, exec boil.ContextExecutor, cols M) (int64, error) {
+func (q contentHTMLQuery) UpdateAll(ctx context.Context, exec boil.ContextExecutor, cols M) (int64, error) {
 	queries.SetUpdate(q.Query, cols)
 
 	result, err := q.Query.ExecContext(ctx, exec)
 	if err != nil {
-		return 0, errors.Wrap(err, "boiler: unable to update all for content_childs")
+		return 0, errors.Wrap(err, "boiler: unable to update all for content_htmls")
 	}
 
 	rowsAff, err := result.RowsAffected()
 	if err != nil {
-		return 0, errors.Wrap(err, "boiler: unable to retrieve rows affected for content_childs")
+		return 0, errors.Wrap(err, "boiler: unable to retrieve rows affected for content_htmls")
 	}
 
 	return rowsAff, nil
 }
 
 // UpdateAllG updates all rows with the specified column values.
-func (o ContentChildSlice) UpdateAllG(ctx context.Context, cols M) (int64, error) {
+func (o ContentHTMLSlice) UpdateAllG(ctx context.Context, cols M) (int64, error) {
 	return o.UpdateAll(ctx, boil.GetContextDB(), cols)
 }
 
 // UpdateAll updates all rows with the specified column values, using an executor.
-func (o ContentChildSlice) UpdateAll(ctx context.Context, exec boil.ContextExecutor, cols M) (int64, error) {
+func (o ContentHTMLSlice) UpdateAll(ctx context.Context, exec boil.ContextExecutor, cols M) (int64, error) {
 	ln := int64(len(o))
 	if ln == 0 {
 		return 0, nil
@@ -899,13 +892,13 @@ func (o ContentChildSlice) UpdateAll(ctx context.Context, exec boil.ContextExecu
 
 	// Append all of the primary key values for each column
 	for _, obj := range o {
-		pkeyArgs := queries.ValuesFromMapping(reflect.Indirect(reflect.ValueOf(obj)), contentChildPrimaryKeyMapping)
+		pkeyArgs := queries.ValuesFromMapping(reflect.Indirect(reflect.ValueOf(obj)), contentHTMLPrimaryKeyMapping)
 		args = append(args, pkeyArgs...)
 	}
 
-	sql := fmt.Sprintf("UPDATE `content_childs` SET %s WHERE %s",
+	sql := fmt.Sprintf("UPDATE `content_htmls` SET %s WHERE %s",
 		strmangle.SetParamNames("`", "`", 0, colNames),
-		strmangle.WhereClauseRepeated(string(dialect.LQ), string(dialect.RQ), 0, contentChildPrimaryKeyColumns, len(o)))
+		strmangle.WhereClauseRepeated(string(dialect.LQ), string(dialect.RQ), 0, contentHTMLPrimaryKeyColumns, len(o)))
 
 	if boil.IsDebug(ctx) {
 		writer := boil.DebugWriterFrom(ctx)
@@ -914,28 +907,28 @@ func (o ContentChildSlice) UpdateAll(ctx context.Context, exec boil.ContextExecu
 	}
 	result, err := exec.ExecContext(ctx, sql, args...)
 	if err != nil {
-		return 0, errors.Wrap(err, "boiler: unable to update all in contentChild slice")
+		return 0, errors.Wrap(err, "boiler: unable to update all in contentHTML slice")
 	}
 
 	rowsAff, err := result.RowsAffected()
 	if err != nil {
-		return 0, errors.Wrap(err, "boiler: unable to retrieve rows affected all in update all contentChild")
+		return 0, errors.Wrap(err, "boiler: unable to retrieve rows affected all in update all contentHTML")
 	}
 	return rowsAff, nil
 }
 
 // UpsertG attempts an insert, and does an update or ignore on conflict.
-func (o *ContentChild) UpsertG(ctx context.Context, updateColumns, insertColumns boil.Columns) error {
+func (o *ContentHTML) UpsertG(ctx context.Context, updateColumns, insertColumns boil.Columns) error {
 	return o.Upsert(ctx, boil.GetContextDB(), updateColumns, insertColumns)
 }
 
-var mySQLContentChildUniqueColumns = []string{}
+var mySQLContentHTMLUniqueColumns = []string{}
 
 // Upsert attempts an insert using an executor, and does an update or ignore on conflict.
 // See boil.Columns documentation for how to properly use updateColumns and insertColumns.
-func (o *ContentChild) Upsert(ctx context.Context, exec boil.ContextExecutor, updateColumns, insertColumns boil.Columns) error {
+func (o *ContentHTML) Upsert(ctx context.Context, exec boil.ContextExecutor, updateColumns, insertColumns boil.Columns) error {
 	if o == nil {
-		return errors.New("boiler: no content_childs provided for upsert")
+		return errors.New("boiler: no content_htmls provided for upsert")
 	}
 	if !boil.TimestampsAreSkipped(ctx) {
 		currTime := time.Now().In(boil.GetLocation())
@@ -950,8 +943,8 @@ func (o *ContentChild) Upsert(ctx context.Context, exec boil.ContextExecutor, up
 		return err
 	}
 
-	nzDefaults := queries.NonZeroDefaultSet(contentChildColumnsWithDefault, o)
-	nzUniques := queries.NonZeroDefaultSet(mySQLContentChildUniqueColumns, o)
+	nzDefaults := queries.NonZeroDefaultSet(contentHTMLColumnsWithDefault, o)
+	nzUniques := queries.NonZeroDefaultSet(mySQLContentHTMLUniqueColumns, o)
 
 	if len(nzUniques) == 0 {
 		return errors.New("cannot upsert with a table that cannot conflict on a unique column")
@@ -979,43 +972,43 @@ func (o *ContentChild) Upsert(ctx context.Context, exec boil.ContextExecutor, up
 	key := buf.String()
 	strmangle.PutBuffer(buf)
 
-	contentChildUpsertCacheMut.RLock()
-	cache, cached := contentChildUpsertCache[key]
-	contentChildUpsertCacheMut.RUnlock()
+	contentHTMLUpsertCacheMut.RLock()
+	cache, cached := contentHTMLUpsertCache[key]
+	contentHTMLUpsertCacheMut.RUnlock()
 
 	var err error
 
 	if !cached {
 		insert, ret := insertColumns.InsertColumnSet(
-			contentChildAllColumns,
-			contentChildColumnsWithDefault,
-			contentChildColumnsWithoutDefault,
+			contentHTMLAllColumns,
+			contentHTMLColumnsWithDefault,
+			contentHTMLColumnsWithoutDefault,
 			nzDefaults,
 		)
 
 		update := updateColumns.UpdateColumnSet(
-			contentChildAllColumns,
-			contentChildPrimaryKeyColumns,
+			contentHTMLAllColumns,
+			contentHTMLPrimaryKeyColumns,
 		)
 
 		if !updateColumns.IsNone() && len(update) == 0 {
-			return errors.New("boiler: unable to upsert content_childs, could not build update column list")
+			return errors.New("boiler: unable to upsert content_htmls, could not build update column list")
 		}
 
 		ret = strmangle.SetComplement(ret, nzUniques)
-		cache.query = buildUpsertQueryMySQL(dialect, "`content_childs`", update, insert)
+		cache.query = buildUpsertQueryMySQL(dialect, "`content_htmls`", update, insert)
 		cache.retQuery = fmt.Sprintf(
-			"SELECT %s FROM `content_childs` WHERE %s",
+			"SELECT %s FROM `content_htmls` WHERE %s",
 			strings.Join(strmangle.IdentQuoteSlice(dialect.LQ, dialect.RQ, ret), ","),
 			strmangle.WhereClause("`", "`", 0, nzUniques),
 		)
 
-		cache.valueMapping, err = queries.BindMapping(contentChildType, contentChildMapping, insert)
+		cache.valueMapping, err = queries.BindMapping(contentHTMLType, contentHTMLMapping, insert)
 		if err != nil {
 			return err
 		}
 		if len(ret) != 0 {
-			cache.retMapping, err = queries.BindMapping(contentChildType, contentChildMapping, ret)
+			cache.retMapping, err = queries.BindMapping(contentHTMLType, contentHTMLMapping, ret)
 			if err != nil {
 				return err
 			}
@@ -1037,7 +1030,7 @@ func (o *ContentChild) Upsert(ctx context.Context, exec boil.ContextExecutor, up
 	_, err = exec.ExecContext(ctx, cache.query, vals...)
 
 	if err != nil {
-		return errors.Wrap(err, "boiler: unable to upsert for content_childs")
+		return errors.Wrap(err, "boiler: unable to upsert for content_htmls")
 	}
 
 	var uniqueMap []uint64
@@ -1047,9 +1040,9 @@ func (o *ContentChild) Upsert(ctx context.Context, exec boil.ContextExecutor, up
 		goto CacheNoHooks
 	}
 
-	uniqueMap, err = queries.BindMapping(contentChildType, contentChildMapping, nzUniques)
+	uniqueMap, err = queries.BindMapping(contentHTMLType, contentHTMLMapping, nzUniques)
 	if err != nil {
-		return errors.Wrap(err, "boiler: unable to retrieve unique values for content_childs")
+		return errors.Wrap(err, "boiler: unable to retrieve unique values for content_htmls")
 	}
 	nzUniqueCols = queries.ValuesFromMapping(reflect.Indirect(reflect.ValueOf(o)), uniqueMap)
 
@@ -1060,30 +1053,30 @@ func (o *ContentChild) Upsert(ctx context.Context, exec boil.ContextExecutor, up
 	}
 	err = exec.QueryRowContext(ctx, cache.retQuery, nzUniqueCols...).Scan(returns...)
 	if err != nil {
-		return errors.Wrap(err, "boiler: unable to populate default values for content_childs")
+		return errors.Wrap(err, "boiler: unable to populate default values for content_htmls")
 	}
 
 CacheNoHooks:
 	if !cached {
-		contentChildUpsertCacheMut.Lock()
-		contentChildUpsertCache[key] = cache
-		contentChildUpsertCacheMut.Unlock()
+		contentHTMLUpsertCacheMut.Lock()
+		contentHTMLUpsertCache[key] = cache
+		contentHTMLUpsertCacheMut.Unlock()
 	}
 
 	return o.doAfterUpsertHooks(ctx, exec)
 }
 
-// DeleteG deletes a single ContentChild record.
+// DeleteG deletes a single ContentHTML record.
 // DeleteG will match against the primary key column to find the record to delete.
-func (o *ContentChild) DeleteG(ctx context.Context, hardDelete bool) (int64, error) {
+func (o *ContentHTML) DeleteG(ctx context.Context, hardDelete bool) (int64, error) {
 	return o.Delete(ctx, boil.GetContextDB(), hardDelete)
 }
 
-// Delete deletes a single ContentChild record with an executor.
+// Delete deletes a single ContentHTML record with an executor.
 // Delete will match against the primary key column to find the record to delete.
-func (o *ContentChild) Delete(ctx context.Context, exec boil.ContextExecutor, hardDelete bool) (int64, error) {
+func (o *ContentHTML) Delete(ctx context.Context, exec boil.ContextExecutor, hardDelete bool) (int64, error) {
 	if o == nil {
-		return 0, errors.New("boiler: no ContentChild provided for delete")
+		return 0, errors.New("boiler: no ContentHTML provided for delete")
 	}
 
 	if err := o.doBeforeDeleteHooks(ctx, exec); err != nil {
@@ -1095,16 +1088,16 @@ func (o *ContentChild) Delete(ctx context.Context, exec boil.ContextExecutor, ha
 		args []interface{}
 	)
 	if hardDelete {
-		args = queries.ValuesFromMapping(reflect.Indirect(reflect.ValueOf(o)), contentChildPrimaryKeyMapping)
-		sql = "DELETE FROM `content_childs` WHERE `content_id`=? AND `order_no`=?"
+		args = queries.ValuesFromMapping(reflect.Indirect(reflect.ValueOf(o)), contentHTMLPrimaryKeyMapping)
+		sql = "DELETE FROM `content_htmls` WHERE `content_id`=? AND `order_no`=?"
 	} else {
 		currTime := time.Now().In(boil.GetLocation())
 		o.DeletedAt = null.TimeFrom(currTime)
 		wl := []string{"deleted_at"}
-		sql = fmt.Sprintf("UPDATE `content_childs` SET %s WHERE `content_id`=? AND `order_no`=?",
+		sql = fmt.Sprintf("UPDATE `content_htmls` SET %s WHERE `content_id`=? AND `order_no`=?",
 			strmangle.SetParamNames("`", "`", 0, wl),
 		)
-		valueMapping, err := queries.BindMapping(contentChildType, contentChildMapping, append(wl, contentChildPrimaryKeyColumns...))
+		valueMapping, err := queries.BindMapping(contentHTMLType, contentHTMLMapping, append(wl, contentHTMLPrimaryKeyColumns...))
 		if err != nil {
 			return 0, err
 		}
@@ -1118,12 +1111,12 @@ func (o *ContentChild) Delete(ctx context.Context, exec boil.ContextExecutor, ha
 	}
 	result, err := exec.ExecContext(ctx, sql, args...)
 	if err != nil {
-		return 0, errors.Wrap(err, "boiler: unable to delete from content_childs")
+		return 0, errors.Wrap(err, "boiler: unable to delete from content_htmls")
 	}
 
 	rowsAff, err := result.RowsAffected()
 	if err != nil {
-		return 0, errors.Wrap(err, "boiler: failed to get rows affected by delete for content_childs")
+		return 0, errors.Wrap(err, "boiler: failed to get rows affected by delete for content_htmls")
 	}
 
 	if err := o.doAfterDeleteHooks(ctx, exec); err != nil {
@@ -1133,14 +1126,14 @@ func (o *ContentChild) Delete(ctx context.Context, exec boil.ContextExecutor, ha
 	return rowsAff, nil
 }
 
-func (q contentChildQuery) DeleteAllG(ctx context.Context, hardDelete bool) (int64, error) {
+func (q contentHTMLQuery) DeleteAllG(ctx context.Context, hardDelete bool) (int64, error) {
 	return q.DeleteAll(ctx, boil.GetContextDB(), hardDelete)
 }
 
 // DeleteAll deletes all matching rows.
-func (q contentChildQuery) DeleteAll(ctx context.Context, exec boil.ContextExecutor, hardDelete bool) (int64, error) {
+func (q contentHTMLQuery) DeleteAll(ctx context.Context, exec boil.ContextExecutor, hardDelete bool) (int64, error) {
 	if q.Query == nil {
-		return 0, errors.New("boiler: no contentChildQuery provided for delete all")
+		return 0, errors.New("boiler: no contentHTMLQuery provided for delete all")
 	}
 
 	if hardDelete {
@@ -1152,29 +1145,29 @@ func (q contentChildQuery) DeleteAll(ctx context.Context, exec boil.ContextExecu
 
 	result, err := q.Query.ExecContext(ctx, exec)
 	if err != nil {
-		return 0, errors.Wrap(err, "boiler: unable to delete all from content_childs")
+		return 0, errors.Wrap(err, "boiler: unable to delete all from content_htmls")
 	}
 
 	rowsAff, err := result.RowsAffected()
 	if err != nil {
-		return 0, errors.Wrap(err, "boiler: failed to get rows affected by deleteall for content_childs")
+		return 0, errors.Wrap(err, "boiler: failed to get rows affected by deleteall for content_htmls")
 	}
 
 	return rowsAff, nil
 }
 
 // DeleteAllG deletes all rows in the slice.
-func (o ContentChildSlice) DeleteAllG(ctx context.Context, hardDelete bool) (int64, error) {
+func (o ContentHTMLSlice) DeleteAllG(ctx context.Context, hardDelete bool) (int64, error) {
 	return o.DeleteAll(ctx, boil.GetContextDB(), hardDelete)
 }
 
 // DeleteAll deletes all rows in the slice, using an executor.
-func (o ContentChildSlice) DeleteAll(ctx context.Context, exec boil.ContextExecutor, hardDelete bool) (int64, error) {
+func (o ContentHTMLSlice) DeleteAll(ctx context.Context, exec boil.ContextExecutor, hardDelete bool) (int64, error) {
 	if len(o) == 0 {
 		return 0, nil
 	}
 
-	if len(contentChildBeforeDeleteHooks) != 0 {
+	if len(contentHTMLBeforeDeleteHooks) != 0 {
 		for _, obj := range o {
 			if err := obj.doBeforeDeleteHooks(ctx, exec); err != nil {
 				return 0, err
@@ -1188,21 +1181,21 @@ func (o ContentChildSlice) DeleteAll(ctx context.Context, exec boil.ContextExecu
 	)
 	if hardDelete {
 		for _, obj := range o {
-			pkeyArgs := queries.ValuesFromMapping(reflect.Indirect(reflect.ValueOf(obj)), contentChildPrimaryKeyMapping)
+			pkeyArgs := queries.ValuesFromMapping(reflect.Indirect(reflect.ValueOf(obj)), contentHTMLPrimaryKeyMapping)
 			args = append(args, pkeyArgs...)
 		}
-		sql = "DELETE FROM `content_childs` WHERE " +
-			strmangle.WhereClauseRepeated(string(dialect.LQ), string(dialect.RQ), 0, contentChildPrimaryKeyColumns, len(o))
+		sql = "DELETE FROM `content_htmls` WHERE " +
+			strmangle.WhereClauseRepeated(string(dialect.LQ), string(dialect.RQ), 0, contentHTMLPrimaryKeyColumns, len(o))
 	} else {
 		currTime := time.Now().In(boil.GetLocation())
 		for _, obj := range o {
-			pkeyArgs := queries.ValuesFromMapping(reflect.Indirect(reflect.ValueOf(obj)), contentChildPrimaryKeyMapping)
+			pkeyArgs := queries.ValuesFromMapping(reflect.Indirect(reflect.ValueOf(obj)), contentHTMLPrimaryKeyMapping)
 			args = append(args, pkeyArgs...)
 			obj.DeletedAt = null.TimeFrom(currTime)
 		}
 		wl := []string{"deleted_at"}
-		sql = fmt.Sprintf("UPDATE `content_childs` SET %s WHERE "+
-			strmangle.WhereClauseRepeated(string(dialect.LQ), string(dialect.RQ), 0, contentChildPrimaryKeyColumns, len(o)),
+		sql = fmt.Sprintf("UPDATE `content_htmls` SET %s WHERE "+
+			strmangle.WhereClauseRepeated(string(dialect.LQ), string(dialect.RQ), 0, contentHTMLPrimaryKeyColumns, len(o)),
 			strmangle.SetParamNames("`", "`", 0, wl),
 		)
 		args = append([]interface{}{currTime}, args...)
@@ -1215,15 +1208,15 @@ func (o ContentChildSlice) DeleteAll(ctx context.Context, exec boil.ContextExecu
 	}
 	result, err := exec.ExecContext(ctx, sql, args...)
 	if err != nil {
-		return 0, errors.Wrap(err, "boiler: unable to delete all from contentChild slice")
+		return 0, errors.Wrap(err, "boiler: unable to delete all from contentHTML slice")
 	}
 
 	rowsAff, err := result.RowsAffected()
 	if err != nil {
-		return 0, errors.Wrap(err, "boiler: failed to get rows affected by deleteall for content_childs")
+		return 0, errors.Wrap(err, "boiler: failed to get rows affected by deleteall for content_htmls")
 	}
 
-	if len(contentChildAfterDeleteHooks) != 0 {
+	if len(contentHTMLAfterDeleteHooks) != 0 {
 		for _, obj := range o {
 			if err := obj.doAfterDeleteHooks(ctx, exec); err != nil {
 				return 0, err
@@ -1235,9 +1228,9 @@ func (o ContentChildSlice) DeleteAll(ctx context.Context, exec boil.ContextExecu
 }
 
 // ReloadG refetches the object from the database using the primary keys.
-func (o *ContentChild) ReloadG(ctx context.Context) error {
+func (o *ContentHTML) ReloadG(ctx context.Context) error {
 	if o == nil {
-		return errors.New("boiler: no ContentChild provided for reload")
+		return errors.New("boiler: no ContentHTML provided for reload")
 	}
 
 	return o.Reload(ctx, boil.GetContextDB())
@@ -1245,8 +1238,8 @@ func (o *ContentChild) ReloadG(ctx context.Context) error {
 
 // Reload refetches the object from the database
 // using the primary keys with an executor.
-func (o *ContentChild) Reload(ctx context.Context, exec boil.ContextExecutor) error {
-	ret, err := FindContentChild(ctx, exec, o.ContentID, o.OrderNo)
+func (o *ContentHTML) Reload(ctx context.Context, exec boil.ContextExecutor) error {
+	ret, err := FindContentHTML(ctx, exec, o.ContentID, o.OrderNo)
 	if err != nil {
 		return err
 	}
@@ -1257,9 +1250,9 @@ func (o *ContentChild) Reload(ctx context.Context, exec boil.ContextExecutor) er
 
 // ReloadAllG refetches every row with matching primary key column values
 // and overwrites the original object slice with the newly updated slice.
-func (o *ContentChildSlice) ReloadAllG(ctx context.Context) error {
+func (o *ContentHTMLSlice) ReloadAllG(ctx context.Context) error {
 	if o == nil {
-		return errors.New("boiler: empty ContentChildSlice provided for reload all")
+		return errors.New("boiler: empty ContentHTMLSlice provided for reload all")
 	}
 
 	return o.ReloadAll(ctx, boil.GetContextDB())
@@ -1267,27 +1260,27 @@ func (o *ContentChildSlice) ReloadAllG(ctx context.Context) error {
 
 // ReloadAll refetches every row with matching primary key column values
 // and overwrites the original object slice with the newly updated slice.
-func (o *ContentChildSlice) ReloadAll(ctx context.Context, exec boil.ContextExecutor) error {
+func (o *ContentHTMLSlice) ReloadAll(ctx context.Context, exec boil.ContextExecutor) error {
 	if o == nil || len(*o) == 0 {
 		return nil
 	}
 
-	slice := ContentChildSlice{}
+	slice := ContentHTMLSlice{}
 	var args []interface{}
 	for _, obj := range *o {
-		pkeyArgs := queries.ValuesFromMapping(reflect.Indirect(reflect.ValueOf(obj)), contentChildPrimaryKeyMapping)
+		pkeyArgs := queries.ValuesFromMapping(reflect.Indirect(reflect.ValueOf(obj)), contentHTMLPrimaryKeyMapping)
 		args = append(args, pkeyArgs...)
 	}
 
-	sql := "SELECT `content_childs`.* FROM `content_childs` WHERE " +
-		strmangle.WhereClauseRepeated(string(dialect.LQ), string(dialect.RQ), 0, contentChildPrimaryKeyColumns, len(*o)) +
+	sql := "SELECT `content_htmls`.* FROM `content_htmls` WHERE " +
+		strmangle.WhereClauseRepeated(string(dialect.LQ), string(dialect.RQ), 0, contentHTMLPrimaryKeyColumns, len(*o)) +
 		"and `deleted_at` is null"
 
 	q := queries.Raw(sql, args...)
 
 	err := q.Bind(ctx, exec, &slice)
 	if err != nil {
-		return errors.Wrap(err, "boiler: unable to reload all in ContentChildSlice")
+		return errors.Wrap(err, "boiler: unable to reload all in ContentHTMLSlice")
 	}
 
 	*o = slice
@@ -1295,15 +1288,15 @@ func (o *ContentChildSlice) ReloadAll(ctx context.Context, exec boil.ContextExec
 	return nil
 }
 
-// ContentChildExistsG checks if the ContentChild row exists.
-func ContentChildExistsG(ctx context.Context, contentID string, orderNo int16) (bool, error) {
-	return ContentChildExists(ctx, boil.GetContextDB(), contentID, orderNo)
+// ContentHTMLExistsG checks if the ContentHTML row exists.
+func ContentHTMLExistsG(ctx context.Context, contentID string, orderNo int16) (bool, error) {
+	return ContentHTMLExists(ctx, boil.GetContextDB(), contentID, orderNo)
 }
 
-// ContentChildExists checks if the ContentChild row exists.
-func ContentChildExists(ctx context.Context, exec boil.ContextExecutor, contentID string, orderNo int16) (bool, error) {
+// ContentHTMLExists checks if the ContentHTML row exists.
+func ContentHTMLExists(ctx context.Context, exec boil.ContextExecutor, contentID string, orderNo int16) (bool, error) {
 	var exists bool
-	sql := "select exists(select 1 from `content_childs` where `content_id`=? AND `order_no`=? and `deleted_at` is null limit 1)"
+	sql := "select exists(select 1 from `content_htmls` where `content_id`=? AND `order_no`=? and `deleted_at` is null limit 1)"
 
 	if boil.IsDebug(ctx) {
 		writer := boil.DebugWriterFrom(ctx)
@@ -1314,7 +1307,7 @@ func ContentChildExists(ctx context.Context, exec boil.ContextExecutor, contentI
 
 	err := row.Scan(&exists)
 	if err != nil {
-		return false, errors.Wrap(err, "boiler: unable to check if content_childs exists")
+		return false, errors.Wrap(err, "boiler: unable to check if content_htmls exists")
 	}
 
 	return exists, nil

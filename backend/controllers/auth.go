@@ -26,12 +26,17 @@ var (
 		"/api/user/check/otp",
 
 		"/api/content",
+		"/api/content/:contentID",
 	}
 
 	// AdminWhiteList - Admin WhiteList
 	AdminWhiteList = []string{
 		"/api/admin/user",
 		"/api/admin/user/:userID",
+	}
+
+	ContainWhiteList = []string{
+		"/api/file/media",
 	}
 )
 
@@ -53,7 +58,7 @@ func AuthorizeJWT() gin.HandlerFunc {
 	return func(c *gin.Context) {
 
 		// Check White List
-		if CheckJWTWhiteList(c.FullPath()) {
+		if CheckJWTWhiteList(c.FullPath()) && CheckContainWhiteList(c.FullPath()) {
 
 			// Get token
 			bearerToken := c.GetHeader("Authorization")
@@ -95,6 +100,16 @@ func AuthorizeJWT() gin.HandlerFunc {
 func CheckJWTWhiteList(path string) bool {
 	for _, p := range JwtWhiteList {
 		if path == p {
+			return false
+		}
+	}
+	return true
+}
+
+// CheckContainWhiteList - Check if Path exists in Contain WhiteList
+func CheckContainWhiteList(path string) bool {
+	for _, p := range ContainWhiteList {
+		if strings.Contains(path, p) {
 			return false
 		}
 	}

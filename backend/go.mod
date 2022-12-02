@@ -21,6 +21,7 @@ require (
 	github.com/volatiletech/sqlboiler/v4 v4.13.0
 	github.com/volatiletech/strmangle v0.0.4
 	golang.org/x/crypto v0.3.0
+	gopkg.in/yaml.v3 v3.0.1
 )
 
 require (
