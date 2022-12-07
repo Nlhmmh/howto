@@ -45,16 +45,20 @@ func UserWithEmailNotExistResp(c *gin.Context, err error) {
 	AbortWithErrorResp(c, http.StatusNotFound, ErrorResponse{Code: 11, Message: "User with email does not exist", Error: err.Error()})
 }
 
+func UserWithEmailAlreadyExistResp(c *gin.Context, err error) {
+	AbortWithErrorResp(c, http.StatusNotFound, ErrorResponse{Code: 12, Message: "User with email already exist", Error: err.Error()})
+}
+
 func PasswordWrongResp(c *gin.Context, err error) {
-	AbortWithErrorResp(c, http.StatusBadRequest, ErrorResponse{Code: 12, Message: "Password is wrong", Error: err.Error()})
+	AbortWithErrorResp(c, http.StatusBadRequest, ErrorResponse{Code: 13, Message: "Password is wrong", Error: err.Error()})
 }
 
 func DisplayNameAlreadyExistResp(c *gin.Context, err error) {
-	AbortWithErrorResp(c, http.StatusConflict, ErrorResponse{Code: 11, Message: "Display name already exists : ", Error: err.Error()})
+	AbortWithErrorResp(c, http.StatusConflict, ErrorResponse{Code: 14, Message: "Display name already exists : ", Error: err.Error()})
 }
 
 func ContentTitleAlreadyExistResp(c *gin.Context, err error) {
-	AbortWithErrorResp(c, http.StatusConflict, ErrorResponse{Code: 12, Message: "Content title already exists : ", Error: err.Error()})
+	AbortWithErrorResp(c, http.StatusConflict, ErrorResponse{Code: 15, Message: "Content title already exists : ", Error: err.Error()})
 }
 
 func RespWithRollbackTx(

@@ -169,20 +169,23 @@ var ContentWhere = struct {
 
 // ContentRels is where relationship names are stored.
 var ContentRels = struct {
-	User         string
-	Category     string
-	ContentHTMLS string
+	User           string
+	Category       string
+	ContentHTMLS   string
+	UserFavourites string
 }{
-	User:         "User",
-	Category:     "Category",
-	ContentHTMLS: "ContentHTMLS",
+	User:           "User",
+	Category:       "Category",
+	ContentHTMLS:   "ContentHTMLS",
+	UserFavourites: "UserFavourites",
 }
 
 // contentR is where relationships are stored.
 type contentR struct {
-	User         *User            `boil:"User" json:"User" toml:"User" yaml:"User"`
-	Category     *ContentCategory `boil:"Category" json:"Category" toml:"Category" yaml:"Category"`
-	ContentHTMLS ContentHTMLSlice `boil:"ContentHTMLS" json:"ContentHTMLS" toml:"ContentHTMLS" yaml:"ContentHTMLS"`
+	User           *User              `boil:"User" json:"User" toml:"User" yaml:"User"`
+	Category       *ContentCategory   `boil:"Category" json:"Category" toml:"Category" yaml:"Category"`
+	ContentHTMLS   ContentHTMLSlice   `boil:"ContentHTMLS" json:"ContentHTMLS" toml:"ContentHTMLS" yaml:"ContentHTMLS"`
+	UserFavourites UserFavouriteSlice `boil:"UserFavourites" json:"UserFavourites" toml:"UserFavourites" yaml:"UserFavourites"`
 }
 
 // NewStruct creates a new relationship struct
@@ -209,6 +212,13 @@ func (r *contentR) GetContentHTMLS() ContentHTMLSlice {
 		return nil
 	}
 	return r.ContentHTMLS
+}
+
+func (r *contentR) GetUserFavourites() UserFavouriteSlice {
+	if r == nil {
+		return nil
+	}
+	return r.UserFavourites
 }
 
 // contentL is where Load methods for each relationship are stored.
@@ -556,6 +566,20 @@ func (o *Content) ContentHTMLS(mods ...qm.QueryMod) contentHTMLQuery {
 	return ContentHTMLS(queryMods...)
 }
 
+// UserFavourites retrieves all the user_favourite's UserFavourites with an executor.
+func (o *Content) UserFavourites(mods ...qm.QueryMod) userFavouriteQuery {
+	var queryMods []qm.QueryMod
+	if len(mods) != 0 {
+		queryMods = append(queryMods, mods...)
+	}
+
+	queryMods = append(queryMods,
+		qm.Where("`user_favourites`.`content_id`=?", o.ID),
+	)
+
+	return UserFavourites(queryMods...)
+}
+
 // LoadUser allows an eager lookup of values, cached into the
 // loaded structs of the objects. This is for an N-1 relationship.
 func (contentL) LoadUser(ctx context.Context, e boil.ContextExecutor, singular bool, maybeContent interface{}, mods queries.Applicator) error {
@@ -887,6 +911,111 @@ func (contentL) LoadContentHTMLS(ctx context.Context, e boil.ContextExecutor, si
 	return nil
 }
 
+// LoadUserFavourites allows an eager lookup of values, cached into the
+// loaded structs of the objects. This is for a 1-M or N-M relationship.
+func (contentL) LoadUserFavourites(ctx context.Context, e boil.ContextExecutor, singular bool, maybeContent interface{}, mods queries.Applicator) error {
+	var slice []*Content
+	var object *Content
+
+	if singular {
+		var ok bool
+		object, ok = maybeContent.(*Content)
+		if !ok {
+			object = new(Content)
+			ok = queries.SetFromEmbeddedStruct(&object, &maybeContent)
+			if !ok {
+				return errors.New(fmt.Sprintf("failed to set %T from embedded struct %T", object, maybeContent))
+			}
+		}
+	} else {
+		s, ok := maybeContent.(*[]*Content)
+		if ok {
+			slice = *s
+		} else {
+			ok = queries.SetFromEmbeddedStruct(&slice, maybeContent)
+			if !ok {
+				return errors.New(fmt.Sprintf("failed to set %T from embedded struct %T", slice, maybeContent))
+			}
+		}
+	}
+
+	args := make([]interface{}, 0, 1)
+	if singular {
+		if object.R == nil {
+			object.R = &contentR{}
+		}
+		args = append(args, object.ID)
+	} else {
+	Outer:
+		for _, obj := range slice {
+			if obj.R == nil {
+				obj.R = &contentR{}
+			}
+
+			for _, a := range args {
+				if a == obj.ID {
+					continue Outer
+				}
+			}
+
+			args = append(args, obj.ID)
+		}
+	}
+
+	if len(args) == 0 {
+		return nil
+	}
+
+	query := NewQuery(
+		qm.From(`user_favourites`),
+		qm.WhereIn(`user_favourites.content_id in ?`, args...),
+		qmhelper.WhereIsNull(`user_favourites.deleted_at`),
+	)
+	if mods != nil {
+		mods.Apply(query)
+	}
+
+	results, err := query.QueryContext(ctx, e)
+	if err != nil {
+		return errors.Wrap(err, "failed to eager load user_favourites")
+	}
+
+	var resultSlice []*UserFavourite
+	if err = queries.Bind(results, &resultSlice); err != nil {
+		return errors.Wrap(err, "failed to bind eager loaded slice user_favourites")
+	}
+
+	if err = results.Close(); err != nil {
+		return errors.Wrap(err, "failed to close results in eager load on user_favourites")
+	}
+	if err = results.Err(); err != nil {
+		return errors.Wrap(err, "error occurred during iteration of eager loaded relations for user_favourites")
+	}
+
+	if len(userFavouriteAfterSelectHooks) != 0 {
+		for _, obj := range resultSlice {
+			if err := obj.doAfterSelectHooks(ctx, e); err != nil {
+				return err
+			}
+		}
+	}
+	if singular {
+		object.R.UserFavourites = resultSlice
+		return nil
+	}
+
+	for _, foreign := range resultSlice {
+		for _, local := range slice {
+			if local.ID == foreign.ContentID {
+				local.R.UserFavourites = append(local.R.UserFavourites, foreign)
+				break
+			}
+		}
+	}
+
+	return nil
+}
+
 // SetUserG of the content to the related item.
 // Sets o.R.User to related.
 // Uses the global database handle.
@@ -1023,6 +1152,57 @@ func (o *Content) AddContentHTMLS(ctx context.Context, exec boil.ContextExecutor
 		}
 	} else {
 		o.R.ContentHTMLS = append(o.R.ContentHTMLS, related...)
+	}
+
+	return nil
+}
+
+// AddUserFavouritesG adds the given related objects to the existing relationships
+// of the content, optionally inserting them as new records.
+// Appends related to o.R.UserFavourites.
+// Uses the global database handle.
+func (o *Content) AddUserFavouritesG(ctx context.Context, insert bool, related ...*UserFavourite) error {
+	return o.AddUserFavourites(ctx, boil.GetContextDB(), insert, related...)
+}
+
+// AddUserFavourites adds the given related objects to the existing relationships
+// of the content, optionally inserting them as new records.
+// Appends related to o.R.UserFavourites.
+func (o *Content) AddUserFavourites(ctx context.Context, exec boil.ContextExecutor, insert bool, related ...*UserFavourite) error {
+	var err error
+	for _, rel := range related {
+		if insert {
+			rel.ContentID = o.ID
+			if err = rel.Insert(ctx, exec, boil.Infer()); err != nil {
+				return errors.Wrap(err, "failed to insert into foreign table")
+			}
+		} else {
+			updateQuery := fmt.Sprintf(
+				"UPDATE `user_favourites` SET %s WHERE %s",
+				strmangle.SetParamNames("`", "`", 0, []string{"content_id"}),
+				strmangle.WhereClause("`", "`", 0, userFavouritePrimaryKeyColumns),
+			)
+			values := []interface{}{o.ID, rel.UserID, rel.ContentID}
+
+			if boil.IsDebug(ctx) {
+				writer := boil.DebugWriterFrom(ctx)
+				fmt.Fprintln(writer, updateQuery)
+				fmt.Fprintln(writer, values)
+			}
+			if _, err = exec.ExecContext(ctx, updateQuery, values...); err != nil {
+				return errors.Wrap(err, "failed to update foreign table")
+			}
+
+			rel.ContentID = o.ID
+		}
+	}
+
+	if o.R == nil {
+		o.R = &contentR{
+			UserFavourites: related,
+		}
+	} else {
+		o.R.UserFavourites = append(o.R.UserFavourites, related...)
 	}
 
 	return nil

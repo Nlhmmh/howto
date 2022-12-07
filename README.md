@@ -26,6 +26,31 @@ sh sqlboiler.sh
 sh air.sh
 ```
 
+## Run Frontent
+```
+flutter doctor
+flutter --version
+flutter upgrade
+flutter channel
+flutter devices
+flutter create
+
+flutter build apk --target-platform=android-arm64 --analyze-size
+flutter build bundle
+flutter build iso
+flutter build web
+
+flutter clean
+flutter pub get
+flutter pub upgrade --major-versions
+
+flutter run
+flutter run --release
+flutter run --debug
+
+flutter screenshot
+```
+
 # App Page List
 1. Top
 2. Content Detail

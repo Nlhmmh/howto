@@ -11,11 +11,12 @@ var (
 )
 
 type Config struct {
-	DeleteMedia    bool     `yaml:"deleteMedia"`
-	DeleteLogs     bool     `yaml:"deleteLogs"`
-	PortNo         string   `yaml:"portNo"`
-	AllowedOrigins []string `yaml:"allowedOrigins"`
-	DBInfo         string   `yaml:"dbInfo"`
+	DeleteMedia     bool     `yaml:"deleteMedia"`
+	DeleteLogs      bool     `yaml:"deleteLogs"`
+	PortNo          string   `yaml:"portNo"`
+	AllowedOrigins  []string `yaml:"allowedOrigins"`
+	DBInfo          string   `yaml:"dbInfo"`
+	JWTExpiredHours int      `yaml:"jwtExpiredHours"`
 }
 
 func init() {
@@ -31,6 +32,6 @@ func init() {
 
 }
 
-func Get() Config {
+func GetConfig() Config {
 	return config
 }

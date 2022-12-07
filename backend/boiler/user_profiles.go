@@ -29,6 +29,7 @@ type UserProfile struct {
 	Name        string      `boil:"name" json:"name" toml:"name" yaml:"name"`
 	BirthDate   null.Time   `boil:"birth_date" json:"birthDate,omitempty" toml:"birthDate" yaml:"birthDate,omitempty"`
 	Phone       null.String `boil:"phone" json:"phone,omitempty" toml:"phone" yaml:"phone,omitempty"`
+	ImageURL    null.String `boil:"image_url" json:"imageURL,omitempty" toml:"imageURL" yaml:"imageURL,omitempty"`
 	CreatedAt   time.Time   `boil:"created_at" json:"createdAt" toml:"createdAt" yaml:"createdAt"`
 	UpdatedAt   null.Time   `boil:"updated_at" json:"updatedAt,omitempty" toml:"updatedAt" yaml:"updatedAt,omitempty"`
 	DeletedAt   null.Time   `boil:"deleted_at" json:"deletedAt,omitempty" toml:"deletedAt" yaml:"deletedAt,omitempty"`
@@ -43,6 +44,7 @@ var UserProfileColumns = struct {
 	Name        string
 	BirthDate   string
 	Phone       string
+	ImageURL    string
 	CreatedAt   string
 	UpdatedAt   string
 	DeletedAt   string
@@ -52,6 +54,7 @@ var UserProfileColumns = struct {
 	Name:        "name",
 	BirthDate:   "birth_date",
 	Phone:       "phone",
+	ImageURL:    "image_url",
 	CreatedAt:   "created_at",
 	UpdatedAt:   "updated_at",
 	DeletedAt:   "deleted_at",
@@ -63,6 +66,7 @@ var UserProfileTableColumns = struct {
 	Name        string
 	BirthDate   string
 	Phone       string
+	ImageURL    string
 	CreatedAt   string
 	UpdatedAt   string
 	DeletedAt   string
@@ -72,6 +76,7 @@ var UserProfileTableColumns = struct {
 	Name:        "user_profiles.name",
 	BirthDate:   "user_profiles.birth_date",
 	Phone:       "user_profiles.phone",
+	ImageURL:    "user_profiles.image_url",
 	CreatedAt:   "user_profiles.created_at",
 	UpdatedAt:   "user_profiles.updated_at",
 	DeletedAt:   "user_profiles.deleted_at",
@@ -85,6 +90,7 @@ var UserProfileWhere = struct {
 	Name        whereHelperstring
 	BirthDate   whereHelpernull_Time
 	Phone       whereHelpernull_String
+	ImageURL    whereHelpernull_String
 	CreatedAt   whereHelpertime_Time
 	UpdatedAt   whereHelpernull_Time
 	DeletedAt   whereHelpernull_Time
@@ -94,6 +100,7 @@ var UserProfileWhere = struct {
 	Name:        whereHelperstring{field: "`user_profiles`.`name`"},
 	BirthDate:   whereHelpernull_Time{field: "`user_profiles`.`birth_date`"},
 	Phone:       whereHelpernull_String{field: "`user_profiles`.`phone`"},
+	ImageURL:    whereHelpernull_String{field: "`user_profiles`.`image_url`"},
 	CreatedAt:   whereHelpertime_Time{field: "`user_profiles`.`created_at`"},
 	UpdatedAt:   whereHelpernull_Time{field: "`user_profiles`.`updated_at`"},
 	DeletedAt:   whereHelpernull_Time{field: "`user_profiles`.`deleted_at`"},
@@ -127,8 +134,8 @@ func (r *userProfileR) GetUser() *User {
 type userProfileL struct{}
 
 var (
-	userProfileAllColumns            = []string{"user_id", "display_name", "name", "birth_date", "phone", "created_at", "updated_at", "deleted_at"}
-	userProfileColumnsWithoutDefault = []string{"user_id", "display_name", "name", "birth_date", "phone", "deleted_at"}
+	userProfileAllColumns            = []string{"user_id", "display_name", "name", "birth_date", "phone", "image_url", "created_at", "updated_at", "deleted_at"}
+	userProfileColumnsWithoutDefault = []string{"user_id", "display_name", "name", "birth_date", "phone", "image_url", "deleted_at"}
 	userProfileColumnsWithDefault    = []string{"created_at", "updated_at"}
 	userProfilePrimaryKeyColumns     = []string{"user_id"}
 	userProfileGeneratedColumns      = []string{}

@@ -15,7 +15,7 @@ import (
 func main() {
 
 	// Get Config
-	config := server.Get()
+	config := server.GetConfig()
 
 	// Logging
 	if err := server.InitLogger(config.DeleteLogs); err != nil {

@@ -25,7 +25,7 @@ var (
 func (o *contentCtrl) GetAll(c *gin.Context) {
 
 	// Check Request
-	var req ContentGetAllRequest
+	var req ContentGetAllReq
 	if err := c.BindQuery(&req); err != nil {
 		BadRequestResp(c, err)
 		return
@@ -98,7 +98,7 @@ func (o *contentCtrl) GetAll(c *gin.Context) {
 func (o *contentCtrl) CreateContentWhole(c *gin.Context) {
 
 	// Check Request
-	var req CreateContentWholeRequest
+	var req CreateContentReq
 	if err := c.ShouldBindJSON(&req); err != nil {
 		BadRequestResp(c, err)
 		return

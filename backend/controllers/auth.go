@@ -2,6 +2,7 @@ package controllers
 
 import (
 	"backend/boiler"
+	"backend/server"
 	"errors"
 	"strings"
 	"time"
@@ -129,12 +130,15 @@ func CheckAdminWhiteList(path string) bool {
 // GenerateToken - Generate Tokens
 func GenerateToken(userID string, role string) (string, error) {
 
+	// Get Config
+	config := server.GetConfig()
+
 	// Create Token
 	claims := CustomClaims{
 		userID,
 		role,
 		jwt.StandardClaims{
-			ExpiresAt: time.Now().Add(time.Hour * 48).Unix(),
+			ExpiresAt: time.Now().Add(time.Hour * time.Duration(config.JWTExpiredHours)).Unix(),
 			IssuedAt:  time.Now().Unix(),
 		},
 	}

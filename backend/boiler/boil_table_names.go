@@ -7,6 +7,7 @@ var TableNames = struct {
 	ContentCategories string
 	ContentHTMLS      string
 	Contents          string
+	UserFavourites    string
 	UserOtps          string
 	UserProfiles      string
 	Users             string
@@ -14,6 +15,7 @@ var TableNames = struct {
 	ContentCategories: "content_categories",
 	ContentHTMLS:      "content_htmls",
 	Contents:          "contents",
+	UserFavourites:    "user_favourites",
 	UserOtps:          "user_otps",
 	UserProfiles:      "user_profiles",
 	Users:             "users",

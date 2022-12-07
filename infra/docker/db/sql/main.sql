@@ -37,6 +37,7 @@ CREATE TABLE user_profiles (
   name VARCHAR(100) NOT NULL,
   birth_date DATE,
   phone VARCHAR(30),
+  image_url VARCHAR(512),
   created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
   updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
   deleted_at DATETIME,
@@ -111,18 +112,33 @@ CREATE TABLE content_htmls (
 --   FOREIGN KEY (content_id) REFERENCES contents(id) ON DELETE CASCADE
 -- );
 
+-- User Favourites ----------------------------------
+DROP TABLE IF EXISTS user_favourites;
+
+CREATE TABLE user_favourites (
+  user_id VARCHAR(36) NOT NULL,
+  content_id VARCHAR(36) NOT NULL,
+  is_favourite BOOLEAN NOT NULL DEFAULT false,
+  created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+  deleted_at DATETIME,
+  PRIMARY KEY(user_id, content_id),
+  FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+  FOREIGN KEY (content_id) REFERENCES contents(id)
+);
+
 -- Inserts
 
 INSERT INTO users VALUES 
-  ('1', 'admin@gmail.com',   '$2a$10$6uUqzmbAcLIQFjxESywUMelcBAtSL.LMIgBIOuVuPwZP/7zOZ7Yaq', 'creator', 'admin', 'active', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, NULL),
-  ('2', 'test@gmail.com',    '$2a$10$6uUqzmbAcLIQFjxESywUMelcBAtSL.LMIgBIOuVuPwZP/7zOZ7Yaq', 'viewer',  'user',  'active', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, NULL),
-  ('3', 'creator@gmail.com', '$2a$10$6uUqzmbAcLIQFjxESywUMelcBAtSL.LMIgBIOuVuPwZP/7zOZ7Yaq', 'creator', 'user',  'active', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, NULL)
+  ('1', 'admin@gmail.com',   '$2a$10$iQi3rBDCcdeXsUIH3NqJUunv9DpAiR3AQGRLbeBfo3OASpRqfCIta', 'creator', 'admin', 'active', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, NULL),
+  ('2', 'test@gmail.com',    '$2a$10$iQi3rBDCcdeXsUIH3NqJUunv9DpAiR3AQGRLbeBfo3OASpRqfCIta', 'viewer',  'user',  'active', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, NULL),
+  ('3', 'creator@gmail.com', '$2a$10$iQi3rBDCcdeXsUIH3NqJUunv9DpAiR3AQGRLbeBfo3OASpRqfCIta', 'creator', 'user',  'active', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, NULL)
 ;
 
 INSERT INTO user_profiles VALUES 
-  ('1', 'admin',       'Admin',        '2008-09-10 15:00:00', NULL,          CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, NULL),
-  ('2', 'david2000',   'DavidViewer',  '2008-09-10 15:00:00', '08077778888', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, NULL),
-  ('3', 'creator2000', 'DavidCreator', '2009-09-10 15:00:00', '08077778888', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, NULL)
+  ('1', 'admin',       'Admin',        '2008-09-10 15:00:00', NULL,          '/api/media/1669997499-jaws.jpg', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, NULL),
+  ('2', 'david2000',   'DavidViewer',  '2008-09-10 15:00:00', '08077778888', '/api/media/1669997499-jaws.jpg', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, NULL),
+  ('3', 'creator2000', 'DavidCreator', '2009-09-10 15:00:00', '08077778888', '/api/media/1669997499-jaws.jpg', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, NULL)
 ;
 
 INSERT INTO content_categories VALUES 

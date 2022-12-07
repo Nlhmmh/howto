@@ -213,17 +213,20 @@ var UserWhere = struct {
 
 // UserRels is where relationship names are stored.
 var UserRels = struct {
-	UserProfile string
-	Contents    string
+	UserProfile    string
+	Contents       string
+	UserFavourites string
 }{
-	UserProfile: "UserProfile",
-	Contents:    "Contents",
+	UserProfile:    "UserProfile",
+	Contents:       "Contents",
+	UserFavourites: "UserFavourites",
 }
 
 // userR is where relationships are stored.
 type userR struct {
-	UserProfile *UserProfile `boil:"UserProfile" json:"UserProfile" toml:"UserProfile" yaml:"UserProfile"`
-	Contents    ContentSlice `boil:"Contents" json:"Contents" toml:"Contents" yaml:"Contents"`
+	UserProfile    *UserProfile       `boil:"UserProfile" json:"UserProfile" toml:"UserProfile" yaml:"UserProfile"`
+	Contents       ContentSlice       `boil:"Contents" json:"Contents" toml:"Contents" yaml:"Contents"`
+	UserFavourites UserFavouriteSlice `boil:"UserFavourites" json:"UserFavourites" toml:"UserFavourites" yaml:"UserFavourites"`
 }
 
 // NewStruct creates a new relationship struct
@@ -243,6 +246,13 @@ func (r *userR) GetContents() ContentSlice {
 		return nil
 	}
 	return r.Contents
+}
+
+func (r *userR) GetUserFavourites() UserFavouriteSlice {
+	if r == nil {
+		return nil
+	}
+	return r.UserFavourites
 }
 
 // userL is where Load methods for each relationship are stored.
@@ -579,6 +589,20 @@ func (o *User) Contents(mods ...qm.QueryMod) contentQuery {
 	return Contents(queryMods...)
 }
 
+// UserFavourites retrieves all the user_favourite's UserFavourites with an executor.
+func (o *User) UserFavourites(mods ...qm.QueryMod) userFavouriteQuery {
+	var queryMods []qm.QueryMod
+	if len(mods) != 0 {
+		queryMods = append(queryMods, mods...)
+	}
+
+	queryMods = append(queryMods,
+		qm.Where("`user_favourites`.`user_id`=?", o.ID),
+	)
+
+	return UserFavourites(queryMods...)
+}
+
 // LoadUserProfile allows an eager lookup of values, cached into the
 // loaded structs of the objects. This is for a 1-1 relationship.
 func (userL) LoadUserProfile(ctx context.Context, e boil.ContextExecutor, singular bool, maybeUser interface{}, mods queries.Applicator) error {
@@ -794,6 +818,111 @@ func (userL) LoadContents(ctx context.Context, e boil.ContextExecutor, singular 
 	return nil
 }
 
+// LoadUserFavourites allows an eager lookup of values, cached into the
+// loaded structs of the objects. This is for a 1-M or N-M relationship.
+func (userL) LoadUserFavourites(ctx context.Context, e boil.ContextExecutor, singular bool, maybeUser interface{}, mods queries.Applicator) error {
+	var slice []*User
+	var object *User
+
+	if singular {
+		var ok bool
+		object, ok = maybeUser.(*User)
+		if !ok {
+			object = new(User)
+			ok = queries.SetFromEmbeddedStruct(&object, &maybeUser)
+			if !ok {
+				return errors.New(fmt.Sprintf("failed to set %T from embedded struct %T", object, maybeUser))
+			}
+		}
+	} else {
+		s, ok := maybeUser.(*[]*User)
+		if ok {
+			slice = *s
+		} else {
+			ok = queries.SetFromEmbeddedStruct(&slice, maybeUser)
+			if !ok {
+				return errors.New(fmt.Sprintf("failed to set %T from embedded struct %T", slice, maybeUser))
+			}
+		}
+	}
+
+	args := make([]interface{}, 0, 1)
+	if singular {
+		if object.R == nil {
+			object.R = &userR{}
+		}
+		args = append(args, object.ID)
+	} else {
+	Outer:
+		for _, obj := range slice {
+			if obj.R == nil {
+				obj.R = &userR{}
+			}
+
+			for _, a := range args {
+				if a == obj.ID {
+					continue Outer
+				}
+			}
+
+			args = append(args, obj.ID)
+		}
+	}
+
+	if len(args) == 0 {
+		return nil
+	}
+
+	query := NewQuery(
+		qm.From(`user_favourites`),
+		qm.WhereIn(`user_favourites.user_id in ?`, args...),
+		qmhelper.WhereIsNull(`user_favourites.deleted_at`),
+	)
+	if mods != nil {
+		mods.Apply(query)
+	}
+
+	results, err := query.QueryContext(ctx, e)
+	if err != nil {
+		return errors.Wrap(err, "failed to eager load user_favourites")
+	}
+
+	var resultSlice []*UserFavourite
+	if err = queries.Bind(results, &resultSlice); err != nil {
+		return errors.Wrap(err, "failed to bind eager loaded slice user_favourites")
+	}
+
+	if err = results.Close(); err != nil {
+		return errors.Wrap(err, "failed to close results in eager load on user_favourites")
+	}
+	if err = results.Err(); err != nil {
+		return errors.Wrap(err, "error occurred during iteration of eager loaded relations for user_favourites")
+	}
+
+	if len(userFavouriteAfterSelectHooks) != 0 {
+		for _, obj := range resultSlice {
+			if err := obj.doAfterSelectHooks(ctx, e); err != nil {
+				return err
+			}
+		}
+	}
+	if singular {
+		object.R.UserFavourites = resultSlice
+		return nil
+	}
+
+	for _, foreign := range resultSlice {
+		for _, local := range slice {
+			if local.ID == foreign.UserID {
+				local.R.UserFavourites = append(local.R.UserFavourites, foreign)
+				break
+			}
+		}
+	}
+
+	return nil
+}
+
 // SetUserProfileG of the user to the related item.
 // Sets o.R.UserProfile to related.
 // Uses the global database handle.
@@ -889,6 +1018,57 @@ func (o *User) AddContents(ctx context.Context, exec boil.ContextExecutor, inser
 		}
 	} else {
 		o.R.Contents = append(o.R.Contents, related...)
+	}
+
+	return nil
+}
+
+// AddUserFavouritesG adds the given related objects to the existing relationships
+// of the user, optionally inserting them as new records.
+// Appends related to o.R.UserFavourites.
+// Uses the global database handle.
+func (o *User) AddUserFavouritesG(ctx context.Context, insert bool, related ...*UserFavourite) error {
+	return o.AddUserFavourites(ctx, boil.GetContextDB(), insert, related...)
+}
+
+// AddUserFavourites adds the given related objects to the existing relationships
+// of the user, optionally inserting them as new records.
+// Appends related to o.R.UserFavourites.
+func (o *User) AddUserFavourites(ctx context.Context, exec boil.ContextExecutor, insert bool, related ...*UserFavourite) error {
+	var err error
+	for _, rel := range related {
+		if insert {
+			rel.UserID = o.ID
+			if err = rel.Insert(ctx, exec, boil.Infer()); err != nil {
+				return errors.Wrap(err, "failed to insert into foreign table")
+			}
+		} else {
+			updateQuery := fmt.Sprintf(
+				"UPDATE `user_favourites` SET %s WHERE %s",
+				strmangle.SetParamNames("`", "`", 0, []string{"user_id"}),
+				strmangle.WhereClause("`", "`", 0, userFavouritePrimaryKeyColumns),
+			)
+			values := []interface{}{o.ID, rel.UserID, rel.ContentID}
+
+			if boil.IsDebug(ctx) {
+				writer := boil.DebugWriterFrom(ctx)
+				fmt.Fprintln(writer, updateQuery)
+				fmt.Fprintln(writer, values)
+			}
+			if _, err = exec.ExecContext(ctx, updateQuery, values...); err != nil {
+				return errors.Wrap(err, "failed to update foreign table")
+			}
+
+			rel.UserID = o.ID
+		}
+	}
+
+	if o.R == nil {
+		o.R = &userR{
+			UserFavourites: related,
+		}
+	} else {
+		o.R.UserFavourites = append(o.R.UserFavourites, related...)
 	}
 
 	return nil

@@ -31,8 +31,11 @@ func CreateRoutes(router *gin.Engine) {
 			userGroup.POST("/register", userCtrls.Register)
 			userGroup.POST("/login", userCtrls.Login)
 
+			userGroup.GET("/profile", userCtrls.GetProfile)
 			userGroup.PUT("/edit/profile", userCtrls.EditProfile)
 			userGroup.PUT("/edit/password", userCtrls.EditPassword)
+			userGroup.POST("/set/fav", userCtrls.SetFav)
+			userGroup.GET("/fav", userCtrls.GetAllFav)
 		}
 
 		// Content Routes

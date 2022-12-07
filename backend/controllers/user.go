@@ -29,7 +29,7 @@ var (
 func (o *userCtrl) SendOTP(c *gin.Context) {
 
 	// Check Request
-	var resq UserRegisterSendOtpRequest
+	var resq UserRegisterSendOtpReq
 	if err := c.ShouldBindJSON(&resq); err != nil {
 		BadRequestResp(c, err)
 		return
@@ -61,7 +61,7 @@ func (o *userCtrl) SendOTP(c *gin.Context) {
 func (o *userCtrl) CheckOTP(c *gin.Context) {
 
 	// Check Request
-	var resq UserRegisterCheckOtpRequest
+	var resq UserRegisterCheckOtpReq
 	if err := c.ShouldBindJSON(&resq); err != nil {
 		BadRequestResp(c, err)
 		return
@@ -110,6 +110,28 @@ func (o *userCtrl) Register(c *gin.Context) {
 
 	WriteTransaction(c, func(tx *sql.Tx) bool {
 
+		// Find User With Email
+		if emailExists, err := boiler.Users(
+			qm.Where("email=?", resq.Email),
+		).Exists(c, tx); err != nil {
+			ServerErrorResp(c, err)
+			return true
+		} else if emailExists {
+			RespWithRollbackTx(c, errors.New("user with email already exists"), tx, UserWithEmailAlreadyExistResp)
+			return true
+		}
+
+		// Find User With DisplayName
+		if userProfileExists, err := boiler.UserProfiles(
+			qm.Where("display_name=?", resq.DisplayName),
+		).Exists(c, tx); err != nil {
+			ServerErrorResp(c, err)
+			return true
+		} else if userProfileExists {
+			RespWithRollbackTx(c, errors.New("display name already exists"), tx, DisplayNameAlreadyExistResp)
+			return true
+		}
+
 		// Create User
 		user := new(boiler.User)
 		user.ID = uuid.NewString()
@@ -131,6 +153,7 @@ func (o *userCtrl) Register(c *gin.Context) {
 		userProfile.Name = resq.Name
 		userProfile.BirthDate = resq.BirthDate
 		userProfile.Phone = resq.Phone
+		userProfile.ImageURL = resq.ImageUrl
 
 		if err := userProfile.Insert(c, tx, boil.Infer()); err != nil {
 			RespWithRollbackTx(c, err, tx, ServerErrorResp)
@@ -149,7 +172,7 @@ func (o *userCtrl) Register(c *gin.Context) {
 func (o *userCtrl) Login(c *gin.Context) {
 
 	// Check Request
-	var resq UserLoginRequest
+	var resq UserLoginReq
 	if err := c.ShouldBindJSON(&resq); err != nil {
 		BadRequestResp(c, err)
 		return
@@ -196,7 +219,7 @@ func (o *userCtrl) Login(c *gin.Context) {
 func (o *userCtrl) CheckDisplayName(c *gin.Context) {
 
 	// Check Request
-	var resq CheckDisplayNameRequest
+	var resq CheckDisplayNameReq
 	if err := c.ShouldBindJSON(&resq); err != nil {
 		BadRequestResp(c, err)
 		return
@@ -220,7 +243,7 @@ func (o *userCtrl) CheckDisplayName(c *gin.Context) {
 func (o *userCtrl) CheckEmail(c *gin.Context) {
 
 	// Check Request
-	var resq CheckEmailRequest
+	var resq CheckEmailReq
 	if err := c.ShouldBindJSON(&resq); err != nil {
 		BadRequestResp(c, err)
 		return
@@ -241,10 +264,32 @@ func (o *userCtrl) CheckEmail(c *gin.Context) {
 
 // *********************************************** //
 
+func (o *userCtrl) GetProfile(c *gin.Context) {
+
+	ReadOnlyTransaction(c, func(tx *sql.Tx) bool {
+
+		userID := c.GetString("userID")
+
+		// Find UserProfile
+		userProfile, err := boiler.FindUserProfile(c, tx, userID)
+		if err != nil {
+			RespWithRollbackTx(c, err, tx, ServerErrorResp)
+			return true
+		}
+
+		c.JSON(http.StatusOK, userProfile)
+		return false
+
+	})
+
+}
+
+// *********************************************** //
+
 func (o *userCtrl) EditProfile(c *gin.Context) {
 
 	// Check Request
-	var resq UserProfileEditRequest
+	var resq UserProfileEditReq
 	if err := c.ShouldBindJSON(&resq); err != nil {
 		BadRequestResp(c, err)
 		return
@@ -291,6 +336,10 @@ func (o *userCtrl) EditProfile(c *gin.Context) {
 			userProfile.Phone = resq.Phone
 		}
 
+		if !resq.ImageUrl.IsZero() {
+			userProfile.ImageURL = resq.ImageUrl
+		}
+
 		if _, err = userProfile.Update(c, tx, boil.Infer()); err != nil {
 			RespWithRollbackTx(c, err, tx, ServerErrorResp)
 			return true
@@ -308,7 +357,7 @@ func (o *userCtrl) EditProfile(c *gin.Context) {
 func (o *userCtrl) EditPassword(c *gin.Context) {
 
 	// Check Request
-	var resq UserEditPwRequest
+	var resq UserEditPwReq
 	if err := c.ShouldBindJSON(&resq); err != nil {
 		BadRequestResp(c, err)
 		return
@@ -346,5 +395,130 @@ func (o *userCtrl) EditPassword(c *gin.Context) {
 	}
 
 	c.Status(http.StatusOK)
+
+}
+
+// *********************************************** //
+
+func (o *userCtrl) SetFav(c *gin.Context) {
+
+	// Check Request
+	var resq UserSetFavReq
+	if err := c.ShouldBindJSON(&resq); err != nil {
+		BadRequestResp(c, err)
+		return
+	}
+
+	userID := c.GetString("userID")
+
+	WriteTransaction(c, func(tx *sql.Tx) bool {
+
+		// Get Favourite
+		userFav, err := boiler.FindUserFavourite(c, tx, userID, resq.ContentID)
+		if err != nil && !errors.Is(err, sql.ErrNoRows) {
+			RespWithRollbackTx(c, err, tx, ServerErrorResp)
+			return true
+		}
+		if errors.Is(err, sql.ErrNoRows) {
+
+			// Create UserFavourite
+			userFav = new(boiler.UserFavourite)
+			userFav.UserID = userID
+			userFav.ContentID = resq.ContentID
+			userFav.IsFavourite = resq.IsFavourite
+
+			if err := userFav.Insert(c, tx, boil.Infer()); err != nil {
+				RespWithRollbackTx(c, err, tx, ServerErrorResp)
+				return true
+			}
+
+		} else {
+
+			// Update UserFavourite
+			userFav.IsFavourite = resq.IsFavourite
+
+			if _, err := userFav.Update(c, tx, boil.Infer()); err != nil {
+				RespWithRollbackTx(c, err, tx, ServerErrorResp)
+				return true
+			}
+
+		}
+
+		c.Status(http.StatusOK)
+		return false
+
+	})
+
+}
+
+// *********************************************** //
+
+func (o *userCtrl) GetAllFav(c *gin.Context) {
+
+	// Check Request
+	var req UserFavGetAllReq
+	if err := c.BindQuery(&req); err != nil {
+		BadRequestResp(c, err)
+		return
+	}
+
+	userID := c.GetString("userID")
+
+	ReadOnlyTransaction(c, func(tx *sql.Tx) bool {
+
+		// Get All Contents
+		var contentList []ContentWhole
+
+		qms := []qm.QueryMod{}
+		qms = append(qms, qm.Select(
+			`
+			contents.*, 
+			user_profiles.display_name as user_name,
+			content_categories.name as category_str
+		`,
+		))
+		qms = append(qms, qm.From("user_favourites"))
+		qms = append(qms, qm.InnerJoin("contents ON contents.id = user_favourites.content_id"))
+		qms = append(qms, qm.InnerJoin("user_profiles ON user_profiles.user_id = contents.user_id"))
+		qms = append(qms, qm.InnerJoin("content_categories ON content_categories.id = contents.category_id"))
+		qms = append(qms, qm.Where("user_favourites.user_id = ?", userID))
+		qms = append(qms, qm.OrderBy("user_favourites.updated_at DESC"))
+
+		// Limit
+		if req.Limit > 0 {
+			qms = append(qms, qm.Limit(req.Limit))
+		} else {
+			qms = append(qms, qm.Limit(20))
+		}
+		// Offset
+		if req.Offset > 0 {
+			qms = append(qms, qm.Offset(req.Offset))
+		} else {
+			qms = append(qms, qm.Offset(0))
+		}
+
+		if err := boiler.NewQuery(qms...).Bind(c, tx, &contentList); err != nil {
+			RespWithRollbackTx(c, err, tx, ServerErrorResp)
+			return true
+		}
+
+		for _, content := range contentList {
+
+			// List ContentHtmls
+			contentHtmlList, err := boiler.ContentHTMLS(
+				qm.Where("content_id = ?", content.ID),
+			).All(c, tx)
+			if err != nil {
+				RespWithRollbackTx(c, err, tx, ServerErrorResp)
+				return true
+			}
+			content.ContentHtmlList = contentHtmlList
+
+		}
+
+		c.JSON(http.StatusOK, contentList)
+		return false
+
+	})
 
 }
