@@ -100,8 +100,64 @@ class UserProvider with ChangeNotifier {
         return errorResp;
       }
     }
-    return ErrorResp();
+    return ErrorResp.withParams(
+      code: 100,
+      message: "Failed to call API",
+      error: "Failed to call API",
+    );
   }
+
+  Future<ErrorResp> editProfile(Map<String, String> reqBody) async {
+    final loginData = await getLoginData();
+    if (loginData.isLoggedIn) {
+      final resp = await http.put(
+        Uri.http(Constants.domain, "/api/user/edit/profile"),
+        body: jsonEncode(reqBody),
+        headers: {"Authorization": "Bearer ${loginData.token}"},
+      );
+      if (resp.statusCode == 200) {
+        return ErrorResp();
+      } else {
+        final body = jsonDecode(resp.body);
+        if (body != null) {
+          final errorResp = ErrorResp.fromJson(body);
+          return errorResp;
+        }
+      }
+    }
+    return ErrorResp.withParams(
+      code: 100,
+      message: "Failed to call API",
+      error: "Failed to call API",
+    );
+  }
+
+  Future<ErrorResp> editPassword(Map<String, String> reqBody) async {
+    final loginData = await getLoginData();
+    if (loginData.isLoggedIn) {
+      final resp = await http.put(
+        Uri.http(Constants.domain, "/api/user/edit/password"),
+        body: jsonEncode(reqBody),
+        headers: {"Authorization": "Bearer ${loginData.token}"},
+      );
+      if (resp.statusCode == 200) {
+        return ErrorResp();
+      } else {
+        final body = jsonDecode(resp.body);
+        if (body != null) {
+          final errorResp = ErrorResp.fromJson(body);
+          return errorResp;
+        }
+      }
+    }
+    return ErrorResp.withParams(
+      code: 100,
+      message: "Failed to call API",
+      error: "Failed to call API",
+    );
+  }
+
+  // ------------------------------------------------
 
   Future<bool> checkUserDisplayName(Map<String, String> reqBody) async {
     bool isNameExisted = true;
@@ -125,46 +181,6 @@ class UserProvider with ChangeNotifier {
       isNameExisted = jsonDecode(resp.body);
     }
     return isNameExisted;
-  }
-
-  // ------------------------------------------------
-
-  Future<bool> editUser(Map<String, String> reqBody) async {
-    final loginData = await getLoginData();
-    if (loginData.isLoggedIn) {
-      reqBody["userID"] = loginData.user.id.toString();
-      reqBody["token"] = loginData.token;
-
-      final resp = await http.post(
-        Uri.http(Constants.domain, "/user/editUser"),
-        body: reqBody,
-      );
-      if (resp.statusCode == 200) {
-        return true;
-      }
-    }
-    return false;
-  }
-
-  Future<EditPwResp> editPassword(Map<String, String> reqBody) async {
-    final loginData = await getLoginData();
-    if (loginData.isLoggedIn) {
-      reqBody["userID"] = loginData.user.id.toString();
-      reqBody["token"] = loginData.token;
-
-      final resp = await http.post(
-        Uri.http(Constants.domain, "/user/editPassword"),
-        body: reqBody,
-      );
-      if (resp.statusCode == 200) {
-        return EditPwResp.ok;
-      } else if (resp.statusCode == 400 && resp.body == 'oldPasswordWrong') {
-        return EditPwResp.oldPasswordWrong;
-      } else if (resp.statusCode == 400 && resp.body == 'newPasswordError') {
-        return EditPwResp.newPasswordError;
-      }
-    }
-    return EditPwResp.error;
   }
 
   // ----------------------------------------------------------------
