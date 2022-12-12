@@ -19,6 +19,7 @@ class MyPage extends StatefulWidget {
 
 class _MyPageState extends State<MyPage> {
   LoginData _loginData = LoginData();
+  UserProfile _userProfile = UserProfile();
 
   @override
   void initState() {
@@ -27,6 +28,15 @@ class _MyPageState extends State<MyPage> {
       final loginData = await Provider.of<UserProvider>(context, listen: false)
           .getLoginData();
       _loginData = loginData;
+
+      // Fetch UserProfile
+      if (!mounted) return;
+      final userProfile = await Provider.of<UserProvider>(
+        context,
+        listen: false,
+      ).fetchProfile();
+      _userProfile = userProfile;
+
       setState(() {});
     });
   }
@@ -41,6 +51,7 @@ class _MyPageState extends State<MyPage> {
 
             // -------------------------------- Avatar
             Container(
+              width: 70,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
                 border: Border.all(
@@ -50,33 +61,40 @@ class _MyPageState extends State<MyPage> {
               ),
               child: CircleAvatar(
                 maxRadius: 25,
-                backgroundColor: _loginData.isLoggedIn
-                    ? Constants
-                        .avatarColorList[_loginData.user.avatarColorIndex].color
-                    : Colors.white,
-                child: _loginData.isLoggedIn
-                    ? Text(
-                        _loginData.user.email != ""
-                            ? _loginData.user.email.characters.first
-                                .toUpperCase()
-                            : "",
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontWeight: FontWeight.bold,
-                          fontSize: 40,
-                        ),
-                      )
-                    : const Icon(Icons.person, size: 25),
+                child: ClipOval(
+                  child: _userProfile.imageUrl != ""
+                      ? Image.network(
+                          width: 50,
+                          height: 50,
+                          fit: BoxFit.cover,
+                          "${Constants.domainHttp}${_userProfile.imageUrl}",
+                        )
+                      : const Icon(Icons.person, size: 25),
+                ),
               ),
             ),
+
             const SizedBox(height: 10),
 
             // -------------------------------- Welcome
-            Text(
-              "Welcome ${_loginData.isLoggedIn ? _loginData.user.email : ""}",
-              style: const TextStyle(
-                fontSize: 20,
-              ),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                const Text(
+                  "Welcome",
+                  style: TextStyle(
+                    fontSize: 20,
+                  ),
+                ),
+                const SizedBox(width: 5),
+                Text(
+                  _loginData.isLoggedIn ? _userProfile.displayName : "",
+                  style: const TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ],
             ),
             const SizedBox(height: 10),
 
@@ -86,7 +104,6 @@ class _MyPageState extends State<MyPage> {
                 _loginData.user.type,
                 style: const TextStyle(
                   fontSize: 16,
-                  fontWeight: FontWeight.bold,
                 ),
               ),
             ],
@@ -105,7 +122,11 @@ class _MyPageState extends State<MyPage> {
                   text: "Profile",
                   icon: Icons.person,
                   onTap: () {
-                    Navigator.pushNamed(context, Profile.routeName);
+                    if (_loginData.isLoggedIn) {
+                      Navigator.pushNamed(context, Profile.routeName);
+                    } else {
+                      Navigator.pushNamed(context, LoginPage.routeName);
+                    }
                   },
                 ),
                 // -------------------------------- Favourite
@@ -113,7 +134,12 @@ class _MyPageState extends State<MyPage> {
                   text: "Favourite",
                   icon: Icons.favorite,
                   onTap: () {
-                    Navigator.pushNamed(context, Profile.routeName);
+                    // TODO : Favourite Page
+                    if (_loginData.isLoggedIn) {
+                      Navigator.pushNamed(context, Profile.routeName);
+                    } else {
+                      Navigator.pushNamed(context, LoginPage.routeName);
+                    }
                   },
                 ),
               ],
@@ -147,6 +173,7 @@ class _MyPageState extends State<MyPage> {
               Container(
                 margin: const EdgeInsets.symmetric(horizontal: 20),
                 child: primaryBtn(
+                  context: context,
                   text: "Logout",
                   onPressed: () async {
                     await Provider.of<UserProvider>(context, listen: false)
@@ -168,6 +195,7 @@ class _MyPageState extends State<MyPage> {
               Container(
                 margin: const EdgeInsets.symmetric(horizontal: 20),
                 child: primaryBtn(
+                  context: context,
                   text: "Login",
                   onPressed: () {
                     Navigator.pushNamed(

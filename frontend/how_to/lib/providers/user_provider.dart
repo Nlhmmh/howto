@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:io';
 
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -71,7 +72,7 @@ class UserProvider with ChangeNotifier {
         final body = jsonDecode(resp.body);
         if (body != null) {
           final errorResp = LoginData.fromJson(body);
-          print(
+          debugPrint(
             "Code : ${errorResp.code} Message: ${errorResp.message} Error: ${errorResp.error}",
           );
         }
@@ -157,30 +158,26 @@ class UserProvider with ChangeNotifier {
     );
   }
 
-  // ------------------------------------------------
-
-  Future<bool> checkUserDisplayName(Map<String, String> reqBody) async {
-    bool isNameExisted = true;
-    final resp = await http.post(
-      Uri.http(Constants.domain, "/user/checkUserDisplayName"),
-      body: reqBody,
-    );
-    if (resp.statusCode == 200) {
-      isNameExisted = jsonDecode(resp.body);
+  Future<String> uploadFile({required File uploadFile}) async {
+    final loginData = await getLoginData();
+    if (loginData.isLoggedIn) {
+      final request = http.MultipartRequest(
+        "POST",
+        Uri.http(Constants.domain, "/api/file/upload"),
+      );
+      final multipartFile = await http.MultipartFile.fromPath(
+        "file",
+        uploadFile.path,
+      );
+      request.headers.addAll({"Authorization": "Bearer ${loginData.token}"});
+      request.files.add(multipartFile);
+      final resp = await request.send();
+      if (resp.statusCode == 200) {
+        final respData = await resp.stream.toBytes();
+        return String.fromCharCodes(respData);
+      }
     }
-    return isNameExisted;
-  }
-
-  Future<bool> checkEmail(Map<String, String> reqBody) async {
-    bool isNameExisted = true;
-    final resp = await http.post(
-      Uri.http(Constants.domain, "/user/checkEmail"),
-      body: reqBody,
-    );
-    if (resp.statusCode == 200) {
-      isNameExisted = jsonDecode(resp.body);
-    }
-    return isNameExisted;
+    return "";
   }
 
   // ----------------------------------------------------------------

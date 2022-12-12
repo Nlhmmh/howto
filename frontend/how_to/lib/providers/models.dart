@@ -1,7 +1,3 @@
-import 'dart:math';
-
-import 'package:how_to/providers/constants.dart';
-
 class LoginData {
   User user = User();
   bool isLoggedIn = false;
@@ -106,7 +102,7 @@ class User {
     updatedAt = json['updatedAt'] != null
         ? DateTime.parse(json['updatedAt'])
         : DateTime.now();
-    avatarColorIndex = Random().nextInt(Constants.avatarColorList.length - 1);
+    // avatarColorIndex = Random().nextInt(Constants.avatarColorList.length - 1);
   }
 
   Map<String, dynamic> toJson() {
@@ -175,5 +171,63 @@ class UserProfile {
       'createdAt': createdAt.toString(),
       'updatedAt': updatedAt.toString(),
     };
+  }
+}
+
+class Content {
+  int id = 0;
+  int userID = 0;
+  String title = "";
+  String category = "";
+  int viewCount = 0;
+  DateTime createdAt = DateTime.now();
+  DateTime updatedAt = DateTime.now();
+  String userName = "";
+
+  Content();
+
+  Content.withParams({
+    required this.id,
+    required this.userID,
+    required this.title,
+    required this.category,
+    required this.viewCount,
+    required this.userName,
+  });
+
+  Content.fromJson(Map<String, dynamic> json) {
+    id = json['id'];
+    userID = json['userID'];
+    title = json['title'];
+    category = json['category'];
+    viewCount = json['viewCount'];
+    createdAt = DateTime.parse(json['createdAt']);
+    updatedAt = DateTime.parse(json['updatedAt']);
+    userName = json['userName'];
+  }
+}
+
+class ContentCategory {
+  int id = 0;
+  String name = "";
+
+  ContentCategory();
+
+  ContentCategory.withParams({
+    required this.id,
+    required this.name,
+  });
+
+  ContentCategory.fromJson(Map<String, dynamic> json) {
+    id = json['id'] ?? 0;
+    name = json['name'] ?? "";
+  }
+
+  static List<ContentCategory> fromList(List<dynamic> jsonList) {
+    List<ContentCategory> contentCategoryList = [];
+    for (var json in jsonList) {
+      contentCategoryList.add(ContentCategory.fromJson(json));
+    }
+    return contentCategoryList;
   }
 }

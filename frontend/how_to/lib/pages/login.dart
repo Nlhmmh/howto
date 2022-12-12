@@ -22,6 +22,7 @@ class _LoginPageState extends State<LoginPage> {
   bool _isPwHidden = true;
 
   String _errMsg = "";
+  bool _isLoading = false;
 
   @override
   void initState() {
@@ -159,29 +160,41 @@ class _LoginPageState extends State<LoginPage> {
 
                   // -------------------------------- Login Btn
                   primaryBtn(
+                    context: context,
                     text: "Login",
+                    isLoading: _isLoading,
                     onPressed: () async {
                       _errMsg = "";
                       if (_formKey.currentState!.validate()) {
-                        final resp = await Provider.of<UserProvider>(
-                          context,
-                          listen: false,
-                        ).userLogin({
-                          "email": _emailCtrl.text,
-                          "password": _pwCtrl.text,
-                        });
-                        if (resp.code == 0) {
-                          if (!mounted) return;
-                          await Navigator.pushAndRemoveUntil(
+                        try {
+                          _isLoading = true;
+                          setState(() {});
+
+                          final resp = await Provider.of<UserProvider>(
                             context,
-                            MaterialPageRoute(
-                              builder: (context) =>
-                                  const BottomNaviPage(pageIndex: 0),
-                            ),
-                            (route) => false,
-                          );
-                        } else {
-                          _errMsg = resp.message;
+                            listen: false,
+                          ).userLogin({
+                            "email": _emailCtrl.text,
+                            "password": _pwCtrl.text,
+                          });
+                          if (resp.code == 0) {
+                            if (!mounted) return;
+                            await Navigator.pushAndRemoveUntil(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) =>
+                                    const BottomNaviPage(pageIndex: 0),
+                              ),
+                              (route) => false,
+                            );
+                          } else {
+                            _errMsg = resp.message;
+                          }
+                        } catch (e) {
+                          debugPrint(e.toString());
+                        } finally {
+                          _isLoading = false;
+                          setState(() {});
                         }
                       }
                       setState(() {});

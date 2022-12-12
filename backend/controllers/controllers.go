@@ -44,6 +44,7 @@ func CreateRoutes(router *gin.Engine) {
 			contentGroup.GET("", contentCtrls.GetAll)
 			contentGroup.GET("/:contentID", contentCtrls.GetOne)
 			contentGroup.POST("/create", contentCtrls.CreateContentWhole)
+			contentGroup.GET("/categories", contentCtrls.GetAllCategories)
 		}
 
 		// File Routes

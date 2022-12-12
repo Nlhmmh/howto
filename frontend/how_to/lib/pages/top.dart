@@ -1,13 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:how_to/providers/constants.dart';
 import 'package:how_to/providers/content_provider.dart';
 import 'package:how_to/providers/models.dart';
 import 'package:how_to/providers/user_provider.dart';
 import 'package:how_to/providers/utils.dart';
-import 'package:how_to/pages/login.dart';
-import 'package:how_to/pages/profile.dart';
-import 'package:how_to/pages/register.dart';
-import 'package:how_to/pages/widgets.dart';
 import 'package:provider/provider.dart';
 
 class TopPage extends StatefulWidget {

@@ -208,3 +208,21 @@ func (o *contentCtrl) GetOne(c *gin.Context) {
 	})
 
 }
+
+// *********************************************** //
+
+func (o *contentCtrl) GetAllCategories(c *gin.Context) {
+
+	// Get All Content Categories
+	contentCategoryList, err := boiler.ContentCategories().AllG(c)
+	if err != nil {
+		ServerErrorResp(c, err)
+	}
+
+	if contentCategoryList == nil {
+		contentCategoryList = []*boiler.ContentCategory{}
+	}
+
+	c.JSON(http.StatusOK, contentCategoryList)
+
+}

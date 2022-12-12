@@ -94,6 +94,7 @@ class _BottomNaviPageState extends State<BottomNaviPage> {
       ),
       body: PageView(
         controller: _pageCtrl,
+        physics: const NeverScrollableScrollPhysics(),
         children: const [
           TopPage(),
           ContentCreate(),

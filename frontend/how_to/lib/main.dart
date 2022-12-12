@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:how_to/pages/bottom_navi.dart';
 import 'package:how_to/pages/content_create.dart';
+import 'package:how_to/pages/launch.dart';
 import 'package:how_to/pages/login.dart';
 import 'package:how_to/pages/mypage.dart';
 import 'package:how_to/pages/profile.dart';
@@ -37,9 +38,10 @@ class MainApp extends StatelessWidget {
           secondaryContainer: Color(0xff99b27f),
         ),
       ),
-      initialRoute: BottomNaviPage.routeName,
+      initialRoute: LaunchPage.routeName,
       // initialRoute: Profile.routeName,
       routes: {
+        LaunchPage.routeName: (_) => const LaunchPage(),
         BottomNaviPage.routeName: (_) => const BottomNaviPage(pageIndex: 2),
         TopPage.routeName: (_) => const TopPage(),
         Registor.routeName: (_) => const Registor(),

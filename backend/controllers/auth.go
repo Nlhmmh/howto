@@ -28,6 +28,7 @@ var (
 
 		"/api/content",
 		"/api/content/:contentID",
+		"/api/content/categories",
 	}
 
 	// AdminWhiteList - Admin WhiteList
