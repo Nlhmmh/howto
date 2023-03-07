@@ -39,8 +39,9 @@ dependencies:
   http: ^0.13.5
   shared_preferences: ^2.0.15
   image_picker: ^0.8.6
-  dotted_border: ^2.0.0+3
-  intl: ^0.17.0
+  # dotted_border: ^2.0.0+3
+  intl: ^0.18.0
+  flutter_html: ^2.2.1
 
 dev_dependencies:
   flutter_test:

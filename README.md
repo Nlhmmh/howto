@@ -1,32 +1,48 @@
 # Project Name
+
 HowTo
 
 ## Description
+
 HowTo is a platform where users can browse howTos. <br/> They can also share their knowledge and make money.
 
 ## Language
+
 ```
 Frontend - Flutter
 Backend - Golang
 ```
 
 ## MySQL Docker
+
 ```
 sh db.sh
 Type ...root ....
 ```
 
 ## Create SqlBoiler
+
 ```
 sh sqlboiler.sh
 ```
 
 ## Run Backend
+
 ```
 sh air.sh
 ```
 
+```
+docker-compose exec app sh
+docker-compose logs -f app
+docker-compose exec db sh
+docker-compose logs -f db
+docker-compose build
+docker-compose down --rmi all --volumes
+```
+
 ## Run Frontent
+
 ```
 flutter doctor
 flutter --version
@@ -52,6 +68,7 @@ flutter screenshot
 ```
 
 # App Page List
+
 1. Top
 2. Content Detail
 3. Register
@@ -61,12 +78,13 @@ flutter screenshot
 7. Edit Password
 8. My Page
 9. Create Content
-11. My Contents
-12. Favourite
-13. Search
-14. My Balance
+10. My Contents
+11. Favourite
+12. Search
+13. My Balance
 
 # Admin Page List
+
 1. Dashboard
 2. Sales
 3. User List

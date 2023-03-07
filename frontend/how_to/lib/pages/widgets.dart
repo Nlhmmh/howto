@@ -144,3 +144,30 @@ Widget secondaryBtn({
 }
 
 // --------------------  --------------------
+
+Widget iconText({
+  required String text,
+  required IconData icon,
+  double width = 100,
+  double iconSize = 30,
+  double textSize = 16,
+  iconColor = Colors.black,
+  textColor = Colors.black,
+}) {
+  return SizedBox(
+    width: width,
+    child: Column(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        Icon(icon, size: iconSize, color: iconColor),
+        const SizedBox(height: 5),
+        Text(
+          text,
+          style: TextStyle(fontSize: textSize, color: textColor),
+        ),
+      ],
+    ),
+  );
+}
+
+// --------------------  --------------------

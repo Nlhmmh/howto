@@ -17,11 +17,11 @@ class _LaunchPageState extends State<LaunchPage> {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) async {
-      await Future.delayed(const Duration(milliseconds: 500));
-      setState(() {
-        _loading = true;
-      });
-      await Future.delayed(const Duration(milliseconds: 1500));
+      _loading = true;
+      setState(() {});
+      await Future.delayed(const Duration(milliseconds: 0));
+
+      // Got To Screen
       if (!mounted) return;
       await Navigator.pushAndRemoveUntil(
         context,

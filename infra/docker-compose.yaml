@@ -4,11 +4,13 @@ services:
   # MySQL
   db:
     image: mysql:8.0
-    container_name: howto
+    container_name: db
     environment:
-      MYSQL_ROOT_PASSWORD: root
       MYSQL_DATABASE: howto
+      MYSQL_USER: user
+      MYSQL_ROOT_PASSWORD: root
       MYSQL_PASSWORD: root
+      MYSQL_TCP_PORT: 3308
     command: mysqld --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci
     volumes:
       - db:/var/lib/mysql
@@ -16,6 +18,7 @@ services:
       - ./docker/db/sql:/docker-entrypoint-initdb.d
     ports:
       - 3308:3308
+    # restart: always
 volumes:
   db:
     driver: local

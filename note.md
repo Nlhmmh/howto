@@ -37,5 +37,5 @@ cd 'C:\Program Files\MySQL\MySQL Server 8.0\bin'
 cd 'C:\Users\nlh\go\src\howto\backend'
 
 cd 'C:\Program Files\MySQL\MySQL Server 8.0\bin'
-.\mysqladmin.exe -u root shutdown
+.\mysqladmin.exe -u root -p shutdown
 ```
