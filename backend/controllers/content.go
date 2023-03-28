@@ -106,19 +106,17 @@ func (o *contentCtrl) CreateContentWhole(c *gin.Context) {
 
 	userID := c.GetString("userID")
 
-	WriteTransaction(c, func(tx *sql.Tx) bool {
+	WriteTx(c, func(tx *sql.Tx) (ErrRespFunc, error) {
 
 		// Check Title
 		titleExists, err := boiler.Contents(
 			qm.Where("title = ?", req.Title),
 		).Exists(c, tx)
 		if err != nil {
-			RespWithRollbackTx(c, err, tx, ServerErrorResp)
-			return true
+			return ServerErrorResp, err
 		}
 		if titleExists {
-			RespWithRollbackTx(c, errors.New("title already exists"), tx, ContentTitleAlreadyExistResp)
-			return true
+			return ContentTitleAlreadyExistResp, errors.New("title already exists")
 		}
 
 		contentID := uuid.NewString()
@@ -134,8 +132,7 @@ func (o *contentCtrl) CreateContentWhole(c *gin.Context) {
 		}
 
 		if err := content.Insert(c, tx, boil.Infer()); err != nil {
-			RespWithRollbackTx(c, err, tx, ServerErrorResp)
-			return true
+			return ServerErrorResp, err
 		}
 
 		for _, v := range req.ContentHtmlList {
@@ -147,14 +144,13 @@ func (o *contentCtrl) CreateContentWhole(c *gin.Context) {
 			contentHtml.HTML = v.Html
 
 			if err := contentHtml.Insert(c, tx, boil.Infer()); err != nil {
-				RespWithRollbackTx(c, err, tx, ServerErrorResp)
-				return true
+				return ServerErrorResp, err
 			}
 
 		}
 
 		c.JSON(http.StatusOK, content)
-		return false
+		return nil, nil
 
 	})
 
@@ -169,7 +165,7 @@ func (o *contentCtrl) GetOne(c *gin.Context) {
 		return
 	}
 
-	ReadOnlyTransaction(c, func(tx *sql.Tx) bool {
+	ReadTx(c, func(tx *sql.Tx) (ErrRespFunc, error) {
 
 		// Get Content
 		var content ContentWhole
@@ -189,21 +185,19 @@ func (o *contentCtrl) GetOne(c *gin.Context) {
 		qms = append(qms, qm.Limit(1))
 
 		if err := boiler.NewQuery(qms...).Bind(c, tx, &content); err != nil {
-			RespWithRollbackTx(c, err, tx, ServerErrorResp)
-			return true
+			return ServerErrorResp, err
 		}
 
 		contentHtmlList, err := boiler.ContentHTMLS(
 			qm.Where("content_id = ?", content.ID),
 		).All(c, tx)
 		if err != nil {
-			RespWithRollbackTx(c, err, tx, ServerErrorResp)
-			return true
+			return ServerErrorResp, err
 		}
 		content.ContentHtmlList = contentHtmlList
 
 		c.JSON(http.StatusOK, content)
-		return false
+		return nil, nil
 
 	})
 

@@ -108,28 +108,24 @@ func (o *userCtrl) Register(c *gin.Context) {
 		return
 	}
 
-	WriteTransaction(c, func(tx *sql.Tx) bool {
+	WriteTx(c, func(tx *sql.Tx) (ErrRespFunc, error) {
 
 		// Find User With Email
 		if emailExists, err := boiler.Users(
 			qm.Where("email=?", resq.Email),
 		).Exists(c, tx); err != nil {
-			ServerErrorResp(c, err)
-			return true
+			return ServerErrorResp, err
 		} else if emailExists {
-			RespWithRollbackTx(c, errors.New("user with email already exists"), tx, UserWithEmailAlreadyExistResp)
-			return true
+			return UserWithEmailAlreadyExistResp, errors.New("user with email already exists")
 		}
 
 		// Find User With DisplayName
 		if userProfileExists, err := boiler.UserProfiles(
 			qm.Where("display_name=?", resq.DisplayName),
 		).Exists(c, tx); err != nil {
-			ServerErrorResp(c, err)
-			return true
+			return ServerErrorResp, err
 		} else if userProfileExists {
-			RespWithRollbackTx(c, errors.New("display name already exists"), tx, DisplayNameAlreadyExistResp)
-			return true
+			return DisplayNameAlreadyExistResp, errors.New("display name already exists")
 		}
 
 		// Create User
@@ -142,8 +138,7 @@ func (o *userCtrl) Register(c *gin.Context) {
 		user.Status = "active"
 
 		if err := user.Insert(c, tx, boil.Infer()); err != nil {
-			RespWithRollbackTx(c, err, tx, ServerErrorResp)
-			return true
+			return ServerErrorResp, err
 		}
 
 		// Create User Profile
@@ -156,12 +151,11 @@ func (o *userCtrl) Register(c *gin.Context) {
 		userProfile.ImageURL = resq.ImageUrl
 
 		if err := userProfile.Insert(c, tx, boil.Infer()); err != nil {
-			RespWithRollbackTx(c, err, tx, ServerErrorResp)
-			return true
+			return ServerErrorResp, err
 		}
 
 		c.Status(http.StatusOK)
-		return false
+		return nil, nil
 
 	})
 
@@ -207,7 +201,7 @@ func (o *userCtrl) Login(c *gin.Context) {
 		return
 	}
 	user.Password = "*****"
-	c.JSON(http.StatusOK, &LoginResponse{
+	c.JSON(http.StatusOK, &LoginResp{
 		User:  user,
 		Token: token,
 	})
@@ -266,19 +260,18 @@ func (o *userCtrl) CheckEmail(c *gin.Context) {
 
 func (o *userCtrl) GetProfile(c *gin.Context) {
 
-	ReadOnlyTransaction(c, func(tx *sql.Tx) bool {
+	ReadTx(c, func(tx *sql.Tx) (ErrRespFunc, error) {
 
 		userID := c.GetString("userID")
 
 		// Find UserProfile
 		userProfile, err := boiler.FindUserProfile(c, tx, userID)
 		if err != nil {
-			RespWithRollbackTx(c, err, tx, ServerErrorResp)
-			return true
+			return ServerErrorResp, err
 		}
 
 		c.JSON(http.StatusOK, userProfile)
-		return false
+		return nil, nil
 
 	})
 
@@ -295,15 +288,14 @@ func (o *userCtrl) EditProfile(c *gin.Context) {
 		return
 	}
 
-	WriteTransaction(c, func(tx *sql.Tx) bool {
+	WriteTx(c, func(tx *sql.Tx) (ErrRespFunc, error) {
 
 		userID := c.GetString("userID")
 
 		// Find UserProfile
 		userProfile, err := boiler.FindUserProfile(c, tx, userID)
 		if err != nil {
-			RespWithRollbackTx(c, err, tx, ServerErrorResp)
-			return true
+			return ServerErrorResp, err
 		}
 
 		// Update User
@@ -314,11 +306,9 @@ func (o *userCtrl) EditProfile(c *gin.Context) {
 				qm.Where("user_id != ?", userID),
 				qm.Where("display_name = ?", resq.DisplayName),
 			).Exists(c, tx); err != nil {
-				RespWithRollbackTx(c, err, tx, ServerErrorResp)
-				return true
+				return ServerErrorResp, err
 			} else if userProfileExists {
-				RespWithRollbackTx(c, errors.New("display name already exists"), tx, DisplayNameAlreadyExistResp)
-				return true
+				return DisplayNameAlreadyExistResp, errors.New("display name already exists")
 			}
 			userProfile.DisplayName = resq.DisplayName.String
 
@@ -341,12 +331,11 @@ func (o *userCtrl) EditProfile(c *gin.Context) {
 		}
 
 		if _, err = userProfile.Update(c, tx, boil.Infer()); err != nil {
-			RespWithRollbackTx(c, err, tx, ServerErrorResp)
-			return true
+			return ServerErrorResp, err
 		}
 
 		c.JSON(http.StatusOK, userProfile)
-		return false
+		return nil, nil
 
 	})
 
@@ -411,13 +400,12 @@ func (o *userCtrl) SetFav(c *gin.Context) {
 
 	userID := c.GetString("userID")
 
-	WriteTransaction(c, func(tx *sql.Tx) bool {
+	WriteTx(c, func(tx *sql.Tx) (ErrRespFunc, error) {
 
 		// Get Favourite
 		userFav, err := boiler.FindUserFavourite(c, tx, userID, resq.ContentID)
 		if err != nil && !errors.Is(err, sql.ErrNoRows) {
-			RespWithRollbackTx(c, err, tx, ServerErrorResp)
-			return true
+			return ServerErrorResp, err
 		}
 		if errors.Is(err, sql.ErrNoRows) {
 
@@ -428,8 +416,7 @@ func (o *userCtrl) SetFav(c *gin.Context) {
 			userFav.IsFavourite = resq.IsFavourite
 
 			if err := userFav.Insert(c, tx, boil.Infer()); err != nil {
-				RespWithRollbackTx(c, err, tx, ServerErrorResp)
-				return true
+				return ServerErrorResp, err
 			}
 
 		} else {
@@ -438,14 +425,13 @@ func (o *userCtrl) SetFav(c *gin.Context) {
 			userFav.IsFavourite = resq.IsFavourite
 
 			if _, err := userFav.Update(c, tx, boil.Infer()); err != nil {
-				RespWithRollbackTx(c, err, tx, ServerErrorResp)
-				return true
+				return ServerErrorResp, err
 			}
 
 		}
 
 		c.Status(http.StatusOK)
-		return false
+		return nil, nil
 
 	})
 
@@ -464,7 +450,7 @@ func (o *userCtrl) GetAllFav(c *gin.Context) {
 
 	userID := c.GetString("userID")
 
-	ReadOnlyTransaction(c, func(tx *sql.Tx) bool {
+	ReadTx(c, func(tx *sql.Tx) (ErrRespFunc, error) {
 
 		// Get All Contents
 		var contentList []ContentWhole
@@ -498,8 +484,7 @@ func (o *userCtrl) GetAllFav(c *gin.Context) {
 		}
 
 		if err := boiler.NewQuery(qms...).Bind(c, tx, &contentList); err != nil {
-			RespWithRollbackTx(c, err, tx, ServerErrorResp)
-			return true
+			return ServerErrorResp, err
 		}
 
 		for _, content := range contentList {
@@ -509,15 +494,14 @@ func (o *userCtrl) GetAllFav(c *gin.Context) {
 				qm.Where("content_id = ?", content.ID),
 			).All(c, tx)
 			if err != nil {
-				RespWithRollbackTx(c, err, tx, ServerErrorResp)
-				return true
+				return ServerErrorResp, err
 			}
 			content.ContentHtmlList = contentHtmlList
 
 		}
 
 		c.JSON(http.StatusOK, contentList)
-		return false
+		return nil, nil
 
 	})
 

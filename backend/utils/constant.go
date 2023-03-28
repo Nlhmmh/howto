@@ -1,6 +1,6 @@
 package utils
 
-var (
+const (
 	MediaFolder = "./media"
 	LogFolder   = "./logs"
 )

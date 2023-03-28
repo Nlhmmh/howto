@@ -12,13 +12,9 @@ var (
 )
 
 type Log struct {
-	// InfoLogger - Info Logger
-	Info *log.Logger
-	// WarningLogger - Warn Logger
-	Warn *log.Logger
-	// ErrorLogger - Error Logger
-	Err *log.Logger
-	// ErrorLogger - Error Logger
+	Info    *log.Logger
+	Warn    *log.Logger
+	Err     *log.Logger
 	LogFile *os.File
 }
 

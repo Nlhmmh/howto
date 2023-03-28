@@ -7,7 +7,7 @@ import (
 	"github.com/volatiletech/sqlboiler/v4/boil"
 )
 
-func ReadOnlyTransaction(c *gin.Context, innerFunc func(tx *sql.Tx) bool) {
+func ReadTx(c *gin.Context, innerFunc func(tx *sql.Tx) (ErrRespFunc, error)) {
 
 	tx, err := boil.BeginTx(c, &sql.TxOptions{ReadOnly: true})
 	if err != nil {
@@ -15,8 +15,8 @@ func ReadOnlyTransaction(c *gin.Context, innerFunc func(tx *sql.Tx) bool) {
 		return
 	}
 
-	skipCommit := innerFunc(tx)
-	if skipCommit {
+	if errRespFunc, err := innerFunc(tx); err != nil {
+		RespWithRollbackTx(c, err, tx, errRespFunc)
 		return
 	}
 
@@ -27,7 +27,7 @@ func ReadOnlyTransaction(c *gin.Context, innerFunc func(tx *sql.Tx) bool) {
 
 }
 
-func WriteTransaction(c *gin.Context, innerFunc func(tx *sql.Tx) bool) {
+func WriteTx(c *gin.Context, innerFunc func(tx *sql.Tx) (ErrRespFunc, error)) {
 
 	tx, err := boil.BeginTx(c, &sql.TxOptions{ReadOnly: false})
 	if err != nil {
@@ -35,8 +35,8 @@ func WriteTransaction(c *gin.Context, innerFunc func(tx *sql.Tx) bool) {
 		return
 	}
 
-	skipCommit := innerFunc(tx)
-	if skipCommit {
+	if errRespFunc, err := innerFunc(tx); err != nil {
+		RespWithRollbackTx(c, err, tx, errRespFunc)
 		return
 	}
 

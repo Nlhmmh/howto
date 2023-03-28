@@ -1,1 +1,0 @@
-mysql -u root -p howto < "/docker-entrypoint-initdb.d/main.sql"
