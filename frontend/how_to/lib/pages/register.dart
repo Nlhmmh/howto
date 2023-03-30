@@ -78,7 +78,7 @@ class _RegistorState extends State<Registor> {
                 children: [
                   const SizedBox(height: 20),
 
-                  // -------------------------------- Logo
+                  // --------------- Logo
                   Container(
                     margin: const EdgeInsets.symmetric(horizontal: 50),
                     child: ClipRRect(
@@ -89,7 +89,7 @@ class _RegistorState extends State<Registor> {
 
                   const SizedBox(height: 50),
 
-                  // -------------------------------- Email
+                  // --------------- Email
                   TextFormField(
                     controller: _emailCtrl,
                     decoration: const InputDecoration(
@@ -117,7 +117,7 @@ class _RegistorState extends State<Registor> {
 
                   const SizedBox(height: 30),
 
-                  // -------------------------------- Password
+                  // --------------- Password
                   TextFormField(
                     controller: _pwCtrl,
                     maxLength: 30,
@@ -156,7 +156,7 @@ class _RegistorState extends State<Registor> {
 
                   const SizedBox(height: 20),
 
-                  // -------------------------------- Confirm Password
+                  // --------------- Confirm Password
                   TextFormField(
                     controller: _confirmPWCtrl,
                     maxLength: 30,
@@ -192,7 +192,7 @@ class _RegistorState extends State<Registor> {
 
                   const SizedBox(height: 20),
 
-                  // -------------------------------- Display Name
+                  // --------------- Display Name
                   TextFormField(
                     controller: _displayNameCtrl,
                     maxLength: 100,
@@ -218,7 +218,7 @@ class _RegistorState extends State<Registor> {
 
                   const SizedBox(height: 20),
 
-                  // -------------------------------- Real Name
+                  // --------------- Real Name
                   TextFormField(
                     controller: _nameCtrl,
                     maxLength: 100,
@@ -244,7 +244,7 @@ class _RegistorState extends State<Registor> {
 
                   const SizedBox(height: 20),
 
-                  // -------------------------------- Birthday
+                  // --------------- Birthday
                   TextFormField(
                     readOnly: true,
                     controller: _birthDateCtrl,
@@ -272,7 +272,7 @@ class _RegistorState extends State<Registor> {
                         ),
                         child: Column(
                           children: [
-                            // -------------------------------- Date Roll
+                            // --------------- Date Roll
                             SizedBox(
                               height: 200,
                               child: CupertinoDatePicker(
@@ -286,7 +286,7 @@ class _RegistorState extends State<Registor> {
                               ),
                             ),
 
-                            // -------------------------------- OK Btn
+                            // --------------- OK Btn
                             primaryBtn(
                               context: context,
                               text: "OK",
@@ -309,7 +309,7 @@ class _RegistorState extends State<Registor> {
 
                   const SizedBox(height: 30),
 
-                  // -------------------------------- Phone
+                  // --------------- Phone
                   TextFormField(
                     controller: _phoneCtrl,
                     maxLength: 30,
@@ -336,7 +336,7 @@ class _RegistorState extends State<Registor> {
 
                   const SizedBox(height: 20),
 
-                  // -------------------------------- Account Type
+                  // --------------- Account Type
                   DropdownButtonFormField<String>(
                     value: _type,
                     decoration: const InputDecoration(
@@ -377,7 +377,7 @@ class _RegistorState extends State<Registor> {
 
                   const SizedBox(height: 30),
 
-                  // -------------------------------- Error Msg
+                  // --------------- Error Msg
                   if (_errMsg != "")
                     Padding(
                       padding: const EdgeInsets.only(left: 10, top: 5),
@@ -392,7 +392,7 @@ class _RegistorState extends State<Registor> {
 
                   const SizedBox(height: 10),
 
-                  // -------------------------------- Register Btn
+                  // --------------- Register Btn
                   primaryBtn(
                     context: context,
                     text: "Register",

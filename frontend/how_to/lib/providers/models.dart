@@ -1,39 +1,3 @@
-class LoginData {
-  User user = User();
-  bool isLoggedIn = false;
-  String token = "";
-  int code = 0;
-  String message = "";
-  String error = "";
-
-  LoginData();
-
-  LoginData.withParams({
-    required this.user,
-    required this.token,
-  });
-
-  LoginData.fromJson(Map<String, dynamic> json) {
-    user = User.fromJson(json['user']);
-    token = json['token'] ?? "";
-    isLoggedIn = json['token'] != null && json['token'] != "";
-    code = json['code'] ?? 0;
-    message = json['message'] ?? "";
-    error = json['error'] ?? "";
-  }
-
-  Map<String, dynamic> toJson() {
-    return {
-      'user': user.toJson(),
-      'isLoggedIn': isLoggedIn,
-      'token': token,
-      'code': code,
-      'message': message,
-      'error': error,
-    };
-  }
-}
-
 class ErrorResp {
   int code = 0;
   String message = "";
@@ -62,7 +26,35 @@ class ErrorResp {
   }
 }
 
-enum EditPwResp { ok, oldPasswordWrong, newPasswordError, error }
+class LoginData {
+  User user = User();
+  bool isLoggedIn = false;
+  String token = "";
+  ErrorResp errResp = ErrorResp();
+
+  LoginData();
+
+  LoginData.withParams({
+    required this.user,
+    required this.token,
+  });
+
+  LoginData.fromJson(Map<String, dynamic>? json) {
+    if (json == null) return;
+    user = User.fromJson(json['user']);
+    token = json['token'] ?? "";
+    isLoggedIn = json['token'] != null && json['token'] != "";
+    errResp = ErrorResp.fromJson(json);
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'user': user.toJson(),
+      'isLoggedIn': isLoggedIn,
+      'token': token,
+    };
+  }
+}
 
 class User {
   String id = "";
@@ -128,6 +120,7 @@ class UserProfile {
   String imageUrl = "";
   DateTime createdAt = DateTime.now();
   DateTime updatedAt = DateTime.now();
+  ErrorResp errResp = ErrorResp();
 
   UserProfile();
 
@@ -158,6 +151,7 @@ class UserProfile {
     updatedAt = json['updatedAt'] != null
         ? DateTime.parse(json['updatedAt'])
         : DateTime.now();
+    errResp = ErrorResp.fromJson(json);
   }
 
   Map<String, dynamic> toJson() {

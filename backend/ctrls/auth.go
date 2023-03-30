@@ -1,7 +1,8 @@
-package controllers
+package ctrls
 
 import (
 	"backend/boiler"
+	"backend/ers"
 	"backend/server"
 	"errors"
 	"strings"
@@ -61,7 +62,7 @@ func AuthorizeJWT() gin.HandlerFunc {
 			bearerToken := c.GetHeader("Authorization")
 			tokenArray := strings.Split(bearerToken, " ")
 			if len(tokenArray) < 2 {
-				UnAuthorizedResp(c, errors.New("bearer token is wrong"+bearerToken))
+				ers.UnAuthorizedResp(c, errors.New("bearer token is wrong"+bearerToken))
 				return
 			}
 			token := tokenArray[1]
@@ -69,7 +70,7 @@ func AuthorizeJWT() gin.HandlerFunc {
 			// Validate Token
 			claims, err := ValidateToken(token)
 			if err != nil {
-				UnAuthorizedResp(c, err)
+				ers.UnAuthorizedResp(c, err)
 				return
 			}
 			claimsValue := *claims
@@ -79,7 +80,7 @@ func AuthorizeJWT() gin.HandlerFunc {
 				if claims.Role == "admin" {
 					c.Next()
 				} else {
-					UnAuthorizedResp(c, errors.New("not admin user"))
+					ers.UnAuthorizedResp(c, errors.New("not admin user"))
 					return
 				}
 			}

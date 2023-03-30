@@ -1,47 +1,50 @@
-package controllers
+package ctrls
 
 import (
+	"backend/ers"
 	"database/sql"
 
 	"github.com/gin-gonic/gin"
 	"github.com/volatiletech/sqlboiler/v4/boil"
 )
 
-func ReadTx(c *gin.Context, innerFunc func(tx *sql.Tx) (ErrRespFunc, error)) {
+func ReadTx(c *gin.Context, innerFunc func(tx *sql.Tx) (ers.ErrRespFunc, error)) error {
 
 	tx, err := boil.BeginTx(c, &sql.TxOptions{ReadOnly: true})
 	if err != nil {
-		ServerErrorResp(c, err)
-		return
+		ers.ServerErrorResp(c, err)
+		return err
 	}
 
 	if errRespFunc, err := innerFunc(tx); err != nil {
-		RespWithRollbackTx(c, err, tx, errRespFunc)
-		return
+		ers.RespWithRollbackTx(c, err, tx, errRespFunc)
+		return err
 	}
 
 	if err := tx.Commit(); err != nil {
-		ServerErrorResp(c, err)
-		return
+		ers.ServerErrorResp(c, err)
+		return err
 	}
+
+	return nil
 
 }
 
-func WriteTx(c *gin.Context, innerFunc func(tx *sql.Tx) (ErrRespFunc, error)) {
+func WriteTx(c *gin.Context, innerFunc func(tx *sql.Tx) (ers.ErrRespFunc, error)) {
 
 	tx, err := boil.BeginTx(c, &sql.TxOptions{ReadOnly: false})
 	if err != nil {
-		ServerErrorResp(c, err)
+		ers.ServerErrorResp(c, err)
 		return
 	}
 
 	if errRespFunc, err := innerFunc(tx); err != nil {
-		RespWithRollbackTx(c, err, tx, errRespFunc)
+		ers.RespWithRollbackTx(c, err, tx, errRespFunc)
 		return
 	}
 
 	if err := tx.Commit(); err != nil {
-		ServerErrorResp(c, err)
+		ers.ServerErrorResp(c, err)
 		return
 	}
 

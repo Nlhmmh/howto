@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:how_to/pages/bottom_navi.dart';
 import 'package:how_to/pages/widgets.dart';
+import 'package:how_to/providers/api/user.dart';
 import 'package:how_to/providers/user_provider.dart';
 import 'package:how_to/pages/register.dart';
 import 'package:provider/provider.dart';
@@ -61,7 +62,7 @@ class _LoginPageState extends State<LoginPage> {
                 children: [
                   const SizedBox(height: 20),
 
-                  // -------------------------------- Logo
+                  // --------------- Logo
                   Container(
                     margin: const EdgeInsets.symmetric(horizontal: 50),
                     child: ClipRRect(
@@ -72,7 +73,7 @@ class _LoginPageState extends State<LoginPage> {
 
                   const SizedBox(height: 50),
 
-                  // -------------------------------- Email
+                  // --------------- Email
                   // const Text("Email"),
                   // const SizedBox(height: 10),
                   TextFormField(
@@ -102,7 +103,7 @@ class _LoginPageState extends State<LoginPage> {
 
                   const SizedBox(height: 30),
 
-                  // -------------------------------- Password
+                  // --------------- Password
                   // const Text("Password"),
                   // const SizedBox(height: 5),
                   TextFormField(
@@ -143,7 +144,7 @@ class _LoginPageState extends State<LoginPage> {
 
                   const SizedBox(height: 10),
 
-                  // -------------------------------- Error Msg
+                  // --------------- Error Msg
                   if (_errMsg != "")
                     Padding(
                       padding: const EdgeInsets.only(left: 10, top: 5),
@@ -158,7 +159,7 @@ class _LoginPageState extends State<LoginPage> {
 
                   const SizedBox(height: 10),
 
-                  // -------------------------------- Login Btn
+                  // --------------- Login Btn
                   primaryBtn(
                     context: context,
                     text: "Login",
@@ -170,14 +171,11 @@ class _LoginPageState extends State<LoginPage> {
                           _isLoading = true;
                           setState(() {});
 
-                          final resp = await Provider.of<UserProvider>(
-                            context,
-                            listen: false,
-                          ).userLogin({
+                          final resp = await UserCtrls.login({
                             "email": _emailCtrl.text,
                             "password": _pwCtrl.text,
                           });
-                          if (resp.code == 0) {
+                          if (resp.errResp.code == 0) {
                             if (!mounted) return;
                             await Navigator.pushAndRemoveUntil(
                               context,
@@ -188,7 +186,7 @@ class _LoginPageState extends State<LoginPage> {
                               (route) => false,
                             );
                           } else {
-                            _errMsg = resp.message;
+                            _errMsg = resp.errResp.message;
                           }
                         } catch (e) {
                           debugPrint(e.toString());
@@ -202,7 +200,7 @@ class _LoginPageState extends State<LoginPage> {
                   ),
                   const SizedBox(height: 20),
 
-                  // -------------------------------- Create New Account Btn
+                  // --------------- Create New Account Btn
                   secondaryBtn(
                     text: "Create new account",
                     onPressed: () {

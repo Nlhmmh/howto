@@ -90,3 +90,9 @@ flutter screenshot
 3. User List
 4. Content List
 5. Balance List
+
+# TODO
+
+1. API Error Dialog
+2. JWT Error Dialog
+3. No Internet Connection Dialog

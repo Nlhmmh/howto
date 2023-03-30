@@ -1,4 +1,4 @@
-package controllers
+package ers
 
 import (
 	"database/sql"

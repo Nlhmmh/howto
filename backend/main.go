@@ -1,7 +1,7 @@
 package main
 
 import (
-	"backend/controllers"
+	"backend/ctrls"
 	"backend/server"
 	"backend/utils"
 	"os"
@@ -62,7 +62,7 @@ func main() {
 	router.Use(cors.New(routerConfig))
 
 	// API Routes
-	controllers.CreateRoutes(router)
+	ctrls.CreateRoutes(router)
 
 	// Run Server
 	router.Run(":" + config.PortNo)

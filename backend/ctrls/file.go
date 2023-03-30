@@ -1,6 +1,7 @@
-package controllers
+package ctrls
 
 import (
+	"backend/ers"
 	"net/http"
 	"strconv"
 	"time"
@@ -20,13 +21,13 @@ func (o *fileCtrl) Upload(c *gin.Context) {
 
 	file, err := c.FormFile("file")
 	if err != nil {
-		BadRequestResp(c, err)
+		ers.BadRequestResp(c, err)
 		return
 	}
 
 	filePathName := strconv.FormatInt(time.Now().Unix(), 10) + "-" + file.Filename
 	if err := c.SaveUploadedFile(file, "./media/"+filePathName); err != nil {
-		ServerErrorResp(c, err)
+		ers.ServerErrorResp(c, err)
 		return
 	}
 

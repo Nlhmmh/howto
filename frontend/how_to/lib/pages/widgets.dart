@@ -87,11 +87,12 @@ Widget primaryBtn({
   required BuildContext context,
   required String text,
   double height = 50,
+  double width = double.infinity,
   bool isLoading = false,
   required void Function() onPressed,
 }) {
   return SizedBox(
-    width: double.infinity,
+    width: width,
     height: height,
     child: ElevatedButton(
       style: ElevatedButton.styleFrom(

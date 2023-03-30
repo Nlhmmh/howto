@@ -1,7 +1,8 @@
-package controllers
+package ctrls
 
 import (
 	"backend/boiler"
+	"backend/ers"
 	"backend/utils"
 	"net/http"
 
@@ -21,7 +22,7 @@ func (o *adminUserCtrl) GetAll(c *gin.Context) {
 	// Get All Users
 	users, err := boiler.Users().AllG(c)
 	if err != nil {
-		ServerErrorResp(c, err)
+		ers.ServerErrorResp(c, err)
 		return
 	}
 
@@ -36,14 +37,14 @@ func (o *adminUserCtrl) Get(c *gin.Context) {
 	// Get userID
 	userID, err := utils.CheckBlankString(c.Param("userID"))
 	if err != nil {
-		BadRequestResp(c, err)
+		ers.BadRequestResp(c, err)
 		return
 	}
 
 	// Get User
 	user, err := boiler.FindUserG(c, userID)
 	if err != nil {
-		ServerErrorResp(c, err)
+		ers.ServerErrorResp(c, err)
 		return
 	}
 

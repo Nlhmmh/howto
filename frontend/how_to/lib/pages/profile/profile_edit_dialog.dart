@@ -70,7 +70,7 @@ class _ProfileEditDialogState extends State<ProfileEditDialog> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // -------------------------------- Avatar
+            // --------------- Avatar
             Center(
               child: Stack(
                 children: [
@@ -136,7 +136,7 @@ class _ProfileEditDialogState extends State<ProfileEditDialog> {
 
             const SizedBox(height: 30),
 
-            // -------------------------------- Display Name
+            // --------------- Display Name
             TextFormField(
               controller: _displayNameCtrl,
               maxLength: 100,
@@ -162,7 +162,7 @@ class _ProfileEditDialogState extends State<ProfileEditDialog> {
 
             const SizedBox(height: 20),
 
-            // -------------------------------- Real Name
+            // --------------- Real Name
             TextFormField(
               controller: _nameCtrl,
               maxLength: 100,
@@ -188,7 +188,7 @@ class _ProfileEditDialogState extends State<ProfileEditDialog> {
 
             const SizedBox(height: 20),
 
-            // -------------------------------- Birthday
+            // --------------- Birthday
             TextFormField(
               readOnly: true,
               controller: _birthDateCtrl,
@@ -216,7 +216,7 @@ class _ProfileEditDialogState extends State<ProfileEditDialog> {
                   ),
                   child: Column(
                     children: [
-                      // -------------------------------- Date Roll
+                      // --------------- Date Roll
                       SizedBox(
                         height: 200,
                         child: CupertinoDatePicker(
@@ -230,7 +230,7 @@ class _ProfileEditDialogState extends State<ProfileEditDialog> {
                         ),
                       ),
 
-                      // -------------------------------- OK Btn
+                      // --------------- OK Btn
                       primaryBtn(
                         context: context,
                         text: "OK",
@@ -252,7 +252,7 @@ class _ProfileEditDialogState extends State<ProfileEditDialog> {
 
             const SizedBox(height: 30),
 
-            // -------------------------------- Phone
+            // --------------- Phone
             TextFormField(
               controller: _phoneCtrl,
               maxLength: 30,
@@ -279,7 +279,7 @@ class _ProfileEditDialogState extends State<ProfileEditDialog> {
 
             const SizedBox(height: 20),
 
-            // -------------------------------- Error Msg
+            // --------------- Error Msg
             if (_errMsg != "")
               Padding(
                 padding: const EdgeInsets.only(left: 10, top: 5),
@@ -294,7 +294,7 @@ class _ProfileEditDialogState extends State<ProfileEditDialog> {
 
             const SizedBox(height: 10),
 
-            // -------------------------------- Edit Btn
+            // --------------- Edit Btn
             primaryBtn(
               context: context,
               text: "Edit",

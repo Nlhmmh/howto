@@ -8,7 +8,7 @@ import 'package:how_to/providers/user_provider.dart';
 import 'package:http/http.dart' as http;
 
 class ContentProvider with ChangeNotifier {
-  List<Content> _contentList = [];
+  List<Content> _ctnList = [];
 
   Future<List<Content>> fetchContent() async {
     final resp = await http.get(
@@ -17,17 +17,17 @@ class ContentProvider with ChangeNotifier {
     if (resp.statusCode == 200) {
       final respBody = jsonDecode(resp.body);
       if (respBody != null && respBody.length > 0) {
-        _contentList = respBody
+        _ctnList = respBody
             .map<Content>(
               (item) => Content.fromJson(item),
             )
             .toList();
       }
     }
-    return _contentList;
+    return _ctnList;
   }
 
-  Future<bool> createContent(Map<String, String> reqBody) async {
+  Future<bool> createCtn(Map<String, dynamic> reqBody) async {
     final loginData = await UserProvider().getLoginData();
     if (loginData.isLoggedIn) {
       reqBody["userID"] = loginData.user.id.toString();
@@ -41,7 +41,7 @@ class ContentProvider with ChangeNotifier {
     return false;
   }
 
-  Future<List<ContentCategory>> getAllContentCategories() async {
+  Future<List<ContentCategory>> getAllCtnCat() async {
     final resp = await http.get(
       Uri.http(Constants.domain, "/api/content/categories"),
     );

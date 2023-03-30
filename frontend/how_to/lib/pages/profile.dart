@@ -2,13 +2,13 @@ import 'package:flutter/material.dart';
 
 import 'package:how_to/pages/profile/profile_edit_dialog.dart';
 import 'package:how_to/pages/profile/profile_edit_password_dialog.dart';
+import 'package:how_to/providers/api/user.dart';
 import 'package:how_to/providers/constants.dart';
 
 import 'package:how_to/providers/models.dart';
-import 'package:how_to/providers/user_provider.dart';
 import 'package:how_to/pages/widgets.dart';
+import 'package:how_to/providers/utils.dart';
 import 'package:intl/intl.dart';
-import 'package:provider/provider.dart';
 
 class Profile extends StatefulWidget {
   static const routeName = "/profile";
@@ -27,20 +27,21 @@ class _ProfileState extends State<Profile> {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) async {
-      // Get Login Data
-      final loginData = await Provider.of<UserProvider>(
-        context,
-        listen: false,
-      ).getLoginData();
+      final loginData = await UserCtrls.getLoginData();
       _loginData = loginData;
 
-      // Fetch UserProfile
-      if (!mounted) return;
-      final userProfile = await Provider.of<UserProvider>(
-        context,
-        listen: false,
-      ).fetchProfile();
-      _userProfile = userProfile;
+      if (_loginData.isLoggedIn) {
+        // Fetch UserProfile
+        if (!mounted) return;
+        final userProfile = await UserCtrls.fetchProfile(
+          context,
+          (errResp) {
+            if (!mounted) return;
+            Utils.checkErrorResp(context, errResp);
+          },
+        );
+        _userProfile = userProfile;
+      }
 
       setState(() {});
     });
@@ -68,11 +69,14 @@ class _ProfileState extends State<Profile> {
               ),
             );
             if (!mounted) return;
-            final user = await Provider.of<UserProvider>(
+            final userProfile = await UserCtrls.fetchProfile(
               context,
-              listen: false,
-            ).fetchProfile();
-            _userProfile = user;
+              (errResp) {
+                if (!mounted) return;
+                Utils.checkErrorResp(context, errResp);
+              },
+            );
+            _userProfile = userProfile;
             setState(() {});
           },
         ),
@@ -82,7 +86,7 @@ class _ProfileState extends State<Profile> {
           padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 20),
           child: Column(
             children: [
-              // -------------------------------- Avatar
+              // --------------- Avatar
               Container(
                 width: 70,
                 decoration: BoxDecoration(
@@ -109,7 +113,7 @@ class _ProfileState extends State<Profile> {
 
               const SizedBox(height: 30),
 
-              // -------------------------------- Profile
+              // --------------- Profile
               Material(
                 elevation: 5,
                 borderRadius: BorderRadius.circular(10),
@@ -125,13 +129,13 @@ class _ProfileState extends State<Profile> {
                   padding: const EdgeInsets.all(10),
                   child: Column(
                     children: [
-                      // -------------------------------- Email
+                      // --------------- Email
                       _profileRow(
                         title: "Email",
                         value: _loginData.user.email,
                       ),
 
-                      // -------------------------------- Password
+                      // --------------- Password
                       Stack(
                         children: [
                           _profileRow(
@@ -160,11 +164,15 @@ class _ProfileState extends State<Profile> {
                                       const ProfileEditPasswordDialog(),
                                 );
                                 if (!mounted) return;
-                                final user = await Provider.of<UserProvider>(
+                                final userProfile =
+                                    await UserCtrls.fetchProfile(
                                   context,
-                                  listen: false,
-                                ).fetchProfile();
-                                _userProfile = user;
+                                  (errResp) {
+                                    if (!mounted) return;
+                                    Utils.checkErrorResp(context, errResp);
+                                  },
+                                );
+                                _userProfile = userProfile;
                                 setState(() {});
                               },
                             ),
@@ -172,19 +180,19 @@ class _ProfileState extends State<Profile> {
                         ],
                       ),
 
-                      // -------------------------------- Display Name
+                      // --------------- Display Name
                       _profileRow(
                         title: "Display Name",
                         value: _userProfile.displayName,
                       ),
 
-                      // -------------------------------- Real Name
+                      // --------------- Real Name
                       _profileRow(
                         title: "Real Name",
                         value: _userProfile.name,
                       ),
 
-                      // -------------------------------- Birthday
+                      // --------------- Birthday
                       _profileRow(
                         title: "Birthday",
                         value: DateFormat("yyyy-MM-dd")
@@ -192,7 +200,7 @@ class _ProfileState extends State<Profile> {
                             .toString(),
                       ),
 
-                      // -------------------------------- Type
+                      // --------------- Type
                       _profileRow(
                         title: "Type",
                         value: _loginData.user.type,

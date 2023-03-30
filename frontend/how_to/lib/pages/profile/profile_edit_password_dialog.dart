@@ -45,7 +45,7 @@ class _ProfileEditPasswordDialogState extends State<ProfileEditPasswordDialog> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // -------------------------------- Password
+            // --------------- Password
             TextFormField(
               controller: _pwCtrl,
               maxLength: 30,
@@ -76,7 +76,7 @@ class _ProfileEditPasswordDialogState extends State<ProfileEditPasswordDialog> {
 
             const SizedBox(height: 20),
 
-            // -------------------------------- New Password
+            // --------------- New Password
             TextFormField(
               controller: _newPWCtrl,
               maxLength: 30,
@@ -115,7 +115,7 @@ class _ProfileEditPasswordDialogState extends State<ProfileEditPasswordDialog> {
 
             const SizedBox(height: 20),
 
-            // -------------------------------- New Confirm Password
+            // --------------- New Confirm Password
             TextFormField(
               controller: _newConfirmPWCtrl,
               maxLength: 30,
@@ -151,7 +151,7 @@ class _ProfileEditPasswordDialogState extends State<ProfileEditPasswordDialog> {
 
             const SizedBox(height: 20),
 
-            // -------------------------------- Error Msg
+            // --------------- Error Msg
             if (_errMsg != "")
               Padding(
                 padding: const EdgeInsets.only(left: 10, top: 5),
@@ -166,7 +166,7 @@ class _ProfileEditPasswordDialogState extends State<ProfileEditPasswordDialog> {
 
             const SizedBox(height: 10),
 
-            // -------------------------------- Save Btn
+            // --------------- Save Btn
             primaryBtn(
               context: context,
               text: "Edit",

@@ -5,6 +5,7 @@ import 'package:how_to/pages/content_create/html.dart';
 import 'package:how_to/pages/content_create/image_adder.dart';
 import 'package:how_to/pages/content_create/models.dart';
 import 'package:how_to/pages/content_create/text_adder.dart';
+import 'package:how_to/pages/top.dart';
 import 'package:how_to/providers/content_provider.dart';
 import 'package:how_to/pages/widgets.dart';
 import 'package:how_to/providers/models.dart';
@@ -25,7 +26,13 @@ class _ContentCreateState extends State<ContentCreate> {
   List<ContentCategory> _ctnCatList = [];
   ContentCategory _selCat = ContentCategory();
   final List<BodyContent> _bdCtnList = [];
-  int orderNo = 0;
+  int _orderNo = 0;
+  String _errMsg = "";
+  final BodyContent _mainImg = BodyContent(
+    orderNo: 0,
+    mode: BodyContentMode.image,
+    widget: Container(),
+  );
 
   @override
   void initState() {
@@ -36,7 +43,7 @@ class _ContentCreateState extends State<ContentCreate> {
       final ctnCatList = await Provider.of<ContentProvider>(
         context,
         listen: false,
-      ).getAllContentCategories();
+      ).getAllCtnCat();
       _ctnCatList = ctnCatList;
       if (_ctnCatList.isNotEmpty) _selCat = ctnCatList.first;
       setState(() {});
@@ -62,7 +69,7 @@ class _ContentCreateState extends State<ContentCreate> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // -------------------------------- Title
+                  // --------------- Title
                   const Text("Title"),
                   const SizedBox(height: 5),
                   TextFormField(
@@ -87,7 +94,7 @@ class _ContentCreateState extends State<ContentCreate> {
                   ),
                   const SizedBox(height: 20),
 
-                  // -------------------------------- Category
+                  // --------------- Category
                   const Text('Category'),
                   const SizedBox(height: 5),
                   DropdownButtonFormField<ContentCategory>(
@@ -117,11 +124,20 @@ class _ContentCreateState extends State<ContentCreate> {
                   ),
                   const SizedBox(height: 20),
 
-                  // -------------------------------- Body List
+                  // --------------- Main Image
+                  const Text("Main Image"),
+                  const SizedBox(height: 5),
+                  ImageAdder(
+                    bdCtn: _mainImg,
+                    height: 300,
+                  ),
+                  const SizedBox(height: 10),
+
+                  // --------------- Body List
                   ..._bdCtnList.map((v) => v.widget).toList(),
                   const SizedBox(height: 20),
 
-                  // -------------------------------- Add New Widget
+                  // --------------- Add New Widget
                   InkWell(
                     child: InkWell(
                       // DottedBorder(
@@ -129,9 +145,13 @@ class _ContentCreateState extends State<ContentCreate> {
                       // radius: const Radius.circular(12),
                       // dashPattern: const [6],
                       // strokeCap: StrokeCap.round,
-                      child: SizedBox(
+                      child: Container(
                         width: double.infinity,
                         height: 100,
+                        decoration: BoxDecoration(
+                          border: Border.all(color: Colors.green),
+                          borderRadius: BorderRadius.circular(10),
+                        ),
                         child: Center(
                           child: Column(
                             mainAxisAlignment: MainAxisAlignment.center,
@@ -153,72 +173,16 @@ class _ContentCreateState extends State<ContentCreate> {
                   ),
                   const SizedBox(height: 20),
 
+                  if (_errMsg != "") ...[
+                    Text(_errMsg),
+                    const SizedBox(height: 20),
+                  ],
+
                   primaryBtn(
                     context: context,
                     text: "Confirm",
                     onPressed: () async {
-                      FocusScope.of(context).unfocus();
-                      if (_formKey.currentState!.validate()) {
-                        try {
-                          // Check Null Image, Null Text
-                          for (final bc in _bdCtnList) {
-                            if (bc.mode == BodyContentMode.image &&
-                                bc.image == null) {
-                              print(
-                                "Image at Order [ ${bc.orderNo} ] is empty",
-                              );
-                              setState(() {});
-                              return;
-                            }
-                            if (bc.mode == BodyContentMode.text &&
-                                bc.text == "") {
-                              print(
-                                "Text at Order [ ${bc.orderNo} ] is empty",
-                              );
-                              setState(() {});
-                              return;
-                            }
-                          }
-
-                          // Open Confirm Dialog
-                          await showDialog(
-                            context: context,
-                            builder: (context) => CustomDialog(
-                              title: "Confirm",
-                              body: Html(
-                                data: HTMLBuilder.build(
-                                  title: _titleCtrl.text,
-                                  category: _selCat.name,
-                                  bdCtnList: _bdCtnList,
-                                ),
-                                style: {
-                                  "p": Style(whiteSpace: WhiteSpace.PRE),
-                                },
-                              ),
-                            ),
-                          );
-                        } catch (e, stack) {
-                          print(e);
-                          print(stack);
-                        }
-
-                        // final isAdded = await Provider.of<ContentProvider>(
-                        //   context,
-                        //   listen: false,
-                        // ).createContent({
-                        //   "title": _titleCtrl.text,
-                        //   "category": _selCategory,
-                        // });
-                        // if (isAdded) {
-                        //   await Navigator.pushAndRemoveUntil(
-                        //     context,
-                        //     MaterialPageRoute(
-                        //       builder: (context) => const TopPage(),
-                        //     ),
-                        //     (route) => false,
-                        //   );
-                        // }
-                      }
+                      await _onConfirm();
                     },
                   )
                 ],
@@ -230,14 +194,99 @@ class _ContentCreateState extends State<ContentCreate> {
     );
   }
 
+  Future<void> _onConfirm() async {
+    FocusScope.of(context).unfocus();
+    if (_formKey.currentState!.validate()) {
+      try {
+        // Check Main Image
+        if (_mainImg.image == null) {
+          _errMsg = "Main image is empty";
+          setState(() {});
+          return;
+        }
+
+        // Check Null Image, Null Text
+        for (final bc in _bdCtnList) {
+          if (bc.mode == BodyContentMode.image && bc.image == null) {
+            _errMsg = "Image at Order [ ${bc.orderNo} ] is empty";
+            setState(() {});
+            return;
+          }
+          if (bc.mode == BodyContentMode.text && bc.text == "") {
+            _errMsg = "Text at Order [ ${bc.orderNo} ] is empty";
+            setState(() {});
+            return;
+          }
+        }
+
+        // Open Confirm Dialog
+        await showDialog(
+          context: context,
+          builder: (context) => CustomDialog(
+            title: "Confirm",
+            body: Column(
+              children: [
+                Html(
+                  data: HTMLBuilder.build(
+                    title: _titleCtrl.text,
+                    category: _selCat.name,
+                    mainImg: _mainImg,
+                    bdCtnList: _bdCtnList,
+                  ),
+                  style: {
+                    "p": Style(whiteSpace: WhiteSpace.PRE),
+                  },
+                ),
+                const SizedBox(height: 20),
+                primaryBtn(
+                  context: context,
+                  text: "Create Content",
+                  onPressed: () async {
+                    final isAdded = await Provider.of<ContentProvider>(
+                      context,
+                      listen: false,
+                    ).createCtn({
+                      "title": _titleCtrl.text,
+                      "category": _selCat.id,
+                      "imageUrl": "/test.png",
+                      "contentHTMLList": [
+                        {
+                          "orderNo": 1,
+                          "html": "<p>Test</p>",
+                        }
+                      ]
+                    });
+                    if (!isAdded) return;
+                    if (!mounted) return;
+                    await Navigator.pushAndRemoveUntil(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const TopPage(),
+                      ),
+                      (route) => false,
+                    );
+                  },
+                ),
+              ],
+            ),
+          ),
+        );
+      } catch (e, stack) {
+        print(e);
+        print(stack);
+      }
+    }
+  }
+
   Future<void> _bdCtnDialog() async {
+    FocusScope.of(context).unfocus();
     await showModalBottomSheet(
       context: context,
       builder: (context) => SizedBox(
         height: 150,
         child: Column(
           children: [
-            // -------------------------------- Title
+            // --------------- Title
             const SizedBox(height: 10),
             const Text(
               "Choose Widget",
@@ -248,29 +297,30 @@ class _ContentCreateState extends State<ContentCreate> {
             ),
             const SizedBox(height: 10),
 
-            // -------------------------------- Divider
+            // --------------- Divider
             const Divider(height: 1, color: Colors.grey),
             const SizedBox(height: 20),
 
-            // -------------------------------- Button List
+            // --------------- Button List
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceAround,
               children: [
-                // -------------------------------- Text
+                // --------------- Text
                 iconTextButton(
                   text: "Text",
                   icon: Icons.text_fields,
                   onTap: () async {
-                    orderNo = orderNo + 1;
+                    _orderNo = _orderNo + 1;
+                    final tmpOrderNo = _orderNo;
                     final tmpBdCtn = BodyContent(
-                      orderNo: orderNo,
+                      orderNo: tmpOrderNo,
                       mode: BodyContentMode.text,
                       widget: Container(),
                     );
                     tmpBdCtn.widget = BdCtnWidget(
                       body: TextAdder(bdCtn: tmpBdCtn),
                       onDelTap: () {
-                        _bdCtnList.removeWhere((v) => v.orderNo == orderNo);
+                        _bdCtnList.removeWhere((v) => v.orderNo == tmpOrderNo);
                         setState(() {});
                       },
                     );
@@ -279,21 +329,22 @@ class _ContentCreateState extends State<ContentCreate> {
                     Navigator.pop(context);
                   },
                 ),
-                // -------------------------------- Image
+                // --------------- Image
                 iconTextButton(
                   text: "Image",
                   icon: Icons.photo,
                   onTap: () async {
-                    orderNo = orderNo + 1;
+                    _orderNo = _orderNo + 1;
+                    final tmpOrderNo = _orderNo;
                     final tmpBdCtn = BodyContent(
-                      orderNo: orderNo,
+                      orderNo: tmpOrderNo,
                       mode: BodyContentMode.image,
                       widget: Container(),
                     );
                     tmpBdCtn.widget = BdCtnWidget(
                       body: ImageAdder(bdCtn: tmpBdCtn),
                       onDelTap: () {
-                        _bdCtnList.removeWhere((v) => v.orderNo == orderNo);
+                        _bdCtnList.removeWhere((v) => v.orderNo == tmpOrderNo);
                         setState(() {});
                       },
                     );

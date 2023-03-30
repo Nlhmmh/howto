@@ -22,8 +22,7 @@ class _TopPageState extends State<TopPage> {
   @override
   void initState() {
     super.initState();
-
-    Future(() async {
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
       final loginData = await Provider.of<UserProvider>(context, listen: false)
           .getLoginData();
       if (!mounted) return;
@@ -32,7 +31,6 @@ class _TopPageState extends State<TopPage> {
               .fetchContent();
       _contentList = contentList;
       _loginData = loginData;
-      if (!mounted) return;
       setState(() {});
     });
   }
@@ -58,7 +56,7 @@ class _TopPageState extends State<TopPage> {
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(15),
               ),
-              // -------------------------------- Content Card
+              // --------------- Content Card
               child: Card(
                 elevation: 5,
                 child: Container(

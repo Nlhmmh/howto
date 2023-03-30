@@ -1,6 +1,9 @@
+import 'package:flutter/material.dart';
+import 'package:how_to/pages/widgets.dart';
+import 'package:how_to/providers/models.dart';
 import 'package:intl/intl.dart';
 
-class Utils {
+abstract class Utils {
   static String timeAgo(
     DateTime date, {
     bool numericDates = true,
@@ -31,5 +34,44 @@ class Utils {
     } else {
       return 'Just now';
     }
+  }
+
+  static void showSnackbar(BuildContext context, String msg) {
+    ScaffoldMessenger.of(context).hideCurrentSnackBar();
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(msg),
+        backgroundColor: Colors.purple,
+        elevation: 10,
+        action: SnackBarAction(
+          label: 'Dismiss',
+          onPressed: () {
+            ScaffoldMessenger.of(context).hideCurrentSnackBar();
+          },
+        ),
+        duration: const Duration(seconds: 5),
+      ),
+    );
+  }
+
+  static void checkErrorResp(BuildContext context, ErrorResp errorResp) {
+    if (errorResp.code != 0) {
+      showErrDialog(context, errorResp);
+    }
+  }
+
+  static void showErrDialog(BuildContext context, ErrorResp errorResp) {
+    showDialog(
+      context: context,
+      builder: (context) => CustomDialog(
+        title: "Error",
+        body: Column(
+          children: [
+            Text(errorResp.message),
+            Text(errorResp.error),
+          ],
+        ),
+      ),
+    );
   }
 }

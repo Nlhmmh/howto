@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:how_to/pages/content_create.dart';
-import 'package:how_to/pages/mypage.dart';
+import 'package:how_to/pages/my_page.dart';
 import 'package:how_to/pages/top.dart';
 import 'package:how_to/providers/constants.dart';
 import 'package:how_to/providers/models.dart';
@@ -56,7 +56,7 @@ class _BottomNaviPageState extends State<BottomNaviPage> {
       appBar: AppBar(
         title: Row(
           children: [
-            // -------------------------------- Avatar
+            // --------------- Avatar
             // CircleAvatar(
             //   backgroundColor: _loginData.isLoggedIn
             //       ? Constants
@@ -76,7 +76,7 @@ class _BottomNaviPageState extends State<BottomNaviPage> {
             // ),
             // const SizedBox(width: 10),
 
-            // -------------------------------- Title
+            // --------------- Title
             Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: const [
@@ -114,41 +114,41 @@ class _BottomNaviPageState extends State<BottomNaviPage> {
         enableFeedback: true,
         items: _loginData.user.type == Constants.creatorAccType
             ? const [
-                // -------------------------------- Home
+                // --------------- Home
                 BottomNavigationBarItem(
                   icon: Icon(Icons.home),
                   label: 'Home',
                 ),
-                // -------------------------------- Create Content
+                // --------------- Create Content
                 BottomNavigationBarItem(
                   icon: Icon(Icons.add_box_outlined),
                   label: 'Create Content',
                 ),
-                // -------------------------------- My Page
+                // --------------- My Page
                 BottomNavigationBarItem(
                   icon: Icon(Icons.account_box),
                   label: 'My Page',
                 ),
               ]
             : const [
-                // -------------------------------- Home
+                // --------------- Home
                 BottomNavigationBarItem(
                   icon: Icon(Icons.home),
                   label: 'Home',
                 ),
-                // -------------------------------- Favourite
+                // --------------- Favourite
                 BottomNavigationBarItem(
                   icon: Icon(Icons.favorite),
                   label: 'Favourite',
                 ),
-                // -------------------------------- My Page
+                // --------------- My Page
                 BottomNavigationBarItem(
                   icon: Icon(Icons.account_box),
                   label: 'My Page',
                 ),
               ],
         onTap: (index) {
-          // -------------------------------- Animate To Page
+          // --------------- Animate To Page
           _pageCtrl.animateToPage(
             index,
             duration: const Duration(milliseconds: 200),

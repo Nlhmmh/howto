@@ -1,4 +1,4 @@
-package controllers
+package ctrls
 
 import (
 	"backend/boiler"

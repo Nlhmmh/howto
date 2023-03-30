@@ -1,7 +1,8 @@
-package controllers
+package ctrls
 
 import (
 	"backend/boiler"
+	"backend/ers"
 	"backend/utils"
 	"database/sql"
 	"errors"
@@ -27,7 +28,7 @@ func (o *contentCtrl) GetAll(c *gin.Context) {
 	// Check Request
 	var req ContentGetAllReq
 	if err := c.BindQuery(&req); err != nil {
-		BadRequestResp(c, err)
+		ers.BadRequestResp(c, err)
 		return
 	}
 
@@ -81,7 +82,7 @@ func (o *contentCtrl) GetAll(c *gin.Context) {
 	}
 
 	if err := boiler.NewQuery(qms...).BindG(c, &contentList); err != nil {
-		ServerErrorResp(c, err)
+		ers.ServerErrorResp(c, err)
 		return
 	}
 
@@ -100,29 +101,29 @@ func (o *contentCtrl) CreateContentWhole(c *gin.Context) {
 	// Check Request
 	var req CreateContentReq
 	if err := c.ShouldBindJSON(&req); err != nil {
-		BadRequestResp(c, err)
+		ers.BadRequestResp(c, err)
 		return
 	}
 
 	userID := c.GetString("userID")
 
-	WriteTx(c, func(tx *sql.Tx) (ErrRespFunc, error) {
+	content := new(boiler.Content)
+	WriteTx(c, func(tx *sql.Tx) (ers.ErrRespFunc, error) {
 
 		// Check Title
 		titleExists, err := boiler.Contents(
 			qm.Where("title = ?", req.Title),
 		).Exists(c, tx)
 		if err != nil {
-			return ServerErrorResp, err
+			return ers.ServerErrorResp, err
 		}
 		if titleExists {
-			return ContentTitleAlreadyExistResp, errors.New("title already exists")
+			return ers.ContentTitleAlreadyExistResp, errors.New("title already exists")
 		}
 
 		contentID := uuid.NewString()
 
 		// Insert Content
-		content := new(boiler.Content)
 		content.ID = contentID
 		content.UserID = userID
 		content.Title = req.Title
@@ -132,7 +133,7 @@ func (o *contentCtrl) CreateContentWhole(c *gin.Context) {
 		}
 
 		if err := content.Insert(c, tx, boil.Infer()); err != nil {
-			return ServerErrorResp, err
+			return ers.ServerErrorResp, err
 		}
 
 		for _, v := range req.ContentHtmlList {
@@ -144,15 +145,16 @@ func (o *contentCtrl) CreateContentWhole(c *gin.Context) {
 			contentHtml.HTML = v.Html
 
 			if err := contentHtml.Insert(c, tx, boil.Infer()); err != nil {
-				return ServerErrorResp, err
+				return ers.ServerErrorResp, err
 			}
 
 		}
 
-		c.JSON(http.StatusOK, content)
 		return nil, nil
 
 	})
+
+	c.JSON(http.StatusOK, content)
 
 }
 
@@ -161,14 +163,13 @@ func (o *contentCtrl) GetOne(c *gin.Context) {
 	// Get contentID
 	contentID, err := utils.CheckBlankString(c.Param("contentID"))
 	if err != nil {
-		BadRequestResp(c, err)
+		ers.BadRequestResp(c, err)
 		return
 	}
 
-	ReadTx(c, func(tx *sql.Tx) (ErrRespFunc, error) {
-
-		// Get Content
-		var content ContentWhole
+	// Get Content
+	var content ContentWhole
+	ReadTx(c, func(tx *sql.Tx) (ers.ErrRespFunc, error) {
 
 		qms := []qm.QueryMod{}
 		qms = append(qms, qm.Select(
@@ -185,21 +186,22 @@ func (o *contentCtrl) GetOne(c *gin.Context) {
 		qms = append(qms, qm.Limit(1))
 
 		if err := boiler.NewQuery(qms...).Bind(c, tx, &content); err != nil {
-			return ServerErrorResp, err
+			return ers.ServerErrorResp, err
 		}
 
 		contentHtmlList, err := boiler.ContentHTMLS(
 			qm.Where("content_id = ?", content.ID),
 		).All(c, tx)
 		if err != nil {
-			return ServerErrorResp, err
+			return ers.ServerErrorResp, err
 		}
 		content.ContentHtmlList = contentHtmlList
 
-		c.JSON(http.StatusOK, content)
 		return nil, nil
 
 	})
+
+	c.JSON(http.StatusOK, content)
 
 }
 
@@ -210,7 +212,7 @@ func (o *contentCtrl) GetAllCategories(c *gin.Context) {
 	// Get All Content Categories
 	contentCategoryList, err := boiler.ContentCategories().AllG(c)
 	if err != nil {
-		ServerErrorResp(c, err)
+		ers.ServerErrorResp(c, err)
 	}
 
 	if contentCategoryList == nil {

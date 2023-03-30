@@ -2,10 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:how_to/pages/bottom_navi.dart';
 import 'package:how_to/pages/login.dart';
 import 'package:how_to/pages/widgets.dart';
+import 'package:how_to/providers/api/user.dart';
 import 'package:how_to/providers/constants.dart';
 import 'package:how_to/providers/models.dart';
 import 'package:how_to/providers/user_provider.dart';
 import 'package:how_to/pages/profile.dart';
+import 'package:how_to/providers/utils.dart';
 import 'package:provider/provider.dart';
 
 class MyPage extends StatefulWidget {
@@ -25,16 +27,18 @@ class _MyPageState extends State<MyPage> {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) async {
-      final loginData = await Provider.of<UserProvider>(context, listen: false)
-          .getLoginData();
+      final loginData = await UserCtrls.getLoginData();
       _loginData = loginData;
 
       // Fetch UserProfile
       if (!mounted) return;
-      final userProfile = await Provider.of<UserProvider>(
+      final userProfile = await UserCtrls.fetchProfile(
         context,
-        listen: false,
-      ).fetchProfile();
+        (errResp) {
+          if (!mounted) return;
+          Utils.checkErrorResp(context, errResp);
+        },
+      );
       _userProfile = userProfile;
 
       setState(() {});
@@ -49,7 +53,7 @@ class _MyPageState extends State<MyPage> {
           children: [
             const SizedBox(height: 20),
 
-            // -------------------------------- Avatar
+            // --------------- Avatar
             Container(
               width: 70,
               decoration: BoxDecoration(
@@ -76,7 +80,7 @@ class _MyPageState extends State<MyPage> {
 
             const SizedBox(height: 10),
 
-            // -------------------------------- Welcome
+            // --------------- Welcome
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
@@ -98,7 +102,7 @@ class _MyPageState extends State<MyPage> {
             ),
             const SizedBox(height: 10),
 
-            // -------------------------------- User Type
+            // --------------- User Type
             if (_loginData.isLoggedIn) ...[
               Text(
                 _loginData.user.type,
@@ -109,15 +113,15 @@ class _MyPageState extends State<MyPage> {
             ],
             const SizedBox(height: 20),
 
-            // -------------------------------- Divider
+            // --------------- Divider
             const Divider(height: 1, color: Colors.grey),
             const SizedBox(height: 20),
 
-            // -------------------------------- Profile, Favourite
+            // --------------- Profile, Favourite
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               children: [
-                // -------------------------------- Profile
+                // --------------- Profile
                 iconTextButton(
                   text: "Profile",
                   icon: Icons.person,
@@ -129,7 +133,7 @@ class _MyPageState extends State<MyPage> {
                     }
                   },
                 ),
-                // -------------------------------- Favourite
+                // --------------- Favourite
                 iconTextButton(
                   text: "Favourite",
                   icon: Icons.favorite,
@@ -145,7 +149,7 @@ class _MyPageState extends State<MyPage> {
               ],
             ),
 
-            // -------------------------------- Content List
+            // --------------- Content List
             if (_loginData.user.type == Constants.creatorAccType) ...[
               const SizedBox(height: 20),
               Row(
@@ -163,13 +167,13 @@ class _MyPageState extends State<MyPage> {
             ],
             const SizedBox(height: 30),
 
-            // -------------------------------- Divider
+            // --------------- Divider
             const Divider(height: 1, color: Colors.grey),
             const SizedBox(height: 30),
 
-            // -------------------------------- Logout Btn
+            // --------------- Logout Btn
             if (_loginData.isLoggedIn) ...[
-              // -------------------------------- Logout Btn
+              // --------------- Logout Btn
               Container(
                 margin: const EdgeInsets.symmetric(horizontal: 20),
                 child: primaryBtn(
@@ -191,7 +195,7 @@ class _MyPageState extends State<MyPage> {
                 ),
               ),
             ] else ...[
-              // -------------------------------- Login Btn
+              // --------------- Login Btn
               Container(
                 margin: const EdgeInsets.symmetric(horizontal: 20),
                 child: primaryBtn(

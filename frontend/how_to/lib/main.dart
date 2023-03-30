@@ -3,7 +3,7 @@ import 'package:how_to/pages/bottom_navi.dart';
 import 'package:how_to/pages/content_create.dart';
 import 'package:how_to/pages/launch.dart';
 import 'package:how_to/pages/login.dart';
-import 'package:how_to/pages/mypage.dart';
+import 'package:how_to/pages/my_page.dart';
 import 'package:how_to/pages/profile.dart';
 import 'package:how_to/pages/register.dart';
 import 'package:how_to/pages/top.dart';

@@ -31,57 +31,6 @@ class UserProvider with ChangeNotifier {
 
   // ------------------------------------------------
 
-  Future<LoginData> userLogin(Map<String, String> reqBody) async {
-    final resp = await http.post(
-      Uri.http(Constants.domain, "/api/user/login"),
-      body: jsonEncode(reqBody),
-    );
-    if (resp.statusCode == 200) {
-      final body = jsonDecode(resp.body);
-      if (body != null) {
-        final loginData = LoginData.fromJson(body);
-        await storeLoginData(loginData);
-        return loginData;
-      }
-    } else {
-      final body = jsonDecode(resp.body);
-      if (body != null) {
-        final errorResp = LoginData.fromJson(body);
-        return errorResp;
-      }
-    }
-    return LoginData();
-  }
-
-  Future<UserProfile> fetchProfile() async {
-    final loginData = await getLoginData();
-    if (loginData.isLoggedIn) {
-      final resp = await http.get(
-        Uri.http(
-          Constants.domain,
-          "/api/user/profile",
-        ),
-        headers: {"Authorization": "Bearer ${loginData.token}"},
-      );
-      if (resp.statusCode == 200) {
-        final respBody = jsonDecode(resp.body);
-        if (respBody != null) {
-          return UserProfile.fromJson(respBody);
-        }
-      } else {
-        final body = jsonDecode(resp.body);
-        if (body != null) {
-          final errorResp = LoginData.fromJson(body);
-          debugPrint(
-            "Code : ${errorResp.code} Message: ${errorResp.message} Error: ${errorResp.error}",
-          );
-        }
-        return UserProfile();
-      }
-    }
-    return UserProfile();
-  }
-
   Future<void> logOut() async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.remove("loginData");

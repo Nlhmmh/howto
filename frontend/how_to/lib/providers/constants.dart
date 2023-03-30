@@ -1,6 +1,6 @@
 class Constants {
-  static const domainHttp = "http://10.0.2.2:8081";
-  static const domain = "10.0.2.2:8081";
+  static const domainHttp = "http://localhost:8081";
+  static const domain = "localhost:8081";
 
   static const creatorAccType = "creator";
   static const viewerAccType = "viewer";

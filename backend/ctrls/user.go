@@ -1,7 +1,8 @@
-package controllers
+package ctrls
 
 import (
 	"backend/boiler"
+	"backend/ers"
 	"database/sql"
 	"errors"
 	"fmt"
@@ -31,7 +32,7 @@ func (o *userCtrl) SendOTP(c *gin.Context) {
 	// Check Request
 	var resq UserRegisterSendOtpReq
 	if err := c.ShouldBindJSON(&resq); err != nil {
-		BadRequestResp(c, err)
+		ers.BadRequestResp(c, err)
 		return
 	}
 
@@ -48,7 +49,7 @@ func (o *userCtrl) SendOTP(c *gin.Context) {
 	userOtp.Otp = strings.Join(otp, "")
 
 	if err := userOtp.InsertG(c, boil.Infer()); err != nil {
-		ServerErrorResp(c, err)
+		ers.ServerErrorResp(c, err)
 		return
 	}
 
@@ -63,7 +64,7 @@ func (o *userCtrl) CheckOTP(c *gin.Context) {
 	// Check Request
 	var resq UserRegisterCheckOtpReq
 	if err := c.ShouldBindJSON(&resq); err != nil {
-		BadRequestResp(c, err)
+		ers.BadRequestResp(c, err)
 		return
 	}
 
@@ -74,7 +75,7 @@ func (o *userCtrl) CheckOTP(c *gin.Context) {
 		qm.Where("otp=?", resq.Otp),
 	).CountG(c)
 	if err != nil {
-		ServerErrorResp(c, err)
+		ers.ServerErrorResp(c, err)
 		return
 	}
 
@@ -93,39 +94,39 @@ func (o *userCtrl) Register(c *gin.Context) {
 	// Check Request
 	var resq UserRegisterRequest
 	if err := c.ShouldBindJSON(&resq); err != nil {
-		BadRequestResp(c, err)
+		ers.BadRequestResp(c, err)
 		return
 	}
 	if resq.Type != boiler.UsersTypeCreator.String() && resq.Type != boiler.UsersTypeViewer.String() {
-		BadRequestResp(c, errors.New("type is not creator or viewer"))
+		ers.BadRequestResp(c, errors.New("type is not creator or viewer"))
 		return
 	}
 
 	// Generate Hash Password
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(resq.Password), 10)
 	if err != nil {
-		BadRequestResp(c, err)
+		ers.BadRequestResp(c, err)
 		return
 	}
 
-	WriteTx(c, func(tx *sql.Tx) (ErrRespFunc, error) {
+	WriteTx(c, func(tx *sql.Tx) (ers.ErrRespFunc, error) {
 
 		// Find User With Email
 		if emailExists, err := boiler.Users(
 			qm.Where("email=?", resq.Email),
 		).Exists(c, tx); err != nil {
-			return ServerErrorResp, err
+			return ers.ServerErrorResp, err
 		} else if emailExists {
-			return UserWithEmailAlreadyExistResp, errors.New("user with email already exists")
+			return ers.UserWithEmailAlreadyExistResp, errors.New("user with email already exists")
 		}
 
 		// Find User With DisplayName
 		if userProfileExists, err := boiler.UserProfiles(
 			qm.Where("display_name=?", resq.DisplayName),
 		).Exists(c, tx); err != nil {
-			return ServerErrorResp, err
+			return ers.ServerErrorResp, err
 		} else if userProfileExists {
-			return DisplayNameAlreadyExistResp, errors.New("display name already exists")
+			return ers.DisplayNameAlreadyExistResp, errors.New("display name already exists")
 		}
 
 		// Create User
@@ -138,7 +139,7 @@ func (o *userCtrl) Register(c *gin.Context) {
 		user.Status = "active"
 
 		if err := user.Insert(c, tx, boil.Infer()); err != nil {
-			return ServerErrorResp, err
+			return ers.ServerErrorResp, err
 		}
 
 		// Create User Profile
@@ -151,13 +152,14 @@ func (o *userCtrl) Register(c *gin.Context) {
 		userProfile.ImageURL = resq.ImageUrl
 
 		if err := userProfile.Insert(c, tx, boil.Infer()); err != nil {
-			return ServerErrorResp, err
+			return ers.ServerErrorResp, err
 		}
 
-		c.Status(http.StatusOK)
 		return nil, nil
 
 	})
+
+	c.Status(http.StatusOK)
 
 }
 
@@ -168,7 +170,7 @@ func (o *userCtrl) Login(c *gin.Context) {
 	// Check Request
 	var resq UserLoginReq
 	if err := c.ShouldBindJSON(&resq); err != nil {
-		BadRequestResp(c, err)
+		ers.BadRequestResp(c, err)
 		return
 	}
 
@@ -177,11 +179,11 @@ func (o *userCtrl) Login(c *gin.Context) {
 		qm.Where("email=?", resq.Email),
 	).OneG(c)
 	if err != nil && errors.Is(err, sql.ErrNoRows) {
-		UserWithEmailNotExistResp(c, err)
+		ers.UserWithEmailNotExistResp(c, err)
 		return
 	}
 	if err != nil {
-		ServerErrorResp(c, err)
+		ers.ServerErrorResp(c, err)
 		return
 	}
 
@@ -190,14 +192,14 @@ func (o *userCtrl) Login(c *gin.Context) {
 		[]byte(user.Password),
 		[]byte(resq.Password),
 	); err != nil {
-		PasswordWrongResp(c, err)
+		ers.PasswordWrongResp(c, err)
 		return
 	}
 
 	// Generate Token
 	token, err := GenerateToken(user.ID, user.Role.String())
 	if err != nil {
-		ServerErrorResp(c, err)
+		ers.ServerErrorResp(c, err)
 		return
 	}
 	user.Password = "*****"
@@ -215,7 +217,7 @@ func (o *userCtrl) CheckDisplayName(c *gin.Context) {
 	// Check Request
 	var resq CheckDisplayNameReq
 	if err := c.ShouldBindJSON(&resq); err != nil {
-		BadRequestResp(c, err)
+		ers.BadRequestResp(c, err)
 		return
 	}
 
@@ -224,7 +226,7 @@ func (o *userCtrl) CheckDisplayName(c *gin.Context) {
 		qm.Where("display_name=?", resq.DisplayName),
 	).ExistsG(c)
 	if err != nil {
-		ServerErrorResp(c, err)
+		ers.ServerErrorResp(c, err)
 		return
 	}
 
@@ -239,7 +241,7 @@ func (o *userCtrl) CheckEmail(c *gin.Context) {
 	// Check Request
 	var resq CheckEmailReq
 	if err := c.ShouldBindJSON(&resq); err != nil {
-		BadRequestResp(c, err)
+		ers.BadRequestResp(c, err)
 		return
 	}
 
@@ -248,7 +250,7 @@ func (o *userCtrl) CheckEmail(c *gin.Context) {
 		qm.Where("email=?", resq.Email),
 	).ExistsG(c)
 	if err != nil {
-		ServerErrorResp(c, err)
+		ers.ServerErrorResp(c, err)
 		return
 	}
 
@@ -260,20 +262,25 @@ func (o *userCtrl) CheckEmail(c *gin.Context) {
 
 func (o *userCtrl) GetProfile(c *gin.Context) {
 
-	ReadTx(c, func(tx *sql.Tx) (ErrRespFunc, error) {
+	userID := c.GetString("userID")
 
-		userID := c.GetString("userID")
+	var resp *boiler.UserProfile
+	if err := ReadTx(c, func(tx *sql.Tx) (ers.ErrRespFunc, error) {
 
 		// Find UserProfile
 		userProfile, err := boiler.FindUserProfile(c, tx, userID)
 		if err != nil {
-			return ServerErrorResp, err
+			return ers.ServerErrorResp, err
 		}
+		resp = userProfile
 
-		c.JSON(http.StatusOK, userProfile)
 		return nil, nil
 
-	})
+	}); err != nil {
+		return
+	}
+
+	c.JSON(http.StatusOK, resp)
 
 }
 
@@ -282,62 +289,65 @@ func (o *userCtrl) GetProfile(c *gin.Context) {
 func (o *userCtrl) EditProfile(c *gin.Context) {
 
 	// Check Request
-	var resq UserProfileEditReq
-	if err := c.ShouldBindJSON(&resq); err != nil {
-		BadRequestResp(c, err)
+	var req UserProfileEditReq
+	if err := c.ShouldBindJSON(&req); err != nil {
+		ers.BadRequestResp(c, err)
 		return
 	}
 
-	WriteTx(c, func(tx *sql.Tx) (ErrRespFunc, error) {
+	var resp *boiler.UserProfile
+	WriteTx(c, func(tx *sql.Tx) (ers.ErrRespFunc, error) {
 
 		userID := c.GetString("userID")
 
 		// Find UserProfile
 		userProfile, err := boiler.FindUserProfile(c, tx, userID)
 		if err != nil {
-			return ServerErrorResp, err
+			return ers.ServerErrorResp, err
 		}
 
 		// Update User
-		if !resq.DisplayName.IsZero() {
+		if !req.DisplayName.IsZero() {
 
 			// Check DisplayName
 			if userProfileExists, err := boiler.UserProfiles(
 				qm.Where("user_id != ?", userID),
-				qm.Where("display_name = ?", resq.DisplayName),
+				qm.Where("display_name = ?", req.DisplayName),
 			).Exists(c, tx); err != nil {
-				return ServerErrorResp, err
+				return ers.ServerErrorResp, err
 			} else if userProfileExists {
-				return DisplayNameAlreadyExistResp, errors.New("display name already exists")
+				return ers.DisplayNameAlreadyExistResp, errors.New("display name already exists")
 			}
-			userProfile.DisplayName = resq.DisplayName.String
+			userProfile.DisplayName = req.DisplayName.String
 
 		}
 
-		if !resq.Name.IsZero() {
-			userProfile.Name = resq.Name.String
+		if !req.Name.IsZero() {
+			userProfile.Name = req.Name.String
 		}
 
-		if resq.BirthDate.Valid {
-			userProfile.BirthDate = resq.BirthDate
+		if req.BirthDate.Valid {
+			userProfile.BirthDate = req.BirthDate
 		}
 
-		if !resq.Phone.IsZero() {
-			userProfile.Phone = resq.Phone
+		if !req.Phone.IsZero() {
+			userProfile.Phone = req.Phone
 		}
 
-		if !resq.ImageUrl.IsZero() {
-			userProfile.ImageURL = resq.ImageUrl
+		if !req.ImageUrl.IsZero() {
+			userProfile.ImageURL = req.ImageUrl
 		}
 
 		if _, err = userProfile.Update(c, tx, boil.Infer()); err != nil {
-			return ServerErrorResp, err
+			return ers.ServerErrorResp, err
 		}
 
-		c.JSON(http.StatusOK, userProfile)
+		resp = userProfile
 		return nil, nil
 
 	})
+
+	c.JSON(http.StatusOK, resp)
 
 }
 
@@ -348,14 +358,14 @@ func (o *userCtrl) EditPassword(c *gin.Context) {
 	// Check Request
 	var resq UserEditPwReq
 	if err := c.ShouldBindJSON(&resq); err != nil {
-		BadRequestResp(c, err)
+		ers.BadRequestResp(c, err)
 		return
 	}
 
 	// Find User
 	user, err := boiler.FindUserG(c, c.GetString("userID"))
 	if err != nil {
-		ServerErrorResp(c, err)
+		ers.ServerErrorResp(c, err)
 		return
 	}
 
@@ -364,7 +374,7 @@ func (o *userCtrl) EditPassword(c *gin.Context) {
 		[]byte(user.Password),
 		[]byte(resq.OldPassword),
 	); err != nil {
-		PasswordWrongResp(c, err)
+		ers.PasswordWrongResp(c, err)
 		return
 	}
 
@@ -373,13 +383,13 @@ func (o *userCtrl) EditPassword(c *gin.Context) {
 		[]byte(resq.NewPassword), 10,
 	)
 	if err != nil {
-		BadRequestResp(c, err)
+		ers.BadRequestResp(c, err)
 		return
 	}
 	user.Password = string(hashedNewPassword)
 
 	if _, err := user.UpdateG(c, boil.Infer()); err != nil {
-		ServerErrorResp(c, err)
+		ers.ServerErrorResp(c, err)
 		return
 	}
 
@@ -394,18 +404,18 @@ func (o *userCtrl) SetFav(c *gin.Context) {
 	// Check Request
 	var resq UserSetFavReq
 	if err := c.ShouldBindJSON(&resq); err != nil {
-		BadRequestResp(c, err)
+		ers.BadRequestResp(c, err)
 		return
 	}
 
 	userID := c.GetString("userID")
 
-	WriteTx(c, func(tx *sql.Tx) (ErrRespFunc, error) {
+	WriteTx(c, func(tx *sql.Tx) (ers.ErrRespFunc, error) {
 
 		// Get Favourite
 		userFav, err := boiler.FindUserFavourite(c, tx, userID, resq.ContentID)
 		if err != nil && !errors.Is(err, sql.ErrNoRows) {
-			return ServerErrorResp, err
+			return ers.ServerErrorResp, err
 		}
 		if errors.Is(err, sql.ErrNoRows) {
 
@@ -416,7 +426,7 @@ func (o *userCtrl) SetFav(c *gin.Context) {
 			userFav.IsFavourite = resq.IsFavourite
 
 			if err := userFav.Insert(c, tx, boil.Infer()); err != nil {
-				return ServerErrorResp, err
+				return ers.ServerErrorResp, err
 			}
 
 		} else {
@@ -425,15 +435,16 @@ func (o *userCtrl) SetFav(c *gin.Context) {
 			userFav.IsFavourite = resq.IsFavourite
 
 			if _, err := userFav.Update(c, tx, boil.Infer()); err != nil {
-				return ServerErrorResp, err
+				return ers.ServerErrorResp, err
 			}
 
 		}
 
-		c.Status(http.StatusOK)
 		return nil, nil
 
 	})
+
+	c.Status(http.StatusOK)
 
 }
 
@@ -444,13 +455,14 @@ func (o *userCtrl) GetAllFav(c *gin.Context) {
 	// Check Request
 	var req UserFavGetAllReq
 	if err := c.BindQuery(&req); err != nil {
-		BadRequestResp(c, err)
+		ers.BadRequestResp(c, err)
 		return
 	}
 
 	userID := c.GetString("userID")
 
-	ReadTx(c, func(tx *sql.Tx) (ErrRespFunc, error) {
+	var resp []ContentWhole
+	ReadTx(c, func(tx *sql.Tx) (ers.ErrRespFunc, error) {
 
 		// Get All Contents
 		var contentList []ContentWhole
@@ -484,7 +496,7 @@ func (o *userCtrl) GetAllFav(c *gin.Context) {
 		}
 
 		if err := boiler.NewQuery(qms...).Bind(c, tx, &contentList); err != nil {
-			return ServerErrorResp, err
+			return ers.ServerErrorResp, err
 		}
 
 		for _, content := range contentList {
@@ -494,15 +506,17 @@ func (o *userCtrl) GetAllFav(c *gin.Context) {
 				qm.Where("content_id = ?", content.ID),
 			).All(c, tx)
 			if err != nil {
-				return ServerErrorResp, err
+				return ers.ServerErrorResp, err
 			}
 			content.ContentHtmlList = contentHtmlList
 
 		}
 
-		c.JSON(http.StatusOK, contentList)
+		resp = contentList
 		return nil, nil
 
 	})
+
+	c.JSON(http.StatusOK, resp)
 
 }
