@@ -1,21 +1,22 @@
 import 'package:flutter/material.dart';
 import 'package:how_to/pages/bottom_navi.dart';
 import 'package:how_to/pages/content_create.dart';
+import 'package:how_to/pages/favourite.dart';
 import 'package:how_to/pages/launch.dart';
 import 'package:how_to/pages/login.dart';
+import 'package:how_to/pages/my_contents.dart';
 import 'package:how_to/pages/my_page.dart';
+import 'package:how_to/pages/notification.dart';
 import 'package:how_to/pages/profile.dart';
 import 'package:how_to/pages/register.dart';
 import 'package:how_to/pages/top.dart';
 import 'package:how_to/providers/content_provider.dart';
-import 'package:how_to/providers/user_provider.dart';
 import 'package:provider/provider.dart';
 
 void main() {
   return runApp(
     MultiProvider(
       providers: [
-        ChangeNotifierProvider(create: (_) => UserProvider()),
         ChangeNotifierProvider(create: (_) => ContentProvider()),
       ],
       child: const MainApp(),
@@ -39,7 +40,6 @@ class MainApp extends StatelessWidget {
         ),
       ),
       initialRoute: LaunchPage.routeName,
-      // initialRoute: Profile.routeName,
       routes: {
         LaunchPage.routeName: (_) => const LaunchPage(),
         BottomNaviPage.routeName: (_) => const BottomNaviPage(pageIndex: 2),
@@ -49,6 +49,9 @@ class MainApp extends StatelessWidget {
         MyPage.routeName: (_) => const MyPage(),
         Profile.routeName: (_) => const Profile(),
         ContentCreate.routeName: (_) => const ContentCreate(),
+        MyContentsPage.routeName: (_) => const MyContentsPage(),
+        FavouritePage.routeName: (_) => const FavouritePage(),
+        NotificationPage.routeName: (_) => const NotificationPage(),
       },
     );
   }

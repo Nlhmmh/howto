@@ -1,10 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:how_to/pages/bottom_navi.dart';
 import 'package:how_to/pages/widgets.dart';
-import 'package:how_to/providers/api/user.dart';
-import 'package:how_to/providers/user_provider.dart';
+import 'package:how_to/providers/api/user_ctrls.dart';
 import 'package:how_to/pages/register.dart';
-import 'package:provider/provider.dart';
 
 class LoginPage extends StatefulWidget {
   static const routeName = "/login";

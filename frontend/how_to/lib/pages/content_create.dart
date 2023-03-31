@@ -1,15 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_html/flutter_html.dart';
+import 'package:how_to/pages/bottom_navi.dart';
 import 'package:how_to/pages/content_create/body_content.dart';
 import 'package:how_to/pages/content_create/html.dart';
 import 'package:how_to/pages/content_create/image_adder.dart';
 import 'package:how_to/pages/content_create/models.dart';
 import 'package:how_to/pages/content_create/text_adder.dart';
-import 'package:how_to/pages/top.dart';
-import 'package:how_to/providers/content_provider.dart';
+import 'package:how_to/providers/api/content_ctrls.dart';
 import 'package:how_to/pages/widgets.dart';
+import 'package:how_to/providers/api/file_ctrls.dart';
 import 'package:how_to/providers/models.dart';
-import 'package:provider/provider.dart';
+import 'package:how_to/providers/utils.dart';
 
 class ContentCreate extends StatefulWidget {
   static const routeName = "/content/create";
@@ -40,10 +41,10 @@ class _ContentCreateState extends State<ContentCreate> {
     _titleCtrl.text = "How to boil potato?";
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       if (!mounted) return;
-      final ctnCatList = await Provider.of<ContentProvider>(
-        context,
-        listen: false,
-      ).getAllCtnCat();
+      final ctnCatList = await ContentCtrls.getAllCtnCat((errResp) {
+        if (!mounted) return;
+        Utils.checkErrorResp(context, errResp);
+      });
       _ctnCatList = ctnCatList;
       if (_ctnCatList.isNotEmpty) _selCat = ctnCatList.first;
       setState(() {});
@@ -242,26 +243,57 @@ class _ContentCreateState extends State<ContentCreate> {
                   context: context,
                   text: "Create Content",
                   onPressed: () async {
-                    final isAdded = await Provider.of<ContentProvider>(
-                      context,
-                      listen: false,
-                    ).createCtn({
-                      "title": _titleCtrl.text,
-                      "category": _selCat.id,
-                      "imageUrl": "/test.png",
-                      "contentHTMLList": [
-                        {
-                          "orderNo": 1,
-                          "html": "<p>Test</p>",
+                    // Uploade Image
+                    final mainImgResp = await FileCtrls.upload(_mainImg.image!);
+                    if (mainImgResp.errResp.code != 0) {
+                      if (!mounted) return;
+                      Utils.checkErrorResp(context, mainImgResp.errResp);
+                      return;
+                    }
+
+                    for (final bc in _bdCtnList) {
+                      if (bc.mode == BodyContentMode.image) {
+                        // Uploade Image
+                        final imgResp = await FileCtrls.upload(bc.image!);
+                        if (imgResp.errResp.code != 0) {
+                          if (!mounted) return;
+                          Utils.checkErrorResp(context, imgResp.errResp);
                         }
-                      ]
+                        bc.imagePath = imgResp.filePath;
+                      }
+                    }
+
+                    final finalHTML = HTMLBuilder.buildFinal(
+                      title: _titleCtrl.text,
+                      category: _selCat.name,
+                      mainImgPath: mainImgResp.filePath,
+                      bdCtnList: _bdCtnList,
+                    );
+
+                    // Create Content
+                    final errResp = await ContentCtrls.createCtn({
+                      "title": _titleCtrl.text,
+                      "categoryID": _selCat.id,
+                      "imageUrl": mainImgResp.filePath,
+                      "contentHTMLList": _bdCtnList.map((e) {
+                        return {
+                          "orderNo": 1,
+                          "html": finalHTML,
+                        };
+                      }).toList(),
                     });
-                    if (!isAdded) return;
+                    if (errResp.code != 0) {
+                      if (!mounted) return;
+                      Utils.checkErrorResp(context, errResp);
+                      return;
+                    }
                     if (!mounted) return;
                     await Navigator.pushAndRemoveUntil(
                       context,
                       MaterialPageRoute(
-                        builder: (context) => const TopPage(),
+                        builder: (context) => const BottomNaviPage(
+                          pageIndex: 0,
+                        ),
                       ),
                       (route) => false,
                     );

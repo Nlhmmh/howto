@@ -11,7 +11,8 @@ class ErrorResp {
     required this.error,
   });
 
-  ErrorResp.fromJson(Map<String, dynamic> json) {
+  ErrorResp.fromJson(Map<String, dynamic>? json) {
+    if (json == null) return;
     code = json['code'] ?? 0;
     message = json['message'] ?? "";
     error = json['error'] ?? "";
@@ -169,14 +170,16 @@ class UserProfile {
 }
 
 class Content {
-  int id = 0;
-  int userID = 0;
+  String id = "";
+  String userID = "";
   String title = "";
-  String category = "";
+  int categoryID = 0;
+  String categoryStr = "";
   int viewCount = 0;
   DateTime createdAt = DateTime.now();
   DateTime updatedAt = DateTime.now();
   String userName = "";
+  String imageUrl = "";
 
   Content();
 
@@ -184,20 +187,35 @@ class Content {
     required this.id,
     required this.userID,
     required this.title,
-    required this.category,
+    required this.categoryID,
+    required this.categoryStr,
     required this.viewCount,
     required this.userName,
+    required this.imageUrl,
   });
 
   Content.fromJson(Map<String, dynamic> json) {
-    id = json['id'];
-    userID = json['userID'];
-    title = json['title'];
-    category = json['category'];
-    viewCount = json['viewCount'];
+    id = json['id'] ?? "";
+    userID = json['userID'] ?? "";
+    title = json['title'] ?? "";
+    categoryID = json['categoryID'] ?? 0;
+    categoryStr = json['categoryStr'] ?? "";
+    viewCount = json['viewCount'] ?? 0;
     createdAt = DateTime.parse(json['createdAt']);
     updatedAt = DateTime.parse(json['updatedAt']);
-    userName = json['userName'];
+    userName = json['userName'] ?? "";
+    imageUrl = json['imageUrl'] ?? "";
+  }
+
+  static List<Content> toList(Map<String, dynamic>? json) {
+    if (json == null || json["list"] == null) return [];
+    if (json["list"].isEmpty) return [];
+    final List<dynamic> tmp = json["list"];
+    return tmp
+        .map<Content>(
+          (item) => Content.fromJson(item),
+        )
+        .toList();
   }
 }
 
@@ -223,5 +241,40 @@ class ContentCategory {
       contentCategoryList.add(ContentCategory.fromJson(json));
     }
     return contentCategoryList;
+  }
+
+  static List<ContentCategory> toList(Map<String, dynamic>? json) {
+    if (json == null || json["list"] == null) return [];
+    if (json["list"].isEmpty) return [];
+    final List<dynamic> tmp = json["list"];
+    return tmp
+        .map<ContentCategory>(
+          (item) => ContentCategory.fromJson(item),
+        )
+        .toList();
+  }
+}
+
+class UploadFile {
+  String filePath = "";
+
+  ErrorResp errResp = ErrorResp();
+
+  UploadFile();
+
+  UploadFile.withParams({
+    required this.filePath,
+  });
+
+  UploadFile.fromJson(Map<String, dynamic>? json) {
+    if (json == null) return;
+    filePath = json['filePath'] ?? "";
+    errResp = ErrorResp.fromJson(json);
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'filePath': filePath,
+    };
   }
 }

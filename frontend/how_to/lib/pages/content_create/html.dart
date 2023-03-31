@@ -2,17 +2,16 @@ import 'dart:convert';
 import 'dart:developer';
 
 import 'package:how_to/pages/content_create/models.dart';
+import 'package:how_to/providers/constants.dart';
 
-class HTMLBuilder {
+abstract class HTMLBuilder {
   static String build({
     required String title,
     required String category,
     required BodyContent mainImg,
     required List<BodyContent> bdCtnList,
   }) {
-    String confirmHTML = "";
-
-    confirmHTML += '''
+    String confirmHTML = '''
           <h1>$title</h1>
         ''';
 
@@ -39,7 +38,42 @@ class HTMLBuilder {
       }
     });
 
-    log(confirmHTML);
+    // log(confirmHTML);
+
+    return confirmHTML;
+  }
+
+  static String buildFinal({
+    required String title,
+    required String category,
+    required String mainImgPath,
+    required List<BodyContent> bdCtnList,
+  }) {
+    String confirmHTML = '''
+          <h1>$title</h1>
+          <div>
+            <img style="object-fit:cover" src="${Constants.domainHttp}$mainImgPath"></img>
+          </div>
+        ''';
+
+    bdCtnList.asMap().forEach((i, bc) {
+      if (bc.mode == BodyContentMode.text) {
+        // final tmpText = bc.text.replaceAll("\n", "<br/>");
+        confirmHTML += '''
+          <p>${bc.text}</p>
+        ''';
+      }
+      if (bc.mode == BodyContentMode.image) {
+        confirmHTML += '''
+          <h1>$title</h1>
+          <div>
+            <img style="object-fit:cover" src="${Constants.domainHttp}${bc.imagePath}"></img>
+          </div>
+        ''';
+      }
+    });
+
+    // log(confirmHTML);
 
     return confirmHTML;
   }

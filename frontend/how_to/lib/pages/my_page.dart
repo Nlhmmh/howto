@@ -1,14 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:how_to/pages/bottom_navi.dart';
+import 'package:how_to/pages/favourite.dart';
 import 'package:how_to/pages/login.dart';
+import 'package:how_to/pages/my_contents.dart';
 import 'package:how_to/pages/widgets.dart';
-import 'package:how_to/providers/api/user.dart';
+import 'package:how_to/providers/api/user_ctrls.dart';
 import 'package:how_to/providers/constants.dart';
 import 'package:how_to/providers/models.dart';
-import 'package:how_to/providers/user_provider.dart';
 import 'package:how_to/pages/profile.dart';
 import 'package:how_to/providers/utils.dart';
-import 'package:provider/provider.dart';
 
 class MyPage extends StatefulWidget {
   static const routeName = "/mypage";
@@ -32,13 +32,10 @@ class _MyPageState extends State<MyPage> {
 
       // Fetch UserProfile
       if (!mounted) return;
-      final userProfile = await UserCtrls.fetchProfile(
-        context,
-        (errResp) {
-          if (!mounted) return;
-          Utils.checkErrorResp(context, errResp);
-        },
-      );
+      final userProfile = await UserCtrls.fetchProfile((errResp) {
+        if (!mounted) return;
+        Utils.checkErrorResp(context, errResp);
+      });
       _userProfile = userProfile;
 
       setState(() {});
@@ -140,7 +137,20 @@ class _MyPageState extends State<MyPage> {
                   onTap: () {
                     // TODO : Favourite Page
                     if (_loginData.isLoggedIn) {
-                      Navigator.pushNamed(context, Profile.routeName);
+                      Navigator.pushNamed(context, FavouritePage.routeName);
+                    } else {
+                      Navigator.pushNamed(context, LoginPage.routeName);
+                    }
+                  },
+                ),
+                // --------------- My Contents
+                iconTextButton(
+                  text: "My Contents",
+                  icon: Icons.content_copy,
+                  onTap: () {
+                    // TODO : Favourite Page
+                    if (_loginData.isLoggedIn) {
+                      Navigator.pushNamed(context, MyContentsPage.routeName);
                     } else {
                       Navigator.pushNamed(context, LoginPage.routeName);
                     }
@@ -180,8 +190,7 @@ class _MyPageState extends State<MyPage> {
                   context: context,
                   text: "Logout",
                   onPressed: () async {
-                    await Provider.of<UserProvider>(context, listen: false)
-                        .logOut();
+                    await UserCtrls.logOut();
                     if (!mounted) return;
                     await Navigator.pushAndRemoveUntil(
                       context,

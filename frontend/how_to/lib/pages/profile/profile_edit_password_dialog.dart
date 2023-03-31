@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:how_to/pages/widgets.dart';
-import 'package:how_to/providers/user_provider.dart';
-import 'package:provider/provider.dart';
+import 'package:how_to/providers/api/user_ctrls.dart';
 
 class ProfileEditPasswordDialog extends StatefulWidget {
   const ProfileEditPasswordDialog({Key? key}) : super(key: key);
@@ -172,9 +171,7 @@ class _ProfileEditPasswordDialogState extends State<ProfileEditPasswordDialog> {
               text: "Edit",
               onPressed: () async {
                 if (_formKey.currentState!.validate()) {
-                  final resp =
-                      await Provider.of<UserProvider>(context, listen: false)
-                          .editPassword({
+                  final resp = await UserCtrls.editPassword({
                     "oldPassword": _pwCtrl.text,
                     "newPassword": _newPWCtrl.text,
                   });

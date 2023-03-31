@@ -109,7 +109,7 @@ func (o *userCtrl) Register(c *gin.Context) {
 		return
 	}
 
-	WriteTx(c, func(tx *sql.Tx) (ers.ErrRespFunc, error) {
+	if err := WriteTx(c, func(tx *sql.Tx) (ers.ErrRespFunc, error) {
 
 		// Find User With Email
 		if emailExists, err := boiler.Users(
@@ -157,7 +157,9 @@ func (o *userCtrl) Register(c *gin.Context) {
 
 		return nil, nil
 
-	})
+	}); err != nil {
+		return
+	}
 
 	c.Status(http.StatusOK)
 
@@ -295,8 +297,7 @@ func (o *userCtrl) EditProfile(c *gin.Context) {
 		return
 	}
 
-	var resp *boiler.UserProfile
-	WriteTx(c, func(tx *sql.Tx) (ers.ErrRespFunc, error) {
+	if err := WriteTx(c, func(tx *sql.Tx) (ers.ErrRespFunc, error) {
 
 		userID := c.GetString("userID")
 
@@ -342,12 +343,13 @@ func (o *userCtrl) EditProfile(c *gin.Context) {
 			return ers.ServerErrorResp, err
 		}
 
-		resp = userProfile
 		return nil, nil
 
-	})
+	}); err != nil {
+		return
+	}
 
-	c.JSON(http.StatusOK, resp)
+	c.JSON(http.StatusOK, RespMap{})
 
 }
 
@@ -410,7 +412,7 @@ func (o *userCtrl) SetFav(c *gin.Context) {
 
 	userID := c.GetString("userID")
 
-	WriteTx(c, func(tx *sql.Tx) (ers.ErrRespFunc, error) {
+	if err := WriteTx(c, func(tx *sql.Tx) (ers.ErrRespFunc, error) {
 
 		// Get Favourite
 		userFav, err := boiler.FindUserFavourite(c, tx, userID, resq.ContentID)
@@ -442,7 +444,9 @@ func (o *userCtrl) SetFav(c *gin.Context) {
 
 		return nil, nil
 
-	})
+	}); err != nil {
+		return
+	}
 
 	c.Status(http.StatusOK)
 

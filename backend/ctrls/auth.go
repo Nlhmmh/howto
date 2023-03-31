@@ -5,6 +5,7 @@ import (
 	"backend/ers"
 	"backend/server"
 	"errors"
+	"fmt"
 	"strings"
 	"time"
 
@@ -25,8 +26,7 @@ var (
 		"/api/user/send/otp",
 		"/api/user/check/otp",
 
-		"/api/content",
-		"/api/content/:contentID",
+		"/api/content/one/:contentID",
 		"/api/content/categories",
 	}
 
@@ -37,6 +37,7 @@ var (
 
 	containWhiteList = []string{
 		"/api/file/media",
+		"/api/content/all",
 	}
 )
 
@@ -53,43 +54,43 @@ type CustomClaims struct {
 
 // AuthorizeJWT - Auth JWT MiddleWare
 func AuthorizeJWT() gin.HandlerFunc {
+	fmt.Println("TT")
 	return func(c *gin.Context) {
 
 		// Check White List
-		if checkJWTWhiteList(c.FullPath()) && checkContainWhiteList(c.FullPath()) {
-
-			// Get token
-			bearerToken := c.GetHeader("Authorization")
-			tokenArray := strings.Split(bearerToken, " ")
-			if len(tokenArray) < 2 {
-				ers.UnAuthorizedResp(c, errors.New("bearer token is wrong"+bearerToken))
-				return
-			}
-			token := tokenArray[1]
-
-			// Validate Token
-			claims, err := ValidateToken(token)
-			if err != nil {
-				ers.UnAuthorizedResp(c, err)
-				return
-			}
-			claimsValue := *claims
-			c.Set("userID", claimsValue.UserID)
-
-			if checkAdminWhiteList(c.FullPath()) {
-				if claims.Role == "admin" {
-					c.Next()
-				} else {
-					ers.UnAuthorizedResp(c, errors.New("not admin user"))
-					return
-				}
-			}
-
+		if checkJWTWhiteList(c.FullPath()) || checkContainWhiteList(c.FullPath()) {
 			c.Next()
-
-		} else {
-			c.Next()
+			return
 		}
+
+		// Get token
+		bearerToken := c.GetHeader("Authorization")
+		tokenArray := strings.Split(bearerToken, " ")
+		if len(tokenArray) < 2 {
+			ers.UnAuthorizedResp(c, errors.New("bearer token is wrong"+bearerToken))
+			return
+		}
+		token := tokenArray[1]
+
+		// Validate Token
+		claims, err := ValidateToken(token)
+		if err != nil {
+			ers.UnAuthorizedResp(c, err)
+			return
+		}
+		claimsValue := *claims
+		c.Set("userID", claimsValue.UserID)
+
+		if checkAdminWhiteList(c.FullPath()) {
+			if claims.Role == "admin" {
+				c.Next()
+			} else {
+				ers.UnAuthorizedResp(c, errors.New("not admin user"))
+				return
+			}
+		}
+
+		c.Next()
 
 	}
 }
@@ -98,20 +99,20 @@ func AuthorizeJWT() gin.HandlerFunc {
 func checkJWTWhiteList(path string) bool {
 	for _, p := range whiteList {
 		if path == p {
-			return false
+			return true
 		}
 	}
-	return true
+	return false
 }
 
 // checkContainWhiteList - Check if Path exists in Contain WhiteList
 func checkContainWhiteList(path string) bool {
 	for _, p := range containWhiteList {
 		if strings.Contains(path, p) {
-			return false
+			return true
 		}
 	}
-	return true
+	return false
 }
 
 // checkAdminWhiteList - Check if Path exists in Admin WhiteList

@@ -31,6 +31,6 @@ func (o *fileCtrl) Upload(c *gin.Context) {
 		return
 	}
 
-	c.String(http.StatusOK, "/api/file/media/"+filePathName)
+	c.JSON(http.StatusOK, map[string]any{"filePath": "/api/file/media/" + filePathName})
 
 }

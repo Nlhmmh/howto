@@ -2,9 +2,8 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:how_to/pages/login.dart';
 import 'package:how_to/pages/widgets.dart';
-import 'package:how_to/providers/user_provider.dart';
+import 'package:how_to/providers/api/user_ctrls.dart';
 import 'package:intl/intl.dart';
-import 'package:provider/provider.dart';
 
 class Registor extends StatefulWidget {
   static const routeName = "/register";
@@ -399,10 +398,7 @@ class _RegistorState extends State<Registor> {
                     onPressed: () async {
                       _errMsg = "";
                       if (_formKey.currentState!.validate()) {
-                        final resp = await Provider.of<UserProvider>(
-                          context,
-                          listen: false,
-                        ).registerUser({
+                        final resp = await UserCtrls.register({
                           "email": _emailCtrl.text,
                           "password": _pwCtrl.text,
                           "displayName": _displayNameCtrl.text,

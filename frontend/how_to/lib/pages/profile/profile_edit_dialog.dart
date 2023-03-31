@@ -3,12 +3,13 @@ import 'dart:io';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:how_to/pages/widgets.dart';
+import 'package:how_to/providers/api/file_ctrls.dart';
+import 'package:how_to/providers/api/user_ctrls.dart';
 import 'package:how_to/providers/constants.dart';
 import 'package:how_to/providers/models.dart';
-import 'package:how_to/providers/user_provider.dart';
+import 'package:how_to/providers/utils.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
-import 'package:provider/provider.dart';
 
 class ProfileEditDialog extends StatefulWidget {
   final User user;
@@ -309,21 +310,18 @@ class _ProfileEditDialogState extends State<ProfileEditDialog> {
                     // Upload Image
                     var imagUrl = widget.userProfile.imageUrl;
                     if (_image != null) {
-                      final respImgPath = await Provider.of<UserProvider>(
-                        context,
-                        listen: false,
-                      ).uploadFile(uploadFile: _image!);
-                      if (respImgPath != "") {
-                        imagUrl = respImgPath;
+                      final imgResp = await FileCtrls.upload(_image!);
+                      if (imgResp.errResp.code != 0) {
+                        if (!mounted) return;
+                        Utils.checkErrorResp(context, imgResp.errResp);
+                        return;
                       }
+                      imagUrl = imgResp.filePath;
                     }
 
                     // Edit Profile
                     if (!mounted) return;
-                    final resp = await Provider.of<UserProvider>(
-                      context,
-                      listen: false,
-                    ).editProfile({
+                    final errResp = await UserCtrls.editProfile({
                       "displayName": _displayNameCtrl.text,
                       "name": _nameCtrl.text,
                       "birthDate": !_birthDate.toIso8601String().contains('Z')
@@ -332,12 +330,13 @@ class _ProfileEditDialogState extends State<ProfileEditDialog> {
                       "phone": _phoneCtrl.text,
                       "imagUrl": imagUrl,
                     });
-                    if (resp.code == 0) {
+                    if (errResp.code != 0) {
                       if (!mounted) return;
-                      Navigator.pop(context);
-                    } else {
-                      _errMsg = resp.error;
+                      Utils.checkErrorResp(context, errResp);
+                      return;
                     }
+                    if (!mounted) return;
+                    Navigator.pop(context);
                   } catch (e) {
                     debugPrint(e.toString());
                   } finally {

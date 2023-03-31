@@ -90,7 +90,7 @@ func (o *contentCtrl) GetAll(c *gin.Context) {
 		contentList = []ContentWhole{}
 	}
 
-	c.JSON(http.StatusOK, contentList)
+	c.JSON(http.StatusOK, RespList{List: contentList})
 
 }
 
@@ -108,7 +108,7 @@ func (o *contentCtrl) CreateContentWhole(c *gin.Context) {
 	userID := c.GetString("userID")
 
 	content := new(boiler.Content)
-	WriteTx(c, func(tx *sql.Tx) (ers.ErrRespFunc, error) {
+	if err := WriteTx(c, func(tx *sql.Tx) (ers.ErrRespFunc, error) {
 
 		// Check Title
 		titleExists, err := boiler.Contents(
@@ -152,7 +152,9 @@ func (o *contentCtrl) CreateContentWhole(c *gin.Context) {
 
 		return nil, nil
 
-	})
+	}); err != nil {
+		return
+	}
 
 	c.JSON(http.StatusOK, content)
 
@@ -169,7 +171,7 @@ func (o *contentCtrl) GetOne(c *gin.Context) {
 
 	// Get Content
 	var content ContentWhole
-	ReadTx(c, func(tx *sql.Tx) (ers.ErrRespFunc, error) {
+	if err := ReadTx(c, func(tx *sql.Tx) (ers.ErrRespFunc, error) {
 
 		qms := []qm.QueryMod{}
 		qms = append(qms, qm.Select(
@@ -199,7 +201,9 @@ func (o *contentCtrl) GetOne(c *gin.Context) {
 
 		return nil, nil
 
-	})
+	}); err != nil {
+		return
+	}
 
 	c.JSON(http.StatusOK, content)
 
@@ -219,6 +223,6 @@ func (o *contentCtrl) GetAllCategories(c *gin.Context) {
 		contentCategoryList = []*boiler.ContentCategory{}
 	}
 
-	c.JSON(http.StatusOK, contentCategoryList)
+	c.JSON(http.StatusOK, RespList{List: contentCategoryList})
 
 }

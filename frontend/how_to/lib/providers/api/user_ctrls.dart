@@ -1,9 +1,7 @@
 import 'dart:convert';
 
-import 'package:flutter/material.dart';
 import 'package:how_to/providers/api/api.dart';
 import 'package:how_to/providers/models.dart';
-import 'package:how_to/providers/utils.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 abstract class UserCtrls {
@@ -36,6 +34,15 @@ abstract class UserCtrls {
 
   // -------------------------------
 
+  static Future<ErrorResp> register(Map<String, String> reqBody) async {
+    final resp = await API.post(
+      path: "/api/user/register",
+      body: reqBody,
+    );
+    final errorResp = ErrorResp.fromJson(jsonDecode(resp.body));
+    return errorResp;
+  }
+
   static Future<LoginData> login(Map<String, String> reqBody) async {
     final resp = await API.post(
       path: "/api/user/login",
@@ -46,14 +53,29 @@ abstract class UserCtrls {
     return loginData;
   }
 
-  static Future<UserProfile> fetchProfile(
-    BuildContext context,
-    Function(ErrorResp) cbFunc,
-  ) async {
+  static Future<UserProfile> fetchProfile(Function(ErrorResp) cbFunc) async {
     final resp = await API.get(path: "/api/user/profile");
     final tmp = UserProfile.fromJson(jsonDecode(resp.body));
     cbFunc(tmp.errResp);
     return tmp;
+  }
+
+  static Future<ErrorResp> editProfile(Map<String, String> reqBody) async {
+    final resp = await API.put(
+      path: "/api/user/edit/profile",
+      body: reqBody,
+    );
+    final errorResp = ErrorResp.fromJson(jsonDecode(resp.body));
+    return errorResp;
+  }
+
+  static Future<ErrorResp> editPassword(Map<String, String> reqBody) async {
+    final resp = await API.post(
+      path: "/api/user/edit/password",
+      body: reqBody,
+    );
+    final errorResp = ErrorResp.fromJson(jsonDecode(resp.body));
+    return errorResp;
   }
 
   // -----------------------------------------------

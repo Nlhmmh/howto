@@ -10,6 +10,7 @@ class BodyContent {
   Widget widget;
   String text = "";
   File? image;
+  String imagePath;
 
   BodyContent({
     required this.orderNo,
@@ -17,5 +18,6 @@ class BodyContent {
     required this.widget,
     this.text = "",
     this.image,
+    this.imagePath = "",
   });
 }

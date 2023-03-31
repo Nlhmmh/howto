@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 
 import 'package:how_to/pages/profile/profile_edit_dialog.dart';
 import 'package:how_to/pages/profile/profile_edit_password_dialog.dart';
-import 'package:how_to/providers/api/user.dart';
+import 'package:how_to/providers/api/user_ctrls.dart';
 import 'package:how_to/providers/constants.dart';
 
 import 'package:how_to/providers/models.dart';
@@ -33,13 +33,10 @@ class _ProfileState extends State<Profile> {
       if (_loginData.isLoggedIn) {
         // Fetch UserProfile
         if (!mounted) return;
-        final userProfile = await UserCtrls.fetchProfile(
-          context,
-          (errResp) {
-            if (!mounted) return;
-            Utils.checkErrorResp(context, errResp);
-          },
-        );
+        final userProfile = await UserCtrls.fetchProfile((errResp) {
+          if (!mounted) return;
+          Utils.checkErrorResp(context, errResp);
+        });
         _userProfile = userProfile;
       }
 
@@ -69,13 +66,10 @@ class _ProfileState extends State<Profile> {
               ),
             );
             if (!mounted) return;
-            final userProfile = await UserCtrls.fetchProfile(
-              context,
-              (errResp) {
-                if (!mounted) return;
-                Utils.checkErrorResp(context, errResp);
-              },
-            );
+            final userProfile = await UserCtrls.fetchProfile((errResp) {
+              if (!mounted) return;
+              Utils.checkErrorResp(context, errResp);
+            });
             _userProfile = userProfile;
             setState(() {});
           },
@@ -165,13 +159,10 @@ class _ProfileState extends State<Profile> {
                                 );
                                 if (!mounted) return;
                                 final userProfile =
-                                    await UserCtrls.fetchProfile(
-                                  context,
-                                  (errResp) {
-                                    if (!mounted) return;
-                                    Utils.checkErrorResp(context, errResp);
-                                  },
-                                );
+                                    await UserCtrls.fetchProfile((errResp) {
+                                  if (!mounted) return;
+                                  Utils.checkErrorResp(context, errResp);
+                                });
                                 _userProfile = userProfile;
                                 setState(() {});
                               },

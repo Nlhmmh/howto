@@ -73,7 +73,7 @@ type ContentWhole struct {
 	UserID     string      `boil:"user_id" json:"userID" toml:"userID" yaml:"userID"`
 	CategoryID uint        `boil:"category_id" json:"categoryID" toml:"categoryID" yaml:"categoryID"`
 	Title      string      `boil:"title" json:"title" toml:"title" yaml:"title"`
-	ImageUrl   null.String `boil:"image_url" json:"imagUrl" toml:"imagUrl" yaml:"imagUrl"`
+	ImageUrl   null.String `boil:"image_url" json:"imageUrl" toml:"imageUrl" yaml:"imageUrl"`
 	ViewCount  int         `boil:"view_count" json:"viewCount" toml:"viewCount" yaml:"viewCount"`
 	CreatedAt  time.Time   `boil:"created_at" json:"createdAt" toml:"createdAt" yaml:"createdAt"`
 	UpdatedAt  null.Time   `boil:"updated_at" json:"updatedAt,omitempty" toml:"updatedAt" yaml:"updatedAt,omitempty"`
@@ -105,3 +105,9 @@ type CreateContentReq struct {
 }
 
 // *********************************************** //
+
+type RespList struct {
+	List any `json:"list"`
+}
+
+type RespMap map[string]any

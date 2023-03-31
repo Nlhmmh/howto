@@ -30,22 +30,24 @@ func ReadTx(c *gin.Context, innerFunc func(tx *sql.Tx) (ers.ErrRespFunc, error))
 
 }
 
-func WriteTx(c *gin.Context, innerFunc func(tx *sql.Tx) (ers.ErrRespFunc, error)) {
+func WriteTx(c *gin.Context, innerFunc func(tx *sql.Tx) (ers.ErrRespFunc, error)) error {
 
 	tx, err := boil.BeginTx(c, &sql.TxOptions{ReadOnly: false})
 	if err != nil {
 		ers.ServerErrorResp(c, err)
-		return
+		return err
 	}
 
 	if errRespFunc, err := innerFunc(tx); err != nil {
 		ers.RespWithRollbackTx(c, err, tx, errRespFunc)
-		return
+		return err
 	}
 
 	if err := tx.Commit(); err != nil {
 		ers.ServerErrorResp(c, err)
-		return
+		return err
 	}
+
+	return nil
 
 }

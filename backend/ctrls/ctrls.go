@@ -41,8 +41,8 @@ func CreateRoutes(router *gin.Engine) {
 		// Content Routes
 		contentGroup := apiGroup.Group("/content")
 		{
-			contentGroup.GET("", contentCtrls.GetAll)
-			contentGroup.GET("/:contentID", contentCtrls.GetOne)
+			contentGroup.GET("/all", contentCtrls.GetAll)
+			contentGroup.GET("/one/:contentID", contentCtrls.GetOne)
 			contentGroup.POST("/create", contentCtrls.CreateContentWhole)
 			contentGroup.GET("/categories", contentCtrls.GetAllCategories)
 		}

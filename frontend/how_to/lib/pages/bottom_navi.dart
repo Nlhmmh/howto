@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:how_to/pages/content_create.dart';
+import 'package:how_to/pages/favourite.dart';
+import 'package:how_to/pages/login.dart';
 import 'package:how_to/pages/my_page.dart';
+import 'package:how_to/pages/notification.dart';
 import 'package:how_to/pages/top.dart';
+import 'package:how_to/providers/api/user_ctrls.dart';
 import 'package:how_to/providers/constants.dart';
 import 'package:how_to/providers/models.dart';
-import 'package:how_to/providers/user_provider.dart';
-import 'package:provider/provider.dart';
 
 class BottomNaviPage extends StatefulWidget {
   static const routeName = "/bottomnavi";
@@ -43,9 +45,9 @@ class _BottomNaviPageState extends State<BottomNaviPage> {
       );
       setState(() {});
 
-      final loginData = await Provider.of<UserProvider>(context, listen: false)
-          .getLoginData();
+      final loginData = await UserCtrls.getLoginData();
       _loginData = loginData;
+
       setState(() {});
     });
   }
@@ -97,7 +99,7 @@ class _BottomNaviPageState extends State<BottomNaviPage> {
         physics: const NeverScrollableScrollPhysics(),
         children: const [
           TopPage(),
-          ContentCreate(),
+          NotificationPage(),
           MyPage(),
         ],
         onPageChanged: (index) {
@@ -112,42 +114,32 @@ class _BottomNaviPageState extends State<BottomNaviPage> {
         unselectedItemColor: Theme.of(context).colorScheme.secondaryContainer,
         backgroundColor: Theme.of(context).colorScheme.secondary,
         enableFeedback: true,
-        items: _loginData.user.type == Constants.creatorAccType
-            ? const [
-                // --------------- Home
-                BottomNavigationBarItem(
-                  icon: Icon(Icons.home),
-                  label: 'Home',
-                ),
-                // --------------- Create Content
-                BottomNavigationBarItem(
-                  icon: Icon(Icons.add_box_outlined),
-                  label: 'Create Content',
-                ),
-                // --------------- My Page
-                BottomNavigationBarItem(
-                  icon: Icon(Icons.account_box),
-                  label: 'My Page',
-                ),
-              ]
-            : const [
-                // --------------- Home
-                BottomNavigationBarItem(
-                  icon: Icon(Icons.home),
-                  label: 'Home',
-                ),
-                // --------------- Favourite
-                BottomNavigationBarItem(
-                  icon: Icon(Icons.favorite),
-                  label: 'Favourite',
-                ),
-                // --------------- My Page
-                BottomNavigationBarItem(
-                  icon: Icon(Icons.account_box),
-                  label: 'My Page',
-                ),
-              ],
+        iconSize: 30,
+        items: const [
+          // --------------- Home
+          BottomNavigationBarItem(
+            icon: Icon(Icons.home),
+            label: 'Home',
+          ),
+          // --------------- Favourite
+          BottomNavigationBarItem(
+            icon: Icon(Icons.notifications),
+            label: 'Notification',
+          ),
+          // --------------- My Page
+          BottomNavigationBarItem(
+            icon: Icon(Icons.account_box),
+            label: 'My Page',
+          ),
+        ],
         onTap: (index) {
+          if ((index == 1 || index == 2) && !_loginData.isLoggedIn) {
+            Navigator.pushNamed(
+              context,
+              LoginPage.routeName,
+            );
+            return;
+          }
           // --------------- Animate To Page
           _pageCtrl.animateToPage(
             index,

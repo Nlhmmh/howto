@@ -136,9 +136,9 @@ INSERT INTO users VALUES
 ;
 
 INSERT INTO user_profiles VALUES 
-  ('1', 'admin',       'Admin',        '2008-09-10 15:00:00', NULL,          '/api/media/1669997499-jaws.jpg', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, NULL),
-  ('2', 'david2000',   'DavidViewer',  '2008-09-10 15:00:00', '08077778888', '/api/media/1669997499-jaws.jpg', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, NULL),
-  ('3', 'creator2000', 'DavidCreator', '2009-09-10 15:00:00', '08077778888', '/api/media/1669997499-jaws.jpg', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, NULL)
+  ('1', 'admin',       'Admin',        '2008-09-10 15:00:00', NULL,          '/api/file/media/1669997499-jaws.jpg', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, NULL),
+  ('2', 'david2000',   'DavidViewer',  '2008-09-10 15:00:00', '08077778888', '/api/file/media/1669997499-jaws.jpg', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, NULL),
+  ('3', 'creator2000', 'DavidCreator', '2009-09-10 15:00:00', '08077778888', '/api/file/media/1669997499-jaws.jpg', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, NULL)
 ;
 
 INSERT INTO content_categories VALUES 

@@ -66,7 +66,9 @@ abstract class Utils {
       builder: (context) => CustomDialog(
         title: "Error",
         body: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            Text(errorResp.code.toString()),
             Text(errorResp.message),
             Text(errorResp.error),
           ],
