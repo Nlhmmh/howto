@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:how_to/pages/bottom_navi.dart';
+import 'package:how_to/pages/content_create.dart';
 import 'package:how_to/pages/favourite.dart';
 import 'package:how_to/pages/login.dart';
 import 'package:how_to/pages/my_contents.dart';
@@ -32,7 +33,7 @@ class _MyPageState extends State<MyPage> {
 
       // Fetch UserProfile
       if (!mounted) return;
-      final userProfile = await UserCtrls.fetchProfile((errResp) {
+      final userProfile = await UserCtrls.profile((errResp) {
         if (!mounted) return;
         Utils.checkErrorResp(context, errResp);
       });
@@ -135,7 +136,6 @@ class _MyPageState extends State<MyPage> {
                   text: "Favourite",
                   icon: Icons.favorite,
                   onTap: () {
-                    // TODO : Favourite Page
                     if (_loginData.isLoggedIn) {
                       Navigator.pushNamed(context, FavouritePage.routeName);
                     } else {
@@ -143,19 +143,16 @@ class _MyPageState extends State<MyPage> {
                     }
                   },
                 ),
-                // --------------- My Contents
-                iconTextButton(
-                  text: "My Contents",
-                  icon: Icons.content_copy,
-                  onTap: () {
-                    // TODO : Favourite Page
-                    if (_loginData.isLoggedIn) {
+
+                if (_loginData.user.type == Constants.creatorAccType)
+                  // --------------- My Contents
+                  iconTextButton(
+                    text: "My Contents",
+                    icon: Icons.newspaper,
+                    onTap: () {
                       Navigator.pushNamed(context, MyContentsPage.routeName);
-                    } else {
-                      Navigator.pushNamed(context, LoginPage.routeName);
-                    }
-                  },
-                ),
+                    },
+                  ),
               ],
             ),
 
@@ -166,10 +163,10 @@ class _MyPageState extends State<MyPage> {
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                 children: [
                   iconTextButton(
-                    text: "Content List",
-                    icon: Icons.newspaper,
+                    text: "Add Content",
+                    icon: Icons.add_box_outlined,
                     onTap: () {
-                      Navigator.pushNamed(context, Profile.routeName);
+                      Navigator.pushNamed(context, ContentCreate.routeName);
                     },
                   ),
                 ],

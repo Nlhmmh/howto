@@ -60,6 +60,38 @@ class _ContentCreateState extends State<ContentCreate> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      appBar: AppBar(
+        centerTitle: true,
+        title: const Text('Add New Content'),
+      ),
+      // floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
+      // floatingActionButton: Padding(
+      //   padding: const EdgeInsets.symmetric(horizontal: 10),
+      //   child: primaryBtn(
+      //     context: context,
+      //     text: "Confirm",
+      //     onPressed: () async {
+      //       await _onConfirm();
+      //     },
+      //   ),
+      // ),
+      bottomSheet: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 20),
+        height: 80,
+        color: Colors.white,
+        child: Column(
+          children: [
+            const SizedBox(height: 10),
+            primaryBtn(
+              context: context,
+              text: "Confirm",
+              onPressed: () async {
+                await _onConfirm();
+              },
+            ),
+          ],
+        ),
+      ),
       body: GestureDetector(
         onTap: () => FocusScope.of(context).unfocus(),
         child: SingleChildScrollView(
@@ -179,13 +211,7 @@ class _ContentCreateState extends State<ContentCreate> {
                     const SizedBox(height: 20),
                   ],
 
-                  primaryBtn(
-                    context: context,
-                    text: "Confirm",
-                    onPressed: () async {
-                      await _onConfirm();
-                    },
-                  )
+                  const SizedBox(height: 60),
                 ],
               ),
             ),
@@ -266,21 +292,26 @@ class _ContentCreateState extends State<ContentCreate> {
                     final finalHTML = HTMLBuilder.buildFinal(
                       title: _titleCtrl.text,
                       category: _selCat.name,
-                      mainImgPath: mainImgResp.filePath,
                       bdCtnList: _bdCtnList,
                     );
 
                     // Create Content
-                    final errResp = await ContentCtrls.createCtn({
+                    final errResp = await ContentCtrls.create({
                       "title": _titleCtrl.text,
                       "categoryID": _selCat.id,
                       "imageUrl": mainImgResp.filePath,
-                      "contentHTMLList": _bdCtnList.map((e) {
-                        return {
+                      "contentHTMLList": [
+                        {
                           "orderNo": 1,
                           "html": finalHTML,
-                        };
-                      }).toList(),
+                        }
+                      ],
+                      // "contentHTMLList": _bdCtnList.map((e) {
+                      //   return {
+                      //     "orderNo": 1,
+                      //     "html": finalHTML,
+                      //   };
+                      // }).toList(),
                     });
                     if (errResp.code != 0) {
                       if (!mounted) return;

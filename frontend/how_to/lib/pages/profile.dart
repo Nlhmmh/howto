@@ -33,7 +33,7 @@ class _ProfileState extends State<Profile> {
       if (_loginData.isLoggedIn) {
         // Fetch UserProfile
         if (!mounted) return;
-        final userProfile = await UserCtrls.fetchProfile((errResp) {
+        final userProfile = await UserCtrls.profile((errResp) {
           if (!mounted) return;
           Utils.checkErrorResp(context, errResp);
         });
@@ -66,7 +66,7 @@ class _ProfileState extends State<Profile> {
               ),
             );
             if (!mounted) return;
-            final userProfile = await UserCtrls.fetchProfile((errResp) {
+            final userProfile = await UserCtrls.profile((errResp) {
               if (!mounted) return;
               Utils.checkErrorResp(context, errResp);
             });
@@ -159,7 +159,7 @@ class _ProfileState extends State<Profile> {
                                 );
                                 if (!mounted) return;
                                 final userProfile =
-                                    await UserCtrls.fetchProfile((errResp) {
+                                    await UserCtrls.profile((errResp) {
                                   if (!mounted) return;
                                   Utils.checkErrorResp(context, errResp);
                                 });

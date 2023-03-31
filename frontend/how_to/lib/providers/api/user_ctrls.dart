@@ -39,8 +39,7 @@ abstract class UserCtrls {
       path: "/api/user/register",
       body: reqBody,
     );
-    final errorResp = ErrorResp.fromJson(jsonDecode(resp.body));
-    return errorResp;
+    return ErrorResp.fromJson(jsonDecode(resp.body));
   }
 
   static Future<LoginData> login(Map<String, String> reqBody) async {
@@ -53,31 +52,51 @@ abstract class UserCtrls {
     return loginData;
   }
 
-  static Future<UserProfile> fetchProfile(Function(ErrorResp) cbFunc) async {
+  static Future<UserProfile> profile(Function(ErrorResp) cbFunc) async {
     final resp = await API.get(path: "/api/user/profile");
     final tmp = UserProfile.fromJson(jsonDecode(resp.body));
     cbFunc(tmp.errResp);
     return tmp;
   }
 
-  static Future<ErrorResp> editProfile(Map<String, String> reqBody) async {
+  static Future<ErrorResp> profileEdit(Map<String, String> reqBody) async {
     final resp = await API.put(
-      path: "/api/user/edit/profile",
+      path: "/api/user/profile/edit",
       body: reqBody,
     );
-    final errorResp = ErrorResp.fromJson(jsonDecode(resp.body));
-    return errorResp;
+    return ErrorResp.fromJson(jsonDecode(resp.body));
   }
 
-  static Future<ErrorResp> editPassword(Map<String, String> reqBody) async {
+  static Future<ErrorResp> passwordEdit(Map<String, String> reqBody) async {
     final resp = await API.post(
-      path: "/api/user/edit/password",
+      path: "/api/user/password/edit",
       body: reqBody,
     );
-    final errorResp = ErrorResp.fromJson(jsonDecode(resp.body));
-    return errorResp;
+    return ErrorResp.fromJson(jsonDecode(resp.body));
   }
 
   // -----------------------------------------------
 
+  static Future<ErrorResp> favCreate(Map<String, String> reqBody) async {
+    final resp = await API.post(
+      path: "/api/user/fav/create",
+      body: reqBody,
+    );
+    return ErrorResp.fromJson(jsonDecode(resp.body));
+  }
+
+  static Future<List<Content>> favList(
+    Function(ErrorResp) cbFunc, {
+    Map<String, dynamic>? params,
+  }) async {
+    final resp = await API.get(
+      path: "/api/user/fav/list",
+      params: params,
+    );
+    final respBody = jsonDecode(resp.body);
+    final errResp = ErrorResp.fromJson(respBody);
+    cbFunc(errResp);
+    final tmp = Content.toList(respBody);
+    return tmp;
+  }
 }

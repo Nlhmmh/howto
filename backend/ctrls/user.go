@@ -27,7 +27,7 @@ var (
 
 // *********************************************** //
 
-func (o *userCtrl) SendOTP(c *gin.Context) {
+func (o *userCtrl) sentOTP(c *gin.Context) {
 
 	// Check Request
 	var resq UserRegisterSendOtpReq
@@ -57,9 +57,7 @@ func (o *userCtrl) SendOTP(c *gin.Context) {
 
 }
 
-// *********************************************** //
-
-func (o *userCtrl) CheckOTP(c *gin.Context) {
+func (o *userCtrl) checkOTP(c *gin.Context) {
 
 	// Check Request
 	var resq UserRegisterCheckOtpReq
@@ -87,9 +85,7 @@ func (o *userCtrl) CheckOTP(c *gin.Context) {
 
 }
 
-// *********************************************** //
-
-func (o *userCtrl) Register(c *gin.Context) {
+func (o *userCtrl) register(c *gin.Context) {
 
 	// Check Request
 	var resq UserRegisterRequest
@@ -165,9 +161,7 @@ func (o *userCtrl) Register(c *gin.Context) {
 
 }
 
-// *********************************************** //
-
-func (o *userCtrl) Login(c *gin.Context) {
+func (o *userCtrl) login(c *gin.Context) {
 
 	// Check Request
 	var resq UserLoginReq
@@ -214,7 +208,7 @@ func (o *userCtrl) Login(c *gin.Context) {
 
 // *********************************************** //
 
-func (o *userCtrl) CheckDisplayName(c *gin.Context) {
+func (o *userCtrl) checkDisplayName(c *gin.Context) {
 
 	// Check Request
 	var resq CheckDisplayNameReq
@@ -238,7 +232,7 @@ func (o *userCtrl) CheckDisplayName(c *gin.Context) {
 
 // *********************************************** //
 
-func (o *userCtrl) CheckEmail(c *gin.Context) {
+func (o *userCtrl) checkEmail(c *gin.Context) {
 
 	// Check Request
 	var resq CheckEmailReq
@@ -262,7 +256,7 @@ func (o *userCtrl) CheckEmail(c *gin.Context) {
 
 // *********************************************** //
 
-func (o *userCtrl) GetProfile(c *gin.Context) {
+func (o *userCtrl) profileGet(c *gin.Context) {
 
 	userID := c.GetString("userID")
 
@@ -286,9 +280,7 @@ func (o *userCtrl) GetProfile(c *gin.Context) {
 
 }
 
-// *********************************************** //
-
-func (o *userCtrl) EditProfile(c *gin.Context) {
+func (o *userCtrl) profileEdit(c *gin.Context) {
 
 	// Check Request
 	var req UserProfileEditReq
@@ -355,7 +347,7 @@ func (o *userCtrl) EditProfile(c *gin.Context) {
 
 // *********************************************** //
 
-func (o *userCtrl) EditPassword(c *gin.Context) {
+func (o *userCtrl) passwordEdit(c *gin.Context) {
 
 	// Check Request
 	var resq UserEditPwReq
@@ -401,7 +393,7 @@ func (o *userCtrl) EditPassword(c *gin.Context) {
 
 // *********************************************** //
 
-func (o *userCtrl) SetFav(c *gin.Context) {
+func (o *userCtrl) favCreate(c *gin.Context) {
 
 	// Check Request
 	var resq UserSetFavReq
@@ -425,7 +417,7 @@ func (o *userCtrl) SetFav(c *gin.Context) {
 			userFav = new(boiler.UserFavourite)
 			userFav.UserID = userID
 			userFav.ContentID = resq.ContentID
-			userFav.IsFavourite = resq.IsFavourite
+			userFav.IsFavourite = true
 
 			if err := userFav.Insert(c, tx, boil.Infer()); err != nil {
 				return ers.ServerErrorResp, err
@@ -434,7 +426,7 @@ func (o *userCtrl) SetFav(c *gin.Context) {
 		} else {
 
 			// Update UserFavourite
-			userFav.IsFavourite = resq.IsFavourite
+			userFav.IsFavourite = !userFav.IsFavourite
 
 			if _, err := userFav.Update(c, tx, boil.Infer()); err != nil {
 				return ers.ServerErrorResp, err
@@ -448,13 +440,11 @@ func (o *userCtrl) SetFav(c *gin.Context) {
 		return
 	}
 
-	c.Status(http.StatusOK)
+	c.JSON(http.StatusOK, RespMap{})
 
 }
 
-// *********************************************** //
-
-func (o *userCtrl) GetAllFav(c *gin.Context) {
+func (o *userCtrl) favList(c *gin.Context) {
 
 	// Check Request
 	var req UserFavGetAllReq
@@ -484,6 +474,7 @@ func (o *userCtrl) GetAllFav(c *gin.Context) {
 		qms = append(qms, qm.InnerJoin("user_profiles ON user_profiles.user_id = contents.user_id"))
 		qms = append(qms, qm.InnerJoin("content_categories ON content_categories.id = contents.category_id"))
 		qms = append(qms, qm.Where("user_favourites.user_id = ?", userID))
+		qms = append(qms, qm.Where("user_favourites.is_favourite = true"))
 		qms = append(qms, qm.OrderBy("user_favourites.updated_at DESC"))
 
 		// Limit
@@ -521,6 +512,8 @@ func (o *userCtrl) GetAllFav(c *gin.Context) {
 
 	})
 
-	c.JSON(http.StatusOK, resp)
+	c.JSON(http.StatusOK, RespList{List: resp})
 
 }
+
+// *********************************************** //

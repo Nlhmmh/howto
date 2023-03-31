@@ -23,7 +23,7 @@ var (
 
 // *********************************************** //
 
-func (o *contentCtrl) GetAll(c *gin.Context) {
+func (o *contentCtrl) list(c *gin.Context) {
 
 	// Check Request
 	var req ContentGetAllReq
@@ -94,9 +94,58 @@ func (o *contentCtrl) GetAll(c *gin.Context) {
 
 }
 
-// *********************************************** //
+func (o *contentCtrl) get(c *gin.Context) {
 
-func (o *contentCtrl) CreateContentWhole(c *gin.Context) {
+	// Get contentID
+	contentID, err := utils.CheckBlankString(c.Param("contentID"))
+	if err != nil {
+		ers.BadRequestResp(c, err)
+		return
+	}
+
+	// Get Content
+	var content ContentWhole
+	if err := ReadTx(c, func(tx *sql.Tx) (ers.ErrRespFunc, error) {
+
+		qms := []qm.QueryMod{}
+		qms = append(qms, qm.Select(
+			`
+			contents.*, 
+			user_profiles.display_name as user_name,
+			content_categories.name as category_str,
+			user_favourites.is_favourite as is_favourite
+		`,
+		))
+		qms = append(qms, qm.From("contents"))
+		qms = append(qms, qm.InnerJoin("user_profiles ON user_profiles.user_id = contents.user_id"))
+		qms = append(qms, qm.InnerJoin("content_categories ON content_categories.id = contents.category_id"))
+		qms = append(qms, qm.LeftOuterJoin("user_favourites ON user_favourites.content_id = ? AND user_favourites.content_id = contents.id", contentID))
+		qms = append(qms, qm.Where("contents.id = ?", contentID))
+		qms = append(qms, qm.Limit(1))
+
+		if err := boiler.NewQuery(qms...).Bind(c, tx, &content); err != nil {
+			return ers.ServerErrorResp, err
+		}
+
+		contentHtmlList, err := boiler.ContentHTMLS(
+			qm.Where("content_id = ?", content.ID),
+		).All(c, tx)
+		if err != nil {
+			return ers.ServerErrorResp, err
+		}
+		content.ContentHtmlList = contentHtmlList
+
+		return nil, nil
+
+	}); err != nil {
+		return
+	}
+
+	c.JSON(http.StatusOK, content)
+
+}
+
+func (o *contentCtrl) create(c *gin.Context) {
 
 	// Check Request
 	var req CreateContentReq
@@ -160,58 +209,43 @@ func (o *contentCtrl) CreateContentWhole(c *gin.Context) {
 
 }
 
-func (o *contentCtrl) GetOne(c *gin.Context) {
+func (o *contentCtrl) delete(c *gin.Context) {
 
-	// Get contentID
-	contentID, err := utils.CheckBlankString(c.Param("contentID"))
-	if err != nil {
+	// Check Request
+	var req DeleteContentReq
+	if err := c.ShouldBindJSON(&req); err != nil {
 		ers.BadRequestResp(c, err)
 		return
 	}
 
+	userID := c.GetString("userID")
+
 	// Get Content
-	var content ContentWhole
-	if err := ReadTx(c, func(tx *sql.Tx) (ers.ErrRespFunc, error) {
-
-		qms := []qm.QueryMod{}
-		qms = append(qms, qm.Select(
-			`
-			contents.*, 
-			user_profiles.display_name as user_name,
-			content_categories.name as category_str
-		`,
-		))
-		qms = append(qms, qm.From("contents"))
-		qms = append(qms, qm.InnerJoin("user_profiles ON user_profiles.user_id = contents.user_id"))
-		qms = append(qms, qm.InnerJoin("content_categories ON content_categories.id = contents.category_id"))
-		qms = append(qms, qm.Where("contents.id = ?", contentID))
-		qms = append(qms, qm.Limit(1))
-
-		if err := boiler.NewQuery(qms...).Bind(c, tx, &content); err != nil {
-			return ers.ServerErrorResp, err
-		}
-
-		contentHtmlList, err := boiler.ContentHTMLS(
-			qm.Where("content_id = ?", content.ID),
-		).All(c, tx)
-		if err != nil {
-			return ers.ServerErrorResp, err
-		}
-		content.ContentHtmlList = contentHtmlList
-
-		return nil, nil
-
-	}); err != nil {
+	content, err := boiler.Contents(
+		boiler.ContentWhere.ID.EQ(req.ContentID),
+		boiler.ContentWhere.UserID.EQ(userID),
+	).OneG(c)
+	if err != nil {
+		ers.ServerErrorResp(c, err)
 		return
 	}
 
-	c.JSON(http.StatusOK, content)
+	// Delete Content
+	if _, err := content.DeleteG(c, true); err != nil {
+		ers.ServerErrorResp(c, err)
+		return
+	}
+
+	// Delet Image
+	fileCtrls.delete(content.ImageURL.String)
+
+	c.JSON(http.StatusOK, RespMap{})
 
 }
 
 // *********************************************** //
 
-func (o *contentCtrl) GetAllCategories(c *gin.Context) {
+func (o *contentCtrl) categories(c *gin.Context) {
 
 	// Get All Content Categories
 	contentCategoryList, err := boiler.ContentCategories().AllG(c)
@@ -226,3 +260,5 @@ func (o *contentCtrl) GetAllCategories(c *gin.Context) {
 	c.JSON(http.StatusOK, RespList{List: contentCategoryList})
 
 }
+
+// *********************************************** //

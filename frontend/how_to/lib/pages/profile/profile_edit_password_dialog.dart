@@ -171,7 +171,7 @@ class _ProfileEditPasswordDialogState extends State<ProfileEditPasswordDialog> {
               text: "Edit",
               onPressed: () async {
                 if (_formKey.currentState!.validate()) {
-                  final resp = await UserCtrls.editPassword({
+                  final resp = await UserCtrls.passwordEdit({
                     "oldPassword": _pwCtrl.text,
                     "newPassword": _newPWCtrl.text,
                   });

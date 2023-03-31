@@ -24,19 +24,24 @@ class _MyContentsPageState extends State<MyContentsPage> {
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       final loginData = await UserCtrls.getLoginData();
       _loginData = loginData;
-
-      final myCtnList = await ContentCtrls.fetchContent(
-        (errResp) {
-          if (!mounted) return;
-          Utils.checkErrorResp(context, errResp);
-        },
-        params: {
-          "searchUserID": _loginData.user.id,
-        },
-      );
-      _myCtnList = myCtnList;
       setState(() {});
+
+      await _fetchContent();
     });
+  }
+
+  Future<void> _fetchContent() async {
+    final myCtnList = await ContentCtrls.list(
+      (errResp) {
+        if (!mounted) return;
+        Utils.checkErrorResp(context, errResp);
+      },
+      params: {
+        "searchUserID": _loginData.user.id,
+      },
+    );
+    _myCtnList = myCtnList;
+    setState(() {});
   }
 
   @override
@@ -97,7 +102,17 @@ class _MyContentsPageState extends State<MyContentsPage> {
                           backgroundColor: Colors.red,
                         ),
                         child: const Icon(Icons.delete, size: 16),
-                        onPressed: () async {},
+                        onPressed: () async {
+                          final resp = await ContentCtrls.delete({
+                            "contentID": _myCtnList[index].id,
+                          });
+                          if (resp.code != 0) {
+                            if (!mounted) return;
+                            Utils.checkErrorResp(context, resp);
+                            return;
+                          }
+                          await _fetchContent();
+                        },
                       ),
                     ),
                   ),

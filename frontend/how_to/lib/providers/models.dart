@@ -172,14 +172,16 @@ class UserProfile {
 class Content {
   String id = "";
   String userID = "";
-  String title = "";
   int categoryID = 0;
-  String categoryStr = "";
+  String title = "";
+  String imageUrl = "";
   int viewCount = 0;
   DateTime createdAt = DateTime.now();
   DateTime updatedAt = DateTime.now();
   String userName = "";
-  String imageUrl = "";
+  String categoryStr = "";
+  List<ContentHTML> contentHTML = [];
+  bool isFavourite = false;
 
   Content();
 
@@ -194,7 +196,8 @@ class Content {
     required this.imageUrl,
   });
 
-  Content.fromJson(Map<String, dynamic> json) {
+  Content.fromJson(Map<String, dynamic>? json) {
+    if (json == null) return;
     id = json['id'] ?? "";
     userID = json['userID'] ?? "";
     title = json['title'] ?? "";
@@ -205,6 +208,8 @@ class Content {
     updatedAt = DateTime.parse(json['updatedAt']);
     userName = json['userName'] ?? "";
     imageUrl = json['imageUrl'] ?? "";
+    isFavourite = json['isFavourite'] ?? false;
+    contentHTML = ContentHTML.fromList(json);
   }
 
   static List<Content> toList(Map<String, dynamic>? json) {
@@ -276,5 +281,37 @@ class UploadFile {
     return {
       'filePath': filePath,
     };
+  }
+}
+
+class ContentHTML {
+  String contentID = "";
+  int orderNo = 0;
+  String html = "";
+
+  ContentHTML();
+
+  ContentHTML.withParams({
+    required this.contentID,
+    required this.orderNo,
+    required this.html,
+  });
+
+  ContentHTML.fromJson(Map<String, dynamic>? json) {
+    if (json == null) return;
+    contentID = json['contentID'] ?? "";
+    orderNo = json['orderNo'] ?? 0;
+    html = json['html'] ?? "";
+  }
+
+  static List<ContentHTML> fromList(Map<String, dynamic>? json) {
+    if (json == null || json["contentHtmlList"] == null) return [];
+    if (json["contentHtmlList"].isEmpty) return [];
+    final List<dynamic> tmp = json["contentHtmlList"];
+    return tmp
+        .map<ContentHTML>(
+          (item) => ContentHTML.fromJson(item),
+        )
+        .toList();
   }
 }

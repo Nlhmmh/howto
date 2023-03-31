@@ -57,8 +57,7 @@ type CheckDisplayNameReq struct {
 }
 
 type UserSetFavReq struct {
-	ContentID   string `json:"contentID" binding:"required"`
-	IsFavourite bool   `json:"isFavourite" binding:"required"`
+	ContentID string `json:"contentID" binding:"required"`
 }
 
 type UserFavGetAllReq struct {
@@ -80,7 +79,8 @@ type ContentWhole struct {
 
 	UserName string `boil:"user_name" json:"userName" toml:"userName" yaml:"userName"`
 
-	CategoryStr string `boil:"category_str" json:"categoryStr" toml:"categoryStr" yaml:"categoryStr"`
+	CategoryStr string    `boil:"category_str" json:"categoryStr" toml:"categoryStr" yaml:"categoryStr"`
+	IsFavourite null.Bool `boil:"is_favourite" json:"isFavourite" toml:"isFavourite" yaml:"isFavourite"`
 
 	ContentHtmlList boiler.ContentHTMLSlice `json:"contentHtmlList"`
 }
@@ -102,6 +102,10 @@ type CreateContentReq struct {
 		OrderNo int16  `json:"orderNo" binding:"required"`
 		Html    string `json:"html" binding:"required"`
 	} `json:"contentHtmlList"`
+}
+
+type DeleteContentReq struct {
+	ContentID string `json:"contentID" binding:"required"`
 }
 
 // *********************************************** //

@@ -1,12 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:how_to/pages/content_create.dart';
-import 'package:how_to/pages/favourite.dart';
 import 'package:how_to/pages/login.dart';
 import 'package:how_to/pages/my_page.dart';
 import 'package:how_to/pages/notification.dart';
 import 'package:how_to/pages/top.dart';
 import 'package:how_to/providers/api/user_ctrls.dart';
-import 'package:how_to/providers/constants.dart';
 import 'package:how_to/providers/models.dart';
 
 class BottomNaviPage extends StatefulWidget {

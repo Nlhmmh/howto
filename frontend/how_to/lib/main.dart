@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:how_to/pages/bottom_navi.dart';
 import 'package:how_to/pages/content_create.dart';
+import 'package:how_to/pages/content_details.dart';
 import 'package:how_to/pages/favourite.dart';
 import 'package:how_to/pages/launch.dart';
 import 'package:how_to/pages/login.dart';
@@ -52,6 +53,7 @@ class MainApp extends StatelessWidget {
         MyContentsPage.routeName: (_) => const MyContentsPage(),
         FavouritePage.routeName: (_) => const FavouritePage(),
         NotificationPage.routeName: (_) => const NotificationPage(),
+        ContentDetails.routeName: (_) => const ContentDetails(),
       },
     );
   }

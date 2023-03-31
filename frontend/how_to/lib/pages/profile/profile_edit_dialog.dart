@@ -321,7 +321,7 @@ class _ProfileEditDialogState extends State<ProfileEditDialog> {
 
                     // Edit Profile
                     if (!mounted) return;
-                    final errResp = await UserCtrls.editProfile({
+                    final errResp = await UserCtrls.profileEdit({
                       "displayName": _displayNameCtrl.text,
                       "name": _nameCtrl.text,
                       "birthDate": !_birthDate.toIso8601String().contains('Z')

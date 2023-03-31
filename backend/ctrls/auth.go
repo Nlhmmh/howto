@@ -5,7 +5,6 @@ import (
 	"backend/ers"
 	"backend/server"
 	"errors"
-	"fmt"
 	"strings"
 	"time"
 
@@ -26,7 +25,8 @@ var (
 		"/api/user/send/otp",
 		"/api/user/check/otp",
 
-		"/api/content/one/:contentID",
+		"/api/content/list",
+		"/api/content/get/:contentID",
 		"/api/content/categories",
 	}
 
@@ -37,7 +37,6 @@ var (
 
 	containWhiteList = []string{
 		"/api/file/media",
-		"/api/content/all",
 	}
 )
 
@@ -54,7 +53,6 @@ type CustomClaims struct {
 
 // AuthorizeJWT - Auth JWT MiddleWare
 func AuthorizeJWT() gin.HandlerFunc {
-	fmt.Println("TT")
 	return func(c *gin.Context) {
 
 		// Check White List

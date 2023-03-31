@@ -21,7 +21,7 @@ class _TopPageState extends State<TopPage> {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) async {
-      final contentList = await ContentCtrls.fetchContent((errResp) {
+      final contentList = await ContentCtrls.list((errResp) {
         if (!mounted) return;
         Utils.checkErrorResp(context, errResp);
       });

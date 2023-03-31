@@ -2,8 +2,11 @@ package ctrls
 
 import (
 	"backend/ers"
+	"backend/utils"
 	"net/http"
+	"os"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -17,7 +20,7 @@ var (
 
 // *********************************************** //
 
-func (o *fileCtrl) Upload(c *gin.Context) {
+func (o *fileCtrl) upload(c *gin.Context) {
 
 	file, err := c.FormFile("file")
 	if err != nil {
@@ -25,12 +28,28 @@ func (o *fileCtrl) Upload(c *gin.Context) {
 		return
 	}
 
-	filePathName := strconv.FormatInt(time.Now().Unix(), 10) + "-" + file.Filename
-	if err := c.SaveUploadedFile(file, "./media/"+filePathName); err != nil {
+	filePath := strconv.FormatInt(time.Now().Unix(), 10) + "-" + file.Filename
+	if err := c.SaveUploadedFile(file, "./media/"+filePath); err != nil {
 		ers.ServerErrorResp(c, err)
 		return
 	}
 
-	c.JSON(http.StatusOK, map[string]any{"filePath": "/api/file/media/" + filePathName})
+	c.JSON(http.StatusOK, RespMap{"filePath": "/api/file/media/" + filePath})
 
 }
+
+func (o *fileCtrl) delete(filePath string) error {
+
+	if err := os.Remove(
+		utils.MediaFolder +
+			"/" +
+			strings.ReplaceAll(filePath, "/api/file/media/", ""),
+	); err != nil {
+		return err
+	}
+
+	return nil
+
+}
+
+// *********************************************** //

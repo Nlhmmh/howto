@@ -47,6 +47,20 @@ abstract class API {
     );
   }
 
+  static Future<http.Response> delete({
+    required String path,
+    required Map<String, dynamic> body,
+  }) async {
+    final loginData = await UserCtrls.getLoginData();
+    return await http.delete(
+      Uri.http(Constants.domain, path),
+      body: jsonEncode(body),
+      headers: loginData.isLoggedIn
+          ? {"Authorization": "Bearer ${loginData.token}"}
+          : null,
+    );
+  }
+
   static Future<http.StreamedResponse> postMultipart({
     required String path,
     required File file,
