@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_html/flutter_html.dart';
 import 'package:how_to/providers/api/content_ctrls.dart';
-
 import 'package:how_to/providers/api/user_ctrls.dart';
 import 'package:how_to/providers/constants.dart';
 import 'package:how_to/providers/models.dart';
@@ -25,7 +24,6 @@ class ContentDetails extends StatefulWidget {
 
 class _ContentDetailsState extends State<ContentDetails> {
   String _contentID = "";
-  LoginData _loginData = LoginData();
   Content _content = Content();
 
   @override
@@ -35,9 +33,6 @@ class _ContentDetailsState extends State<ContentDetails> {
       final args =
           ModalRoute.of(context)!.settings.arguments as ContentDetailsArgs;
       _contentID = args.contentID;
-
-      final loginData = await UserCtrls.getLoginData();
-      _loginData = loginData;
 
       await _getContent();
     });

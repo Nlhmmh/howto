@@ -27,23 +27,23 @@ class _ImageAdderState extends State<ImageAdder> {
     if (widget.bdCtn.image != null) {
       return Padding(
         padding: const EdgeInsets.symmetric(vertical: 10),
-        child: Card(
-          child: Column(
-            children: [
-              // --------------- Order No
-              if (widget.bdCtn.orderNo != 0) ...[
-                Row(
-                  children: [
-                    const Text('Image'),
-                    const SizedBox(width: 5),
-                    Text("[ Order : ${widget.bdCtn.orderNo.toString()} ]"),
-                  ],
-                ),
-                const SizedBox(height: 5),
-              ],
+        child: Column(
+          children: [
+            // --------------- Order No
+            if (widget.bdCtn.orderNo != 0) ...[
+              Row(
+                children: [
+                  const Text('Image'),
+                  const SizedBox(width: 5),
+                  Text("[ Order : ${widget.bdCtn.orderNo.toString()} ]"),
+                ],
+              ),
+              const SizedBox(height: 5),
+            ],
 
-              // --------------- Image
-              SizedBox(
+            // --------------- Image
+            Card(
+              child: SizedBox(
                 height: widget.height,
                 child: Stack(
                   children: [
@@ -72,6 +72,7 @@ class _ImageAdderState extends State<ImageAdder> {
                           ),
                           onPressed: () {
                             widget.bdCtn.image = null;
+                            widget.bdCtn.imagePath = "";
                             setState(() {});
                           },
                           child: const Icon(Icons.delete),
@@ -81,8 +82,8 @@ class _ImageAdderState extends State<ImageAdder> {
                   ],
                 ),
               ),
-            ],
-          ),
+            ),
+          ],
         ),
       );
     } else {

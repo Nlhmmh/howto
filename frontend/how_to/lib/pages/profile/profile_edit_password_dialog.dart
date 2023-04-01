@@ -170,19 +170,20 @@ class _ProfileEditPasswordDialogState extends State<ProfileEditPasswordDialog> {
               context: context,
               text: "Edit",
               onPressed: () async {
-                if (_formKey.currentState!.validate()) {
-                  final resp = await UserCtrls.passwordEdit({
-                    "oldPassword": _pwCtrl.text,
-                    "newPassword": _newPWCtrl.text,
-                  });
-                  if (resp.code == 0) {
-                    if (!mounted) return;
-                    Navigator.pop(context);
-                  } else {
-                    _errMsg = resp.message;
-                  }
-                }
+                _errMsg = "";
                 setState(() {});
+                if (!_formKey.currentState!.validate()) return;
+                final resp = await UserCtrls.passwordEdit({
+                  "oldPassword": _pwCtrl.text,
+                  "newPassword": _newPWCtrl.text,
+                });
+                if (resp.code != 0) {
+                  _errMsg = resp.message;
+                  setState(() {});
+                  return;
+                }
+                if (!mounted) return;
+                Navigator.pop(context);
               },
             ),
           ],

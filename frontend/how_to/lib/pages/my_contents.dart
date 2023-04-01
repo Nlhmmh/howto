@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:how_to/components/content_card.dart';
+import 'package:how_to/pages/content_edit.dart';
 import 'package:how_to/providers/api/content_ctrls.dart';
 import 'package:how_to/providers/api/user_ctrls.dart';
 import 'package:how_to/providers/models.dart';
@@ -85,7 +86,15 @@ class _MyContentsPageState extends State<MyContentsPage> {
                           padding: const EdgeInsets.all(0),
                         ),
                         child: const Icon(Icons.edit, size: 16),
-                        onPressed: () async {},
+                        onPressed: () async {
+                          await Navigator.pushNamed(
+                            context,
+                            ContentEdit.routeName,
+                            arguments: ContentEditArgs(
+                              contentID: _myCtnList[index].id,
+                            ),
+                          );
+                        },
                       ),
                     ),
                   ),

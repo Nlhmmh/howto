@@ -15,11 +15,11 @@ class CustomDialog extends StatelessWidget {
     return SimpleDialog(
       insetPadding: const EdgeInsets.all(10),
       titlePadding: const EdgeInsets.all(0),
-      contentPadding: const EdgeInsets.symmetric(horizontal: 10, vertical: 20),
+      contentPadding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
       title: Column(
         children: [
           Padding(
-            padding: const EdgeInsets.all(10),
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 0),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [

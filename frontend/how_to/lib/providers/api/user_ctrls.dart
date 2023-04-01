@@ -68,7 +68,7 @@ abstract class UserCtrls {
   }
 
   static Future<ErrorResp> passwordEdit(Map<String, String> reqBody) async {
-    final resp = await API.post(
+    final resp = await API.put(
       path: "/api/user/password/edit",
       body: reqBody,
     );

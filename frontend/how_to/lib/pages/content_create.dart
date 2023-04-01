@@ -40,7 +40,6 @@ class _ContentCreateState extends State<ContentCreate> {
     super.initState();
     _titleCtrl.text = "How to boil potato?";
     WidgetsBinding.instance.addPostFrameCallback((_) async {
-      if (!mounted) return;
       final ctnCatList = await ContentCtrls.getAllCtnCat((errResp) {
         if (!mounted) return;
         Utils.checkErrorResp(context, errResp);
