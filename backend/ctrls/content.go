@@ -15,15 +15,15 @@ import (
 	"github.com/volatiletech/sqlboiler/v4/queries/qm"
 )
 
-type contentCtrl struct{}
+type content struct{}
 
 var (
-	contentCtrls *contentCtrl
+	Content *content
 )
 
 // *********************************************** //
 
-func (o *contentCtrl) list(c *gin.Context) {
+func (o *content) List(c *gin.Context) {
 
 	// Check Request
 	var req ContentGetAllReq
@@ -94,7 +94,7 @@ func (o *contentCtrl) list(c *gin.Context) {
 
 }
 
-func (o *contentCtrl) get(c *gin.Context) {
+func (o *content) Get(c *gin.Context) {
 
 	// Get contentID
 	contentID, err := utils.CheckBlankString(c.Param("contentID"))
@@ -145,7 +145,7 @@ func (o *contentCtrl) get(c *gin.Context) {
 
 }
 
-func (o *contentCtrl) create(c *gin.Context) {
+func (o *content) Create(c *gin.Context) {
 
 	// Check Request
 	var req CreateContentReq
@@ -209,7 +209,7 @@ func (o *contentCtrl) create(c *gin.Context) {
 
 }
 
-func (o *contentCtrl) delete(c *gin.Context) {
+func (o *content) Delete(c *gin.Context) {
 
 	// Check Request
 	var req DeleteContentReq
@@ -237,7 +237,7 @@ func (o *contentCtrl) delete(c *gin.Context) {
 	}
 
 	// Delet Image
-	fileCtrls.delete(content.ImageURL.String)
+	File.Delete(content.ImageURL.String)
 
 	c.JSON(http.StatusOK, RespMap{})
 
@@ -245,7 +245,7 @@ func (o *contentCtrl) delete(c *gin.Context) {
 
 // *********************************************** //
 
-func (o *contentCtrl) categories(c *gin.Context) {
+func (o *content) Categories(c *gin.Context) {
 
 	// Get All Content Categories
 	contentCategoryList, err := boiler.ContentCategories().AllG(c)

@@ -18,8 +18,8 @@ type Log struct {
 	LogFile *os.File
 }
 
-// InitLogger - Initialize Logger
-func InitLogger(deleteLogs bool) error {
+// initLogger - Initialize Logger
+func initLogger(deleteLogs bool) error {
 
 	// Delete Logs
 	if deleteLogs {

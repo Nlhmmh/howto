@@ -1,6 +1,7 @@
 package ctrls
 
 import (
+	"backend/auth"
 	"backend/boiler"
 	"backend/ers"
 	"database/sql"
@@ -19,15 +20,15 @@ import (
 	"github.com/volatiletech/sqlboiler/v4/queries/qm"
 )
 
-type userCtrl struct{}
+type user struct{}
 
 var (
-	userCtrls *userCtrl
+	User *user
 )
 
 // *********************************************** //
 
-func (o *userCtrl) sentOTP(c *gin.Context) {
+func (o *user) SentOTP(c *gin.Context) {
 
 	// Check Request
 	var resq UserRegisterSendOtpReq
@@ -57,7 +58,7 @@ func (o *userCtrl) sentOTP(c *gin.Context) {
 
 }
 
-func (o *userCtrl) checkOTP(c *gin.Context) {
+func (o *user) CheckOTP(c *gin.Context) {
 
 	// Check Request
 	var resq UserRegisterCheckOtpReq
@@ -85,7 +86,7 @@ func (o *userCtrl) checkOTP(c *gin.Context) {
 
 }
 
-func (o *userCtrl) register(c *gin.Context) {
+func (o *user) Register(c *gin.Context) {
 
 	// Check Request
 	var resq UserRegisterRequest
@@ -161,7 +162,7 @@ func (o *userCtrl) register(c *gin.Context) {
 
 }
 
-func (o *userCtrl) login(c *gin.Context) {
+func (o *user) Login(c *gin.Context) {
 
 	// Check Request
 	var resq UserLoginReq
@@ -193,7 +194,7 @@ func (o *userCtrl) login(c *gin.Context) {
 	}
 
 	// Generate Token
-	token, err := GenerateToken(user.ID, user.Role.String())
+	token, err := auth.GenerateToken(user.ID, user.Role.String())
 	if err != nil {
 		ers.ServerErrorResp(c, err)
 		return
@@ -208,7 +209,7 @@ func (o *userCtrl) login(c *gin.Context) {
 
 // *********************************************** //
 
-func (o *userCtrl) checkDisplayName(c *gin.Context) {
+func (o *user) CheckDisplayName(c *gin.Context) {
 
 	// Check Request
 	var resq CheckDisplayNameReq
@@ -232,7 +233,7 @@ func (o *userCtrl) checkDisplayName(c *gin.Context) {
 
 // *********************************************** //
 
-func (o *userCtrl) checkEmail(c *gin.Context) {
+func (o *user) CheckEmail(c *gin.Context) {
 
 	// Check Request
 	var resq CheckEmailReq
@@ -256,7 +257,7 @@ func (o *userCtrl) checkEmail(c *gin.Context) {
 
 // *********************************************** //
 
-func (o *userCtrl) profileGet(c *gin.Context) {
+func (o *user) ProfileGet(c *gin.Context) {
 
 	userID := c.GetString("userID")
 
@@ -280,7 +281,7 @@ func (o *userCtrl) profileGet(c *gin.Context) {
 
 }
 
-func (o *userCtrl) profileEdit(c *gin.Context) {
+func (o *user) ProfileEdit(c *gin.Context) {
 
 	// Check Request
 	var req UserProfileEditReq
@@ -347,7 +348,7 @@ func (o *userCtrl) profileEdit(c *gin.Context) {
 
 // *********************************************** //
 
-func (o *userCtrl) passwordEdit(c *gin.Context) {
+func (o *user) PasswordEdit(c *gin.Context) {
 
 	// Check Request
 	var resq UserEditPwReq
@@ -393,7 +394,7 @@ func (o *userCtrl) passwordEdit(c *gin.Context) {
 
 // *********************************************** //
 
-func (o *userCtrl) favCreate(c *gin.Context) {
+func (o *user) FavCreate(c *gin.Context) {
 
 	// Check Request
 	var resq UserSetFavReq
@@ -444,7 +445,7 @@ func (o *userCtrl) favCreate(c *gin.Context) {
 
 }
 
-func (o *userCtrl) favList(c *gin.Context) {
+func (o *user) FavList(c *gin.Context) {
 
 	// Check Request
 	var req UserFavGetAllReq

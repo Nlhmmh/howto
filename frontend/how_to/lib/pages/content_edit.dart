@@ -29,7 +29,7 @@ class _ContentEditState extends State<ContentEdit> {
   final _titleCtrl = TextEditingController();
   List<ContentCategory> _ctnCatList = [];
   ContentCategory _selCat = ContentCategory();
-  String _errMsg = "";
+  final String _errMsg = "";
   final BodyContent _mainImg = BodyContent(
     orderNo: 0,
     mode: BodyContentMode.image,
@@ -167,10 +167,10 @@ class _ContentEditState extends State<ContentEdit> {
                           border: Border.all(color: Colors.green),
                           borderRadius: BorderRadius.circular(10),
                         ),
-                        child: Center(
+                        child: const Center(
                           child: Row(
                             mainAxisAlignment: MainAxisAlignment.center,
-                            children: const [
+                            children: [
                               Icon(Icons.edit),
                               SizedBox(width: 5),
                               Text(

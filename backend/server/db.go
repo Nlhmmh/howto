@@ -6,9 +6,9 @@ import (
 )
 
 // OpenDB - open MySQL database.
-func OpenDB(config Config) (*sql.DB, error) {
+func OpenDB(dbSource string) (*sql.DB, error) {
 
-	db, err := sql.Open("mysql", config.DBInfo)
+	db, err := sql.Open("mysql", dbSource)
 	if err != nil {
 		return nil, err
 	}

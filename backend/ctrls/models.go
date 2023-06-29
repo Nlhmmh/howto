@@ -7,6 +7,11 @@ import (
 	"github.com/volatiletech/null/v8"
 )
 
+type LoginResp struct {
+	User  *boiler.User `json:"user"`
+	Token string       `json:"token"`
+}
+
 // *********************************************** //
 
 type UserRegisterSendOtpReq struct {

@@ -9,15 +9,15 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-type adminUserCtrl struct{}
+type adminUser struct{}
 
 var (
-	adminUserCtrls *adminUserCtrl
+	AdminUser *adminUser
 )
 
 // *********************************************** //
 
-func (o *adminUserCtrl) GetAll(c *gin.Context) {
+func (o *adminUser) GetAll(c *gin.Context) {
 
 	// Get All Users
 	users, err := boiler.Users().AllG(c)
@@ -32,7 +32,7 @@ func (o *adminUserCtrl) GetAll(c *gin.Context) {
 
 // *********************************************** //
 
-func (o *adminUserCtrl) Get(c *gin.Context) {
+func (o *adminUser) Get(c *gin.Context) {
 
 	// Get userID
 	userID, err := utils.CheckBlankString(c.Param("userID"))

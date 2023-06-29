@@ -1,5 +1,4 @@
 import 'dart:convert';
-import 'dart:developer';
 
 import 'package:how_to/pages/content_create/models.dart';
 import 'package:how_to/providers/constants.dart';

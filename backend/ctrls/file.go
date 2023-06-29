@@ -12,15 +12,15 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-type fileCtrl struct{}
+type file struct{}
 
 var (
-	fileCtrls *fileCtrl
+	File *file
 )
 
 // *********************************************** //
 
-func (o *fileCtrl) upload(c *gin.Context) {
+func (o *file) Upload(c *gin.Context) {
 
 	file, err := c.FormFile("file")
 	if err != nil {
@@ -38,7 +38,7 @@ func (o *fileCtrl) upload(c *gin.Context) {
 
 }
 
-func (o *fileCtrl) delete(filePath string) error {
+func (o *file) Delete(filePath string) error {
 
 	if err := os.Remove(
 		utils.MediaFolder +
