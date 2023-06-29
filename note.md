@@ -12,16 +12,7 @@ go get github.com/volatiletech/sqlboiler/v4
 go get github.com/volatiletech/null/v8
 ```
 
-## SQL Boiler
-
-```
-cd backend
-sqlboiler.exe --wipe --add-global-variants --add-enum-types --no-tests --no-back-referencing --add-soft-deletes --no-auto-timestamps --no-driver-templates --struct-tag-casing=camel -p boiler mysql
-
-sqlboiler --wipe --add-global-variants --add-enum-types --no-tests --no-back-referencing --add-soft-deletes  --struct-tag-casing=camel -p boiler mysql
-```
-
-## MYsql dump
+## MySQL dump
 
 ```
 cd 'C:\Program Files\MySQL\MySQL Server 8.0\bin'
@@ -38,4 +29,39 @@ cd 'C:\Users\nlh\go\src\howto\backend'
 
 cd 'C:\Program Files\MySQL\MySQL Server 8.0\bin'
 .\mysqladmin.exe -u root -p shutdown
+```
+
+## Commands
+
+```
+docker-compose exec app sh
+docker-compose logs -f app
+docker-compose exec db sh
+docker-compose logs -f db
+docker-compose build
+docker-compose down --rmi all --volumes
+```
+
+```
+flutter doctor
+flutter --version
+flutter upgrade
+flutter channel
+flutter devices
+flutter create
+
+flutter build apk --target-platform=android-arm64 --analyze-size
+flutter build bundle
+flutter build iso
+flutter build web
+
+flutter clean
+flutter pub get
+flutter pub upgrade --major-versions
+
+flutter run
+flutter run --release
+flutter run --debug
+
+flutter screenshot
 ```

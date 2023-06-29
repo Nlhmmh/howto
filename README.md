@@ -1,70 +1,48 @@
-# Project Name
-
-HowTo
+# HowTo
 
 ## Description
 
 HowTo is a platform where users can browse howTos. <br/> They can also share their knowledge and make money.
 
-## Language
+## Frontend
 
 ```
-Frontend - Flutter
-Backend - Golang
+Language - Dart
+Framework - Flutter
+Android Application
 ```
 
-## MySQL Docker
+## Backend
 
 ```
-sh db.sh
-Type ...root ....
+Language - Golang
+Framework - Gin
 ```
 
-## Create SqlBoiler
+## Database
 
 ```
-sh sqlboiler.sh
+MySQL
 ```
 
-## Run Backend
+## Commands
 
+### make
 ```
-sh air.sh
+make
 ```
-
+### Backend Golang Server
 ```
-docker-compose exec app sh
-docker-compose logs -f app
-docker-compose exec db sh
-docker-compose logs -f db
-docker-compose build
-docker-compose down --rmi all --volumes
+make air
+```
+### MySQL database
+```
+make db
 ```
 
 ## Run Frontent
-
 ```
-flutter doctor
-flutter --version
-flutter upgrade
-flutter channel
-flutter devices
-flutter create
-
-flutter build apk --target-platform=android-arm64 --analyze-size
-flutter build bundle
-flutter build iso
-flutter build web
-
-flutter clean
-flutter pub get
-flutter pub upgrade --major-versions
-
 flutter run
-flutter run --release
-flutter run --debug
-
-flutter screenshot
 ```
 
 # App Page List

@@ -5,5 +5,5 @@
 # docker exec -it howto-mysql bash -p
 # mysql -u root -p -h 127.0.0.1
 
-docker-compose down --remove-orphans --volumes
-docker-compose up -d
+docker-compose -f ./infra/docker-compose.yaml down --remove-orphans --volumes
+docker-compose -f ./infra/docker-compose.yaml up -d
