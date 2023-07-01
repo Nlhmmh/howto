@@ -2,6 +2,7 @@ package server
 
 import (
 	"backend/config"
+	"backend/logger"
 	"backend/utils"
 	"os"
 
@@ -17,26 +18,26 @@ func RunServer() {
 	config := config.GetConfig()
 
 	// Logging
-	if err := initLogger(config.DeleteLogs); err != nil {
+	if err := logger.Init(config.DeleteLogs); err != nil {
 		panic(err)
 	}
 
 	// Delete Media
 	if config.DeleteMedia {
 		if err := os.RemoveAll(utils.MediaFolder); err != nil {
-			Logger.Err.Panic(err)
+			logger.Err.Panic(err)
 		}
 	}
 
 	// Create Media Folder
 	if err := utils.CreateFolderIfNotExists(utils.MediaFolder); err != nil {
-		Logger.Err.Panic(err)
+		logger.Err.Panic(err)
 	}
 
 	// Open MySQL DB
 	db, err := OpenDB(config.DBInfo)
 	if err != nil {
-		Logger.Err.Panic(err)
+		logger.Err.Panic(err)
 	}
 	boil.SetDB(db)
 	boil.DebugMode = true
@@ -45,7 +46,7 @@ func RunServer() {
 	// gin.SetMode(gin.ReleaseMode)
 	router := gin.Default()
 	router.Use(gin.LoggerWithConfig(gin.LoggerConfig{
-		Output: Logger.LogFile,
+		Output: logger.LogFile,
 	}))
 	router.SetTrustedProxies(nil)
 	routerConfig := cors.DefaultConfig()
@@ -65,7 +66,7 @@ func RunServer() {
 
 	// Run Server
 	if err := router.Run(":" + config.PortNo); err != nil {
-		Logger.Err.Panic(err)
+		logger.Err.Panic(err)
 	}
 
 }

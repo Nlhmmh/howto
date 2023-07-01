@@ -65,3 +65,7 @@ flutter run --debug
 
 flutter screenshot
 ```
+
+```
+curl -i -X GET 'http://localhost:8081/api/content/list'
+```

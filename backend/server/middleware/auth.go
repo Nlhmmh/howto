@@ -23,7 +23,7 @@ func Auth() gin.HandlerFunc {
 		bearerToken := c.GetHeader("Authorization")
 		tokenArray := strings.Split(bearerToken, " ")
 		if len(tokenArray) < 2 {
-			ers.UnAuthorizedResp(c, errors.New("bearer token is wrong"+bearerToken))
+			ers.UnAuthorized.New(errors.New("bearer token is wrong" + bearerToken)).Abort(c)
 			return
 		}
 		token := tokenArray[1]
@@ -31,19 +31,16 @@ func Auth() gin.HandlerFunc {
 		// Validate Token
 		claims, err := auth.ValidateToken(token)
 		if err != nil {
-			ers.UnAuthorizedResp(c, err)
+			ers.UnAuthorized.New(err).Abort(c)
 			return
 		}
 		claimsValue := *claims
 		c.Set("userID", claimsValue.UserID)
 
-		if auth.CheckAdminWhiteList(c.FullPath()) {
-			if claims.Role == "admin" {
-				c.Next()
-			} else {
-				ers.UnAuthorizedResp(c, errors.New("not admin user"))
-				return
-			}
+		// Check Admin List
+		if auth.CheckAdminList(c.FullPath()) && claims.Role != "admin" {
+			ers.UnAuthorized.New(errors.New("not admin user")).Abort(c)
+			return
 		}
 
 		c.Next()

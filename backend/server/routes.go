@@ -52,7 +52,7 @@ func createRoutes(router *gin.Engine) {
 		}
 
 		// File Routes
-		router.MaxMultipartMemory = 8 << 20
+		router.MaxMultipartMemory = 8 << 20 // 8 * 1MB(2 power 20) = 8MB
 		fileGroup := apiGroup.Group("/file")
 		{
 			fileGroup.Static("/media/", "./media")

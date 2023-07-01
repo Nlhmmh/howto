@@ -14,14 +14,14 @@ class FavouritePage extends StatefulWidget {
 }
 
 class _FavouritePageState extends State<FavouritePage> {
-  LoginData _loginData = LoginData();
+  // LoginData _loginData = LoginData();
   List<Content> _ctnList = [];
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) async {
-      final loginData = await UserCtrls.getLoginData();
-      _loginData = loginData;
+      // final loginData = await UserCtrls.getLoginData();
+      // _loginData = loginData;
       setState(() {});
 
       await _fetchContent();

@@ -1,25 +1,22 @@
-package server
+package logger
 
 import (
 	"backend/utils"
+	"io"
 	"log"
 	"os"
 	"time"
 )
 
 var (
-	Logger Log
-)
-
-type Log struct {
 	Info    *log.Logger
 	Warn    *log.Logger
 	Err     *log.Logger
 	LogFile *os.File
-}
+)
 
-// initLogger - Initialize Logger
-func initLogger(deleteLogs bool) error {
+// Init - Initialize Logger
+func Init(deleteLogs bool) error {
 
 	// Delete Logs
 	if deleteLogs {
@@ -38,12 +35,12 @@ func initLogger(deleteLogs bool) error {
 	if err != nil {
 		return err
 	}
-	Logger.LogFile = logFile
+	LogFile = logFile
 
 	// Set Loggers
-	Logger.Info = log.New(logFile, "INFO: ", log.Ldate|log.Ltime|log.Lshortfile)
-	Logger.Warn = log.New(logFile, "WARNING: ", log.Ldate|log.Ltime|log.Lshortfile)
-	Logger.Err = log.New(logFile, "ERROR: ", log.Ldate|log.Ltime|log.Lshortfile)
+	Info = log.New(io.MultiWriter(os.Stdout, logFile), "INFO: ", log.Ldate|log.Ltime|log.Lshortfile)
+	Warn = log.New(io.MultiWriter(os.Stdout, logFile), "WARNING: ", log.Ldate|log.Ltime|log.Lshortfile)
+	Err = log.New(io.MultiWriter(os.Stdout, logFile), "ERROR: ", log.Ldate|log.Ltime|log.Lshortfile)
 
 	return nil
 

@@ -22,7 +22,7 @@ func (o *adminUser) GetAll(c *gin.Context) {
 	// Get All Users
 	users, err := boiler.Users().AllG(c)
 	if err != nil {
-		ers.ServerErrorResp(c, err)
+		ers.InternalServer.New(err).Abort(c)
 		return
 	}
 
@@ -37,14 +37,14 @@ func (o *adminUser) Get(c *gin.Context) {
 	// Get userID
 	userID, err := utils.CheckBlankString(c.Param("userID"))
 	if err != nil {
-		ers.BadRequestResp(c, err)
+		ers.BadRequest.New(err).Abort(c)
 		return
 	}
 
 	// Get User
 	user, err := boiler.FindUserG(c, userID)
 	if err != nil {
-		ers.ServerErrorResp(c, err)
+		ers.InternalServer.New(err).Abort(c)
 		return
 	}
 

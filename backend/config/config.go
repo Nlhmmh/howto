@@ -16,7 +16,7 @@ type Config struct {
 	PortNo          string   `yaml:"portNo"`
 	AllowedOrigins  []string `yaml:"allowedOrigins"`
 	DBInfo          string   `yaml:"dbInfo"`
-	JWTExpiredHours int      `yaml:"jwtExpiredHours"`
+	JWTExpiredHours int64    `yaml:"jwtExpiredHours"`
 }
 
 func init() {

@@ -24,13 +24,13 @@ func (o *file) Upload(c *gin.Context) {
 
 	file, err := c.FormFile("file")
 	if err != nil {
-		ers.BadRequestResp(c, err)
+		ers.BadRequest.New(err).Abort(c)
 		return
 	}
 
 	filePath := strconv.FormatInt(time.Now().Unix(), 10) + "-" + file.Filename
 	if err := c.SaveUploadedFile(file, "./media/"+filePath); err != nil {
-		ers.ServerErrorResp(c, err)
+		ers.InternalServer.New(err).Abort(c)
 		return
 	}
 

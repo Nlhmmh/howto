@@ -27,7 +27,7 @@ var (
 		"/api/content/categories",
 	}
 
-	adminWhiteList = []string{
+	adminList = []string{
 		"/api/admin/user",
 		"/api/admin/user/:userID",
 	}
@@ -37,7 +37,7 @@ var (
 	}
 )
 
-type CustomClaims struct {
+type claims struct {
 	UserID string
 	Role   string
 	jwt.StandardClaims
@@ -63,9 +63,9 @@ func CheckContainWhiteList(path string) bool {
 	return false
 }
 
-// CheckAdminWhiteList - Check if Path exists in Admin WhiteList
-func CheckAdminWhiteList(path string) bool {
-	for _, p := range adminWhiteList {
+// CheckAdminList - Check if Path exists in Admin List
+func CheckAdminList(path string) bool {
+	for _, p := range adminList {
 		if path == p {
 			return true
 		}
@@ -80,7 +80,7 @@ func GenerateToken(userID string, role string) (string, error) {
 	config := config.GetConfig()
 
 	// Create Token
-	claims := CustomClaims{
+	claims := claims{
 		userID,
 		role,
 		jwt.StandardClaims{
@@ -101,12 +101,12 @@ func GenerateToken(userID string, role string) (string, error) {
 }
 
 // ValidateToken - Validate Token
-func ValidateToken(encodedToken string) (*CustomClaims, error) {
+func ValidateToken(encodedToken string) (*claims, error) {
 
 	// Parse JWT
 	token, err := jwt.ParseWithClaims(
 		encodedToken,
-		&CustomClaims{},
+		&claims{},
 		func(token *jwt.Token) (interface{}, error) {
 			return []byte(jwtSecureKey), nil
 		},
@@ -120,6 +120,6 @@ func ValidateToken(encodedToken string) (*CustomClaims, error) {
 		return nil, errors.New("token is invalid")
 	}
 
-	return token.Claims.(*CustomClaims), nil
+	return token.Claims.(*claims), nil
 
 }
