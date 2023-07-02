@@ -26,6 +26,8 @@ Features
 5. sqlBoiler (MySQL)
 6. Error Handling
 7. JWT Authentication
+8. CI
+9. TLS (SSL) https
 ```
 
 ## Database

@@ -91,7 +91,10 @@ func (s *server) Run() error {
 
 	logger.Info.Printf("Server listening on %s", s.srv.Addr)
 
-	if err := s.srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+	if err := s.srv.ListenAndServeTLS(
+		utils.CertsFile,
+		utils.CertsKeyFile,
+	); err != nil && err != http.ErrServerClosed {
 		return err
 	}
 

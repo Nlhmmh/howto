@@ -13,7 +13,9 @@ func main() {
 
 	svc := server.Init()
 	go func() {
-		svc.Run()
+		if err := svc.Run(); err != nil {
+			panic(err)
+		}
 	}()
 
 	// Graceful shutdown

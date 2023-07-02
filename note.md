@@ -67,5 +67,10 @@ flutter screenshot
 ```
 
 ```
-curl -i -X GET 'http://localhost:8081/api/content/list'
+curl -k -X GET 'https://localhost:8081/api/content/list'
+```
+
+```
+openssl req -x509 -newkey rsa:4096 -days 365 -nodes -keyout key.pem -out cert.pem
+openssl rsa -in key.pem -out key.pem
 ```
