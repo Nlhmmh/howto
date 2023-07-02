@@ -5,8 +5,8 @@ import (
 	"time"
 )
 
-// OpenDB - open MySQL database.
-func OpenDB(dbSource string) (*sql.DB, error) {
+// initDB - open MySQL database.
+func initDB(dbSource string) (*sql.DB, error) {
 
 	db, err := sql.Open("mysql", dbSource)
 	if err != nil {

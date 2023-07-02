@@ -31,12 +31,14 @@ type ErrResp struct {
 
 func (e ErrResp) New(err error) *ErrResp {
 	e.error = err
+	e.Error = err.Error()
 	return &e
 }
 
 func (e ErrResp) Abort(c *gin.Context) {
-	e.Error = e.error.Error()
+	// Print StackTrace
 	logger.Err.Println(wrap(e.error).Error())
+	// Abort
 	c.AbortWithStatusJSON(e.statusCode, e)
 }
 

@@ -13,7 +13,7 @@ var (
 type Config struct {
 	DeleteMedia     bool     `yaml:"deleteMedia"`
 	DeleteLogs      bool     `yaml:"deleteLogs"`
-	PortNo          string   `yaml:"portNo"`
+	PortNo          int64    `yaml:"portNo"`
 	AllowedOrigins  []string `yaml:"allowedOrigins"`
 	DBInfo          string   `yaml:"dbInfo"`
 	JWTExpiredHours int64    `yaml:"jwtExpiredHours"`

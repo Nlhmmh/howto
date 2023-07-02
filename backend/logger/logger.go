@@ -9,10 +9,10 @@ import (
 )
 
 var (
-	Info    *log.Logger
-	Warn    *log.Logger
-	Err     *log.Logger
-	LogFile *os.File
+	Info   *log.Logger
+	Warn   *log.Logger
+	Err    *log.Logger
+	Writer io.Writer
 )
 
 // Init - Initialize Logger
@@ -35,12 +35,12 @@ func Init(deleteLogs bool) error {
 	if err != nil {
 		return err
 	}
-	LogFile = logFile
+	Writer = io.MultiWriter(os.Stdout, logFile)
 
 	// Set Loggers
-	Info = log.New(io.MultiWriter(os.Stdout, logFile), "INFO: ", log.Ldate|log.Ltime|log.Lshortfile)
-	Warn = log.New(io.MultiWriter(os.Stdout, logFile), "WARNING: ", log.Ldate|log.Ltime|log.Lshortfile)
-	Err = log.New(io.MultiWriter(os.Stdout, logFile), "ERROR: ", log.Ldate|log.Ltime|log.Lshortfile)
+	Info = log.New(Writer, "INFO: ", log.Ldate|log.Ltime|log.Lshortfile)
+	Warn = log.New(Writer, "WARNING: ", log.Ldate|log.Ltime|log.Lshortfile)
+	Err = log.New(Writer, "ERROR: ", log.Ldate|log.Ltime|log.Lshortfile)
 
 	return nil
 

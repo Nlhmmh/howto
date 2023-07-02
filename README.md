@@ -17,6 +17,15 @@ Android Application
 ```
 Language - Golang
 Framework - Gin
+
+Features
+1. Hot Reload (air)
+2. Graceful Shutdown
+3. Logging (both stdout and log file)
+4. Config File
+5. sqlBoiler (MySQL)
+6. Error Handling
+7. JWT Authentication
 ```
 
 ## Database

@@ -7,7 +7,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func createRoutes(router *gin.Engine) {
+func initRoutes(router *gin.Engine) {
 
 	// API Routes
 	apiGroup := router.Group("/api")

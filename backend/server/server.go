@@ -4,7 +4,11 @@ import (
 	"backend/config"
 	"backend/logger"
 	"backend/utils"
+	"context"
+	"fmt"
+	"net/http"
 	"os"
+	"time"
 
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
@@ -12,7 +16,15 @@ import (
 	"github.com/volatiletech/sqlboiler/v4/boil"
 )
 
-func RunServer() {
+const (
+	serverTimeOut time.Duration = 5 * time.Second
+)
+
+type server struct {
+	srv *http.Server
+}
+
+func Init() *server {
 
 	// Get Config
 	config := config.GetConfig()
@@ -35,19 +47,21 @@ func RunServer() {
 	}
 
 	// Open MySQL DB
-	db, err := OpenDB(config.DBInfo)
+	db, err := initDB(config.DBInfo)
 	if err != nil {
 		logger.Err.Panic(err)
 	}
 	boil.SetDB(db)
 	boil.DebugMode = true
+	boil.DebugWriter = logger.Writer
 
 	// Set Server
 	// gin.SetMode(gin.ReleaseMode)
-	router := gin.Default()
-	router.Use(gin.LoggerWithConfig(gin.LoggerConfig{
-		Output: logger.LogFile,
-	}))
+	router := gin.New()
+	router.Use(
+		gin.Recovery(),
+		gin.LoggerWithConfig(gin.LoggerConfig{Output: logger.Writer}),
+	)
 	router.SetTrustedProxies(nil)
 	routerConfig := cors.DefaultConfig()
 	routerConfig.AllowOrigins = config.AllowedOrigins
@@ -62,11 +76,40 @@ func RunServer() {
 	router.Use(cors.New(routerConfig))
 
 	// API Routes
-	createRoutes(router)
+	initRoutes(router)
 
-	// Run Server
-	if err := router.Run(":" + config.PortNo); err != nil {
-		logger.Err.Panic(err)
+	return &server{
+		srv: &http.Server{
+			Addr:    fmt.Sprintf(":%d", config.PortNo),
+			Handler: router,
+		},
 	}
+
+}
+
+func (s *server) Run() error {
+
+	logger.Info.Printf("Server listening on %s", s.srv.Addr)
+
+	if err := s.srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+		return err
+	}
+
+	return nil
+
+}
+
+func (s *server) Shutdown() {
+
+	logger.Info.Printf("Server shutting down...")
+
+	ctx, cancel := context.WithTimeout(context.Background(), serverTimeOut)
+	defer cancel()
+
+	if err := s.srv.Shutdown(ctx); err != nil {
+		logger.Info.Fatal(err)
+	}
+
+	logger.Info.Printf("Server terminated")
 
 }
